@@ -1,0 +1,7 @@
+{
+  "name": "getRandomQuestion",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.18.0"
+  }
+}

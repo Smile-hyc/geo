@@ -1,0 +1,34 @@
+{
+  "envId": "geoannotate-5g8zmuwzf8181f98",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "getRandomQuestion",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "createQuestion",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "submitAnswer",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "listSubmissions",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    }
+  ]
+}

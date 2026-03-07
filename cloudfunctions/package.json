@@ -1,0 +1,5 @@
+{
+  "name": "geoannotate-cloudfunctions",
+  "private": true,
+  "description": "CloudBase 云函数，部署时在控制台为每个函数单独安装依赖：npm install @cloudbase/node-sdk"
+}
