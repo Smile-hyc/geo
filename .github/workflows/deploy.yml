@@ -1,0 +1,50 @@
+name: Deploy to Tencent CloudBase
+
+# 设定触发条件：只要代码推送到 main 分支，就开始自动部署
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 机器人把你的代码下载到它的虚拟服务器上
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. 机器人安装 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # 3. 机器人打包你的前端网页（假设你用的是 Next.js 等框架，产物在 out 或 dist 文件夹）
+      - name: Build Frontend
+        run: |
+          npm install
+          npm run build
+
+      # 4. 机器人安装腾讯云命令行工具
+      - name: Install CloudBase CLI
+        run: npm install -g @cloudbase/cli
+
+      # 5. 机器人用你给的钥匙静默登录腾讯云
+      - name: Login to Tencent Cloud
+        run: tcb login --apiKeyId ${{ secrets.SECRET_ID }} --apiKeySecret ${{ secrets.SECRET_KEY }}
+
+      # 6. 机器人自动部署后端云函数
+      - name: Deploy Backend Functions
+        run: |
+          cd cloudfunctions/getRandomQuestion && npm install @cloudbase/node-sdk@latest
+          cd ../createQuestion && npm install @cloudbase/node-sdk@latest
+          cd ../submitAnswer && npm install @cloudbase/node-sdk@latest
+          cd ../listSubmissions && npm install @cloudbase/node-sdk@latest
+          cd ../..
+          tcb fn deploy -e ${{ secrets.ENV_ID }}
+
+      # 7. 机器人自动部署前端网页到静态托管（把 ./out 替换为你的实际打包文件夹，比如 ./dist）
+      - name: Deploy Frontend Hosting
+        run: tcb hosting deploy ./out -e ${{ secrets.ENV_ID }}
