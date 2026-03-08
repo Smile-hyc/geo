@@ -33,7 +33,7 @@ jobs:
 
       # 5. 机器人用你给的钥匙静默登录腾讯云
       - name: Login to Tencent Cloud
-        run: tcb login --apiKeyId ${{ secrets.SECRET_ID }} --apiKeySecret ${{ secrets.SECRET_KEY }}
+        run: tcb login --apiKeyId ${{ secrets.SECRET_ID }} --apiKey ${{ secrets.SECRET_KEY }}
 
       # 6. 机器人自动部署后端云函数
       - name: Deploy Backend Functions
