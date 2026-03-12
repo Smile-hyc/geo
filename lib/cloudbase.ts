@@ -22,17 +22,28 @@ export function getAuth() {
 
 /** CloudBase Auth：邮箱登录 */
 export async function signInWithEmail(email: string, password: string) {
-  const auth = getAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (auth as any).signInWithEmailAndPassword(email, password);
+  const auth = getAuth() as any;
+  const result = await auth.signInWithPassword({ email, password });
+  if (result?.error) {
+    throw new Error(result.error.message || "登录失败，请检查邮箱和密码");
+  }
   return auth.getLoginState();
 }
 
 /** CloudBase Auth：邮箱注册 */
 export async function signUpWithEmail(email: string, password: string) {
-  const auth = getAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (auth as any).signUpWithEmailAndPassword(email, password);
+  const auth = getAuth() as any;
+  const result = await auth.signUp({ email, password });
+  if (result?.error) {
+    throw new Error(result.error.message || "注册失败，请重试");
+  }
+  // 注册后立即登录获取 session
+  const signInResult = await auth.signInWithPassword({ email, password });
+  if (signInResult?.error) {
+    throw new Error("注册成功！请返回登录页面登录");
+  }
   return auth.getLoginState();
 }
 
