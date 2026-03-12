@@ -33,20 +33,31 @@ export async function signInWithEmail(email: string, password: string) {
   return auth.getLoginState();
 }
 
-/** CloudBase Auth：邮箱注册 */
-export async function signUpWithEmail(email: string, password: string) {
+/** CloudBase Auth：邮箱注册第一步 - 发送验证码，返回 verifyOtp 回调（null 表示无需验证直接已登录） */
+export async function signUpWithEmail(
+  email: string,
+  password: string
+): Promise<{ verifyOtp: ((token: string) => Promise<void>) | null }> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const auth = getAuth() as any;
   const result = await auth.signUp({ email, password });
   if (result?.error) {
-    throw new Error(result.error.message || "注册失败，请重试");
+    const msg = result.error.message || "注册失败，请重试";
+    throw new Error(msg);
   }
-  // 注册后立即登录获取 session
-  const signInResult = await auth.signInWithPassword({ email, password });
-  if (signInResult?.error) {
-    throw new Error("注册成功！请返回登录页面登录");
+
+  if (result?.data?.verifyOtp) {
+    const originalVerify = result.data.verifyOtp;
+    const verifyOtp = async (token: string) => {
+      const r = await originalVerify({ email, token, type: "signup" });
+      if (r?.error) throw new Error(r.error.message || "验证码错误，请重试");
+    };
+    return { verifyOtp };
   }
-  return auth.getLoginState();
+
+  // 无需 OTP，尝试直接登录
+  await auth.signInWithPassword({ email, password });
+  return { verifyOtp: null };
 }
 
 /** CloudBase Auth：退出登录 */
