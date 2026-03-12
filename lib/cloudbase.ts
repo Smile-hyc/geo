@@ -26,7 +26,9 @@ export async function signInWithEmail(email: string, password: string) {
   const auth = getAuth() as any;
   const result = await auth.signInWithPassword({ email, password });
   if (result?.error) {
-    throw new Error(result.error.message || "登录失败，请检查邮箱和密码");
+    const code = result.error.code || result.error.status || "";
+    const msg = result.error.message || result.error.msg || "登录失败";
+    throw new Error(code ? `[${code}] ${msg}` : msg);
   }
   return auth.getLoginState();
 }
