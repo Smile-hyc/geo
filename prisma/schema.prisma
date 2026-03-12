@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  cloudbase_uid  String   @unique
+  username       String
+  email          String   @unique
+  role           String   @default("user")
+  points_balance Int      @default(0)
+  level          Int      @default(1)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  annotations  AnnotationRecord[]
+  battles      BattleSession[]
+  pointsLedger PointsLedger[]
+
+  @@map("users")
+}
+
+model ImageAsset {
+  id            Int      @id @default(autoincrement())
+  storage_url   String
+  lat           Float?
+  lng           Float?
+  true_location String
+  mode_tags     String[] @default([])
+  difficulty    Int      @default(1)
+  created_at    DateTime @default(now())
+
+  annotations AnnotationRecord[]
+  battleRounds BattleRound[]
+
+  @@map("image_assets")
+}
+
+model AnnotationRecord {
+  id                  Int      @id @default(autoincrement())
+  user_id             Int
+  image_id            Int
+  mode_type           String
+  annotation_type     String   @default("bbox")
+  thought_text        String?
+  final_answer        String?
+  confidence          Int      @default(50)
+  annotated_image_url String?
+  quality_status      String   @default("pending")
+  reward_granted      Boolean  @default(false)
+  created_at          DateTime @default(now())
+
+  user   User       @relation(fields: [user_id], references: [id])
+  image  ImageAsset @relation(fields: [image_id], references: [id])
+  bboxes AnnotationBBox[]
+
+  @@map("annotation_records")
+}
+
+model AnnotationBBox {
+  id          Int    @id @default(autoincrement())
+  record_id   Int
+  x           Float
+  y           Float
+  width       Float
+  height      Float
+  label_type  String
+  explanation String?
+
+  record AnnotationRecord @relation(fields: [record_id], references: [id])
+
+  @@map("annotation_bboxes")
+}
+
+model BattleSession {
+  id               Int      @id @default(autoincrement())
+  user_id          Int
+  ai_model_id      String   @default("mock-v1")
+  mode_type        String
+  time_limit_sec   Int      @default(30)
+  round_count      Int      @default(5)
+  user_total_score Int      @default(0)
+  ai_total_score   Int      @default(0)
+  winner           String?
+  status           String   @default("active")
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  user   User          @relation(fields: [user_id], references: [id])
+  rounds BattleRound[]
+
+  @@map("battle_sessions")
+}
+
+model BattleRound {
+  id             Int    @id @default(autoincrement())
+  session_id     Int
+  round_index    Int
+  image_id       Int
+  user_guess_lat Float?
+  user_guess_lng Float?
+  ai_guess_lat   Float?
+  ai_guess_lng   Float?
+  user_score     Int    @default(0)
+  ai_score       Int    @default(0)
+  completed      Boolean @default(false)
+
+  session BattleSession @relation(fields: [session_id], references: [id])
+  image   ImageAsset    @relation(fields: [image_id], references: [id])
+
+  @@map("battle_rounds")
+}
+
+model PointsLedger {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  change_amount  Int
+  balance_after  Int
+  reason_type    String
+  created_at     DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("points_ledger")
+}

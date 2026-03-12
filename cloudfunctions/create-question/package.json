@@ -1,0 +1,8 @@
+{
+  "name": "create-question",
+  "main": "index.js",
+  "dependencies": {
+    "pg": "^8.11.3",
+    "@cloudbase/node-sdk": "^3.18.0"
+  }
+}

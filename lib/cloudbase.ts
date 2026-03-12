@@ -7,12 +7,43 @@ const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID || "";
 
 let app: cloudbase.app.App | null = null;
 
-function getApp(): cloudbase.app.App {
+export function getApp(): cloudbase.app.App {
   if (!app) {
     if (!envId) throw new Error("NEXT_PUBLIC_CLOUDBASE_ENV_ID 未配置");
     app = cloudbase.init({ env: envId });
   }
   return app;
+}
+
+/** 获取 Auth 实例 */
+export function getAuth() {
+  return getApp().auth({ persistence: "local" });
+}
+
+/** CloudBase Auth：邮箱登录 */
+export async function signInWithEmail(email: string, password: string) {
+  const auth = getAuth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (auth as any).signInWithEmailAndPassword(email, password);
+  return auth.getLoginState();
+}
+
+/** CloudBase Auth：邮箱注册 */
+export async function signUpWithEmail(email: string, password: string) {
+  const auth = getAuth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (auth as any).signUpWithEmailAndPassword(email, password);
+  return auth.getLoginState();
+}
+
+/** CloudBase Auth：退出登录 */
+export async function signOut() {
+  await getAuth().signOut();
+}
+
+/** CloudBase Auth：获取当前登录状态 */
+export async function getLoginState() {
+  return getAuth().getLoginState();
 }
 
 /** 调用云函数 */
@@ -27,7 +58,141 @@ export async function callFunction<T = unknown>(
   throw new Error((res as { errMsg?: string }).errMsg || "云函数调用失败");
 }
 
-/** 获取随机一题（不包含答案） */
+/** 同步用户信息到 PostgreSQL */
+export async function syncUserToDb(params: {
+  username: string;
+  email: string;
+}): Promise<{ user_id: number }> {
+  return callFunction("auth-sync", params);
+}
+
+/** 获取下一个标注任务 */
+export async function getNextTask(params?: {
+  mode?: string;
+}): Promise<{ task: { id: number; storage_url: string; mode_tags: string[]; difficulty: number } | null }> {
+  return callFunction("get-next-task", params || {});
+}
+
+/** 提交标注 */
+export async function submitAnnotation(params: {
+  image_id: number;
+  mode_type: string;
+  thought_text: string;
+  final_answer: string;
+  confidence: number;
+  annotated_image_base64?: string;
+  bboxes?: Array<{
+    x: number; y: number; width: number; height: number;
+    label_type: string; explanation?: string;
+  }>;
+}): Promise<{ record_id: number; reward: number }> {
+  return callFunction("submit-annotation", params);
+}
+
+/** 管理员：创建题目（原图 Base64 + 真实地点） */
+export async function createQuestion(params: {
+  original_image_base64: string;
+  true_location: string;
+  lat?: number;
+  lng?: number;
+  mode_tags?: string[];
+  difficulty?: number;
+}): Promise<{ question_id: number }> {
+  return callFunction("create-question", params);
+}
+
+/** 获取用户信息 */
+export async function getUserProfile(): Promise<{
+  user: {
+    id: number; username: string; email: string; role: string;
+    points_balance: number; level: number;
+    annotation_count: number; battle_count: number;
+  }
+}> {
+  return callFunction("get-user-profile", {});
+}
+
+/** 获取排行榜 */
+export async function getLeaderboard(params?: {
+  limit?: number;
+}): Promise<{
+  leaderboard: Array<{ rank: number; username: string; points_balance: number; level: number }>
+}> {
+  return callFunction("get-leaderboard", params || {});
+}
+
+/** 创建对战 Session */
+export async function createBattle(params: {
+  mode_type: string;
+  time_limit_sec: number;
+  round_count: number;
+}): Promise<{ session_id: number }> {
+  return callFunction("create-battle", params);
+}
+
+/** 提交对战轮次猜测 */
+export async function submitBattleRound(params: {
+  session_id: number;
+  round_index: number;
+  user_guess_lat: number;
+  user_guess_lng: number;
+}): Promise<{
+  user_score: number;
+  ai_score: number;
+  true_lat: number;
+  true_lng: number;
+  distance_km: number;
+  session_ended: boolean;
+}> {
+  return callFunction("submit-battle-round", params);
+}
+
+/** 获取对战结果 */
+export async function getBattleResult(params: {
+  session_id: number;
+}): Promise<{
+  session: {
+    id: number; mode_type: string; user_total_score: number;
+    ai_total_score: number; winner: string; round_count: number;
+  };
+  rounds: Array<{
+    round_index: number; image_storage_url: string;
+    user_guess_lat: number; user_guess_lng: number;
+    ai_guess_lat: number; ai_guess_lng: number;
+    user_score: number; ai_score: number;
+    true_lat: number; true_lng: number;
+  }>;
+}> {
+  return callFunction("get-battle-result", params);
+}
+
+/** 管理员：获取标注记录列表 */
+export async function listSubmissions(params?: {
+  limit?: number;
+  offset?: number;
+  quality_status?: string;
+}): Promise<{
+  submissions: Array<{
+    id: number; username: string; mode_type: string;
+    thought_text: string; final_answer: string;
+    quality_status: string; created_at: string;
+    image_storage_url: string;
+  }>;
+  total: number;
+}> {
+  return callFunction("list-submissions", params || {});
+}
+
+/** 获取云存储文件的临时访问 URL（用于展示图片） */
+export function getTempFileURL(fileID: string): Promise<{ tempFileURL: string }> {
+  return getApp().getTempFileURL({ fileList: [fileID] }).then((res) => {
+    const item = res.fileList?.[0];
+    if (item?.tempFileURL) return { tempFileURL: item.tempFileURL };
+    throw new Error((item as { message?: string })?.message || "获取临时链接失败");
+  });
+}
+
+/** 获取随机一题（兼容旧版） */
 export async function getRandomQuestion(): Promise<QuestionPublic | null> {
   const result = await callFunction<{ question: QuestionPublic | null }>(
     "getRandomQuestion"
@@ -35,25 +200,8 @@ export async function getRandomQuestion(): Promise<QuestionPublic | null> {
   return result.question;
 }
 
-/** 提交答案（前端传 Base64，由云函数上传存储并写库） */
-export async function submitAnswer(params: {
-  question_id: string;
-  annotated_image_base64: string;
-  thought_process: string;
-}): Promise<{ submission_id: string }> {
-  return callFunction("submitAnswer", params);
-}
-
-/** 管理员：创建题目（原图 Base64 + 真实地点） */
-export async function createQuestion(params: {
-  original_image_base64: string;
-  true_location: string;
-}): Promise<{ question_id: string }> {
-  return callFunction("createQuestion", params);
-}
-
-/** 管理员：获取提交列表 */
-export async function listSubmissions(params?: {
+/** 管理员：获取提交列表（兼容旧版） */
+export async function listSubmissionsLegacy(params?: {
   limit?: number;
   offset?: number;
   question_id?: string;
@@ -65,11 +213,11 @@ export async function listSubmissions(params?: {
   return result;
 }
 
-/** 获取云存储文件的临时访问 URL（用于展示图片） */
-export function getTempFileURL(fileID: string): Promise<{ tempFileURL: string }> {
-  return getApp().getTempFileURL({ fileList: [fileID] }).then((res) => {
-    const item = res.fileList?.[0];
-    if (item?.tempFileURL) return { tempFileURL: item.tempFileURL };
-    throw new Error((item as { message?: string })?.message || "获取临时链接失败");
-  });
+/** 提交答案（兼容旧版 PlayContent） */
+export async function submitAnswer(params: {
+  question_id: string;
+  annotated_image_base64: string;
+  thought_process: string;
+}): Promise<{ submission_id: string }> {
+  return callFunction("submitAnswer", params);
 }

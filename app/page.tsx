@@ -1,28 +1,56 @@
-import Link from "next/link";
+"use client";
 
-export default function HomePage() {
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { MapPin, Loader2 } from "lucide-react";
+import { useAuthStore } from "@/lib/auth";
+import { getLoginState } from "@/lib/cloudbase";
+
+export default function RootPage() {
+  const router = useRouter();
+  const { user, setUser, setLoading } = useAuthStore();
+
+  useEffect(() => {
+    const check = async () => {
+      if (user) {
+        router.replace("/home");
+        return;
+      }
+      try {
+        const loginState = await getLoginState();
+        if (loginState) {
+          const uid = loginState.user.uid ?? "unknown";
+          setUser({
+            uid,
+            email: "",
+            username: uid.substring(0, 8),
+            role: "user",
+            points_balance: 0,
+            level: 1,
+          });
+          router.replace("/home");
+        } else {
+          router.replace("/login");
+        }
+      } catch {
+        router.replace("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+    check();
+  }, [user, router, setUser, setLoading]);
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-8 p-6">
-      <h1 className="text-3xl font-semibold text-foreground tracking-tight">
-        GeoAnnotate
-      </h1>
-      <p className="text-muted-foreground text-center max-w-md">
-        地理图片推理与标注 · 数据收集
-      </p>
-      <nav className="flex gap-4">
-        <Link
-          href="/play"
-          className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition"
-        >
-          开始答题
-        </Link>
-        <Link
-          href="/admin"
-          className="inline-flex items-center justify-center rounded-lg border border-border bg-card px-6 py-3 text-sm font-medium text-foreground hover:bg-accent transition"
-        >
-          管理后台
-        </Link>
-      </nav>
-    </main>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-muted-foreground">
+      <div className="flex items-center gap-3">
+        <MapPin className="h-8 w-8 text-primary animate-pulse" />
+        <span className="text-xl font-semibold text-foreground">GeoAnnotate</span>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>加载中…</span>
+      </div>
+    </div>
   );
 }

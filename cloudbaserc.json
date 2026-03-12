@@ -29,6 +29,76 @@
       "runtime": "Nodejs16.13",
       "installDependency": true,
       "handler": "index.main"
+    },
+    {
+      "name": "auth-sync",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-next-task",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "submit-annotation",
+      "timeout": 30,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "create-question",
+      "timeout": 30,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-user-profile",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-leaderboard",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "create-battle",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "submit-battle-round",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-battle-result",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "list-submissions",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
     }
   ]
 }

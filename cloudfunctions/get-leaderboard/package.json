@@ -1,0 +1,8 @@
+{
+  "name": "get-leaderboard",
+  "main": "index.js",
+  "dependencies": {
+    "pg": "^8.11.3",
+    "ioredis": "^5.3.2"
+  }
+}
