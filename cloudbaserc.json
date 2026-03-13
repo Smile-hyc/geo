@@ -120,6 +120,13 @@
       "runtime": "Nodejs16.13",
       "installDependency": true,
       "handler": "index.main"
+    },
+    {
+      "name": "get-user-history",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
     }
   ]
 }
