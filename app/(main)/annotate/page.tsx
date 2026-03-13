@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BBoxCanvas, { type BBox } from "@/components/annotation/BBoxCanvas";
 import ThoughtInput, { type ThoughtData } from "@/components/annotation/ThoughtInput";
 import { getNextTask, submitAnnotation, getTempFileURL } from "@/lib/cloudbase";
+import { useAuthStore } from "@/lib/auth";
 
 const MapPicker = dynamic(() => import("@/components/map/MapPicker"), { ssr: false });
 
@@ -22,6 +23,7 @@ interface Task {
 const INIT_THOUGHT: ThoughtData = { thought_text: "", final_answer: "", confidence: 50 };
 
 export default function AnnotatePage() {
+  const user = useAuthStore((s) => s.user);
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +80,8 @@ export default function AnnotatePage() {
         thought_text: thought.thought_text,
         final_answer: thought.final_answer,
         confidence: thought.confidence,
+        cloudbase_uid: user?.uid,
+        email: user?.email,
         bboxes: bboxes.map((b) => ({
           x: b.x, y: b.y, width: b.width, height: b.height,
           label_type: b.label_type, explanation: b.explanation,

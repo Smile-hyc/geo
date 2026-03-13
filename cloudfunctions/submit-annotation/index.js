@@ -50,15 +50,23 @@ exports.main = async (event, context) => {
       return { errMsg: "缺少必要参数" };
     }
 
-    const cloudbase_uid = context?.userInfo?.openId || context?.userInfo?.uid || "";
+    const ctxUid =
+      context?.userInfo?.openId ||
+      context?.userInfo?.uid ||
+      context?.userInfo?.user_id ||
+      context?.userInfo?.sub ||
+      "";
+    const clientUid = data.cloudbase_uid && String(data.cloudbase_uid).trim();
+    const clientEmail = data.email && String(data.email).trim();
+    const cloudbase_uid = ctxUid || clientUid || clientEmail || "";
     if (!cloudbase_uid) return { errMsg: "未登录" };
 
     const db = getPool();
     const client = await db.connect();
     try {
       const userResult = await client.query(
-        "SELECT id, points_balance FROM users WHERE cloudbase_uid = $1",
-        [cloudbase_uid]
+        "SELECT id, points_balance FROM users WHERE cloudbase_uid = $1 OR email = $2",
+        [cloudbase_uid, clientEmail || cloudbase_uid]
       );
       if (userResult.rows.length === 0) return { errMsg: "用户不存在，请先同步账号" };
       const user = userResult.rows[0];

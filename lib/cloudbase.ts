@@ -104,6 +104,8 @@ export async function submitAnnotation(params: {
   thought_text: string;
   final_answer: string;
   confidence: number;
+  cloudbase_uid?: string;
+  email?: string;
   annotated_image_base64?: string;
   bboxes?: Array<{
     x: number; y: number; width: number; height: number;
