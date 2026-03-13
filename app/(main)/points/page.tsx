@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Coins, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { callFunction } from "@/lib/cloudbase";
+import { useAuthStore } from "@/lib/auth";
 
 interface LedgerEntry {
   id: number;
@@ -21,19 +22,23 @@ const REASON_LABELS: Record<string, string> = {
 };
 
 export default function PointsPage() {
+  const user = useAuthStore((s) => s.user);
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    callFunction<{ entries: LedgerEntry[]; total_earned: number }>("get-points-history", {})
+    callFunction<{ entries: LedgerEntry[]; total_earned: number }>("get-points-history", {
+      cloudbase_uid: user?.uid,
+      email: user?.email,
+    })
       .then((res) => setEntries(res.entries ?? []))
       .catch((e) => {
         setError(e instanceof Error ? e.message : "加载积分记录失败");
         setEntries([]);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [user?.uid, user?.email]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
