@@ -106,6 +106,20 @@
       "runtime": "Nodejs16.13",
       "installDependency": true,
       "handler": "index.main"
+    },
+    {
+      "name": "get-admin-stats",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "delete-image",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
     }
   ]
 }

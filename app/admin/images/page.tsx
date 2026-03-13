@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createQuestion, getTempFileURL, callFunction } from "@/lib/cloudbase";
+import { createQuestion, deleteImage, getTempFileURL, callFunction } from "@/lib/cloudbase";
 
 const MODE_OPTIONS = ["general", "urban", "nature", "landmark"];
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -107,6 +107,16 @@ export default function AdminImagesPage() {
       setUploadError(e instanceof Error ? e.message : "上传失败");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("确认删除该图片？此操作不可撤销。")) return;
+    try {
+      await deleteImage(id);
+      setImages((prev) => prev.filter((img) => img.id !== id));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "删除失败");
     }
   };
 
@@ -213,12 +223,19 @@ export default function AdminImagesPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {images.map((img) => (
               <Card key={img.id} className="overflow-hidden">
-                <div className="aspect-video bg-accent/20 overflow-hidden">
+                <div className="aspect-video bg-accent/20 overflow-hidden relative group">
                   {img.tempUrl ? (
                     <img src={img.tempUrl} alt={img.true_location} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">无法加载</div>
                   )}
+                  <button
+                    onClick={() => handleDelete(img.id)}
+                    className="absolute top-1 right-1 bg-black/60 hover:bg-destructive text-white rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="删除图片"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
                 </div>
                 <CardContent className="p-2 space-y-1">
                   <p className="text-xs font-medium truncate">{img.true_location}</p>

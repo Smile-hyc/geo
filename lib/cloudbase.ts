@@ -125,6 +125,11 @@ export async function createQuestion(params: {
   return callFunction("create-question", params);
 }
 
+/** 管理员：删除图片 */
+export async function deleteImage(image_id: number): Promise<{ success: boolean }> {
+  return callFunction("delete-image", { image_id });
+}
+
 /** 获取用户信息 */
 export async function getUserProfile(): Promise<{
   user: {
