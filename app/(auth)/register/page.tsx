@@ -91,14 +91,14 @@ export default function RegisterPage() {
     const loginState = await getLoginState();
     if (!loginState) throw new Error("登录状态获取失败，请重新登录");
     const uid = loginState.user.uid ?? email;
-    await syncUserToDb({ username, email });
+    const dbUser = await syncUserToDb({ username, email });
     setUser({
       uid,
       email,
-      username,
-      role: "user",
-      points_balance: 0,
-      level: 1,
+      username: dbUser.username || username,
+      role: dbUser.role || "user",
+      points_balance: dbUser.points_balance ?? 0,
+      level: dbUser.level ?? 1,
     });
     router.push("/home");
   };

@@ -86,7 +86,7 @@ export async function callFunction<T = unknown>(
 export async function syncUserToDb(params: {
   username: string;
   email: string;
-}): Promise<{ user_id: number }> {
+}): Promise<{ user_id: number; role: string; username: string; points_balance: number; level: number }> {
   return callFunction("auth-sync", params);
 }
 

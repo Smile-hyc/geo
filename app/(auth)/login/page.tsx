@@ -38,19 +38,18 @@ export default function LoginPage() {
       if (!loginState) throw new Error("登录失败");
       const uid = loginState.user.uid ?? data.email;
       const email = data.email;
-      const { user_id } = await syncUserToDb({
+      const dbUser = await syncUserToDb({
         username: email.split("@")[0],
         email,
       });
       setUser({
         uid,
         email,
-        username: email.split("@")[0],
-        role: "user",
-        points_balance: 0,
-        level: 1,
+        username: dbUser.username || email.split("@")[0],
+        role: dbUser.role || "user",
+        points_balance: dbUser.points_balance ?? 0,
+        level: dbUser.level ?? 1,
       });
-      void user_id;
       router.push("/home");
     } catch (e) {
       setError(e instanceof Error ? e.message : "登录失败，请重试");

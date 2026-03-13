@@ -28,10 +28,17 @@ exports.main = async (event, context) => {
          SET username = EXCLUDED.username,
              email = EXCLUDED.email,
              updated_at = NOW()
-       RETURNING id`,
+       RETURNING id, role, username, points_balance, level`,
       [cloudbase_uid, username || email.split("@")[0], email]
     );
-    return { user_id: result.rows[0].id };
+    const row = result.rows[0];
+    return {
+      user_id: row.id,
+      role: row.role,
+      username: row.username,
+      points_balance: row.points_balance,
+      level: row.level,
+    };
   } catch (err) {
     return { errMsg: err.message || "数据库操作失败" };
   } finally {
