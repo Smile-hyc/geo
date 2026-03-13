@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
-import { getLoginState } from "@/lib/cloudbase";
+import { getLoginState, syncUserToDb, getUserProfile } from "@/lib/cloudbase";
 
 export default function RootPage() {
   const router = useRouter();
@@ -20,14 +20,45 @@ export default function RootPage() {
         const loginState = await getLoginState();
         if (loginState) {
           const uid = loginState.user.uid ?? "unknown";
-          setUser({
-            uid,
-            email: "",
-            username: uid.substring(0, 8),
-            role: "user",
-            points_balance: 0,
-            level: 1,
-          });
+          const email = (loginState.user as { email?: string }).email ?? "";
+          const fallbackUsername = email ? email.split("@")[0] : uid.substring(0, 8);
+
+          try {
+            const dbUser = await syncUserToDb({
+              username: fallbackUsername,
+              email: email || uid,
+              cloudbase_uid: uid,
+            });
+            setUser({
+              uid,
+              email: email || uid,
+              username: dbUser.username || fallbackUsername,
+              role: dbUser.role || "user",
+              points_balance: dbUser.points_balance ?? 0,
+              level: dbUser.level ?? 1,
+            });
+          } catch {
+            const profileRes = await getUserProfile({ cloudbase_uid: uid, email: email || undefined });
+            if (profileRes?.user) {
+              setUser({
+                uid,
+                email: profileRes.user.email || email,
+                username: profileRes.user.username || fallbackUsername,
+                role: profileRes.user.role || "user",
+                points_balance: profileRes.user.points_balance ?? 0,
+                level: profileRes.user.level ?? 1,
+              });
+            } else {
+              setUser({
+                uid,
+                email: email || uid,
+                username: fallbackUsername,
+                role: "user",
+                points_balance: 0,
+                level: 1,
+              });
+            }
+          }
           router.replace("/home");
         } else {
           router.replace("/login");

@@ -14,10 +14,15 @@ const pool = new Pool(
  * 出参：{ user_id: number }
  */
 exports.main = async (event, context) => {
-  const { username, email } = event;
+  const raw = event && typeof event === "object" ? event : {};
+  const { username, email, cloudbase_uid: clientUid } = raw;
   if (!email) return { errMsg: "缺少 email 参数" };
 
-  const cloudbase_uid = context?.userInfo?.openId || context?.userInfo?.uid || email;
+  const cloudbase_uid =
+    context?.userInfo?.openId ||
+    context?.userInfo?.uid ||
+    (email && String(email).trim()) ||
+    (clientUid && String(clientUid).trim());
 
   const client = await pool.connect();
   try {

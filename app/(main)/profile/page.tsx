@@ -26,11 +26,14 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getUserProfile()
+    getUserProfile({
+      cloudbase_uid: storeUser?.uid,
+      email: storeUser?.email,
+    })
       .then((res) => setProfile(res.user as ProfileData))
       .catch((e) => setError(e instanceof Error ? e.message : "加载失败"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [storeUser?.uid, storeUser?.email]);
 
   const data = profile ?? {
     username: storeUser?.username ?? "—",

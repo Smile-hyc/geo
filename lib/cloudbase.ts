@@ -86,6 +86,7 @@ export async function callFunction<T = unknown>(
 export async function syncUserToDb(params: {
   username: string;
   email: string;
+  cloudbase_uid?: string;
 }): Promise<{ user_id: number; role: string; username: string; points_balance: number; level: number }> {
   return callFunction("auth-sync", params);
 }
@@ -133,14 +134,17 @@ export async function deleteImage(image_id: number): Promise<{ success: boolean 
 }
 
 /** 获取用户信息 */
-export async function getUserProfile(): Promise<{
+export async function getUserProfile(params?: {
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
   user: {
     id: number; username: string; email: string; role: string;
     points_balance: number; level: number;
     annotation_count: number; battle_count: number;
   }
 }> {
-  return callFunction("get-user-profile", {});
+  return callFunction("get-user-profile", params || {});
 }
 
 /** 获取排行榜 */
