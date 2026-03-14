@@ -260,3 +260,87 @@ export async function submitAnswer(params: {
 }): Promise<{ submission_id: string }> {
   return callFunction("submitAnswer", params);
 }
+
+/** 获取可兑换奖品列表 */
+export async function listPrizes(params?: { limit?: number }): Promise<{
+  prizes: Array<{
+    id: number;
+    name: string;
+    description: string;
+    points_cost: number;
+    stock: number;
+    image_url: string | null;
+  }>;
+}> {
+  return callFunction("list-prizes", params || {});
+}
+
+/** 兑换奖品 */
+export async function redeemPrize(params: {
+  prize_id: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  success: boolean;
+  prize_name: string;
+  points_spent: number;
+  balance_after: number;
+}> {
+  return callFunction("redeem-prize", params);
+}
+
+/** 管理员：获取所有奖品 */
+export async function adminListPrizes(params?: {
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  prizes: Array<{
+    id: number;
+    name: string;
+    description: string;
+    points_cost: number;
+    stock: number;
+    image_url: string | null;
+    is_active: boolean;
+    created_at: string;
+  }>;
+}> {
+  return callFunction("admin-list-prizes", params || {});
+}
+
+/** 管理员：添加奖品 */
+export async function adminCreatePrize(params: {
+  name: string;
+  description?: string;
+  points_cost: number;
+  stock?: number;
+  image_url?: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ prize_id: number }> {
+  return callFunction("admin-create-prize", params);
+}
+
+/** 管理员：更新奖品 */
+export async function adminUpdatePrize(params: {
+  prize_id: number;
+  name?: string;
+  description?: string;
+  points_cost?: number;
+  stock?: number;
+  image_url?: string;
+  is_active?: boolean;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ success: boolean }> {
+  return callFunction("admin-update-prize", params);
+}
+
+/** 管理员：删除奖品 */
+export async function adminDeletePrize(params: {
+  prize_id: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ success: boolean }> {
+  return callFunction("admin-delete-prize", params);
+}

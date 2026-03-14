@@ -34,7 +34,8 @@ function getApp(context) {
 exports.main = async (event, context) => {
   try {
     const raw = event && typeof event === "object" ? event : {};
-    const image_id = parseInt(raw.image_id, 10);
+    const data = raw.body && typeof raw.body === "object" ? raw.body : raw;
+    const image_id = parseInt(data.image_id, 10);
     if (!image_id || isNaN(image_id)) return { errMsg: "缺少有效的 image_id" };
 
     const db = getPool();
@@ -49,8 +50,25 @@ exports.main = async (event, context) => {
 
       const storageUrl = selectResult.rows[0].storage_url;
 
-      // 删除数据库记录
-      await client.query("DELETE FROM image_assets WHERE id = $1", [image_id]);
+      // 使用事务：先删除关联数据，再删除图片
+      await client.query("BEGIN");
+      try {
+        // 1. 删除标注框（annotation_bboxes 通过 record 关联）
+        await client.query(
+          `DELETE FROM annotation_bboxes WHERE record_id IN (SELECT id FROM annotation_records WHERE image_id = $1)`,
+          [image_id]
+        );
+        // 2. 删除标注记录
+        await client.query("DELETE FROM annotation_records WHERE image_id = $1", [image_id]);
+        // 3. 删除对战轮次
+        await client.query("DELETE FROM battle_rounds WHERE image_id = $1", [image_id]);
+        // 4. 删除图片
+        await client.query("DELETE FROM image_assets WHERE id = $1", [image_id]);
+        await client.query("COMMIT");
+      } catch (e) {
+        await client.query("ROLLBACK");
+        throw e;
+      }
 
       // 尝试删除云存储文件（失败不影响结果）
       if (storageUrl && (storageUrl.startsWith("cloud://") || storageUrl.startsWith("cos://"))) {

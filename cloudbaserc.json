@@ -134,6 +134,48 @@
       "runtime": "Nodejs16.13",
       "installDependency": true,
       "handler": "index.main"
+    },
+    {
+      "name": "list-prizes",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": false,
+      "handler": "index.main"
+    },
+    {
+      "name": "redeem-prize",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": false,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-list-prizes",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": false,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-create-prize",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": false,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-update-prize",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": false,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-delete-prize",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": false,
+      "handler": "index.main"
     }
   ]
 }

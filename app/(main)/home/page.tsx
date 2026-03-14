@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, Swords, Trophy, Clock, Star } from "lucide-react";
+import { MapPin, Swords, Trophy, Clock, Star, Gift } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/auth";
@@ -26,6 +26,16 @@ const MODES = [
     badge: "胜利 +200 积分",
     badgeColor: "bg-red-500/20 text-red-400",
     difficulty: "★★★★",
+  },
+  {
+    id: "rewards",
+    href: "/rewards",
+    icon: <Gift className="h-8 w-8 text-amber-400" />,
+    title: "积分兑换",
+    description: "用积分兑换心仪奖品，管理员持续上新",
+    badge: "消耗积分",
+    badgeColor: "bg-amber-500/20 text-amber-400",
+    difficulty: null,
   },
   {
     id: "leaderboard",

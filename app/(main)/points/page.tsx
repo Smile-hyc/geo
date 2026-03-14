@@ -19,6 +19,7 @@ const REASON_LABELS: Record<string, string> = {
   battle_reward: "对战奖励",
   quality_bonus: "质量奖金",
   admin_adjust: "管理员调整",
+  prize_redemption: "兑换奖品",
 };
 
 export default function PointsPage() {

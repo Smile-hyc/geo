@@ -21,6 +21,7 @@ model User {
   annotations  AnnotationRecord[]
   battles      BattleSession[]
   pointsLedger PointsLedger[]
+  redemptions  PrizeRedemption[]
 
   @@map("users")
 }
@@ -127,4 +128,33 @@ model PointsLedger {
   user User @relation(fields: [user_id], references: [id])
 
   @@map("points_ledger")
+}
+
+model Prize {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  points_cost Int
+  stock       Int      @default(0)
+  image_url   String?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  redemptions PrizeRedemption[]
+
+  @@map("prizes")
+}
+
+model PrizeRedemption {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  prize_id    Int
+  points_spent Int
+  created_at  DateTime @default(now())
+
+  user  User  @relation(fields: [user_id], references: [id])
+  prize Prize @relation(fields: [prize_id], references: [id])
+
+  @@map("prize_redemptions")
 }

@@ -52,8 +52,8 @@ exports.main = async (event, context) => {
     }
 
     const sessionResult = await client.query(
-      `INSERT INTO battle_sessions (user_id, mode_type, time_limit_sec, round_count, status)
-       VALUES ($1, $2, $3, $4, 'active')
+      `INSERT INTO battle_sessions (user_id, mode_type, time_limit_sec, round_count, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 'active', NOW(), NOW())
        RETURNING id`,
       [user_id, mode_type || "general", timeLimit, count]
     );

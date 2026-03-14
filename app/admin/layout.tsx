@@ -3,13 +3,14 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { LayoutDashboard, Image as ImageIcon, ClipboardList, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Image as ImageIcon, ClipboardList, Settings, LogOut, Gift } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { signOut } from "@/lib/cloudbase";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "仪表盘", icon: <LayoutDashboard className="h-4 w-4" /> },
   { href: "/admin/images", label: "图片管理", icon: <ImageIcon className="h-4 w-4" /> },
+  { href: "/admin/prizes", label: "奖品管理", icon: <Gift className="h-4 w-4" /> },
   { href: "/admin/reviews", label: "标注审核", icon: <ClipboardList className="h-4 w-4" /> },
   { href: "/admin/tasks", label: "任务配置", icon: <Settings className="h-4 w-4" /> },
 ];

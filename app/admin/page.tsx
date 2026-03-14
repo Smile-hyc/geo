@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Image as ImageIcon, ClipboardList, Users, Database } from "lucide-react";
+import { Image as ImageIcon, ClipboardList, Users, Database, Gift } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { callFunction } from "@/lib/cloudbase";
@@ -76,6 +76,11 @@ export default function AdminDashboard() {
             <Button variant="outline" className="w-full justify-start" asChild>
               <Link href="/admin/reviews">
                 <ClipboardList className="h-4 w-4 mr-2" /> 审核标注
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start" asChild>
+              <Link href="/admin/prizes">
+                <Gift className="h-4 w-4 mr-2" /> 添加奖品
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>
