@@ -45,6 +45,4 @@ jobs:
           cd ../..
           tcb fn deploy -e ${{ secrets.ENV_ID }}
 
-      # 7. 机器人自动部署前端网页到静态托管（把 ./out 替换为你的实际打包文件夹，比如 ./dist）
-      - name: Deploy Frontend Hosting
-        run: tcb hosting deploy ./out -e ${{ secrets.ENV_ID }}
+      # 前端已通过 Vercel 部署，此处仅部署云函数
