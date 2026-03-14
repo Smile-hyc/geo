@@ -32,7 +32,6 @@ export default function AnnotatePage() {
   const [guessPos, setGuessPos] = useState<{ lat: number; lng: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [reward, setReward] = useState(0);
 
   const loadTask = async () => {
     setLoading(true);
@@ -87,7 +86,6 @@ export default function AnnotatePage() {
           label_type: b.label_type, explanation: b.explanation,
         })),
       });
-      setReward(res.reward);
       setSubmitted(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "提交失败");
@@ -110,10 +108,10 @@ export default function AnnotatePage() {
         <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
         <h2 className="text-2xl font-bold mb-2">提交成功！</h2>
         <p className="text-muted-foreground mb-2">
-          获得 <span className="text-yellow-500 font-bold text-xl">+{reward}</span> 积分
+          审核通过后将获得积分奖励
         </p>
         <p className="text-sm text-muted-foreground mb-8">
-          感谢你的贡献，你的标注数据将用于训练 AI 模型
+          感谢你的贡献，管理员审核通过后积分将自动到账
         </p>
         <Button onClick={loadTask} className="w-full max-w-xs">
           继续下一题

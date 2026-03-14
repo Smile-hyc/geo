@@ -99,24 +99,8 @@ exports.main = async (event, context) => {
         }
       }
 
-      const reward = BASE_REWARD + Math.round(bboxes.length * 5);
-      const newBalance = user.points_balance + reward;
-
-      await client.query(
-        "UPDATE users SET points_balance = $1, updated_at = NOW() WHERE id = $2",
-        [newBalance, user.id]
-      );
-      await client.query(
-        `INSERT INTO points_ledger (user_id, change_amount, balance_after, reason_type)
-         VALUES ($1, $2, $3, 'annotation_reward')`,
-        [user.id, reward, newBalance]
-      );
-      await client.query(
-        "UPDATE annotation_records SET reward_granted = true WHERE id = $1",
-        [record_id]
-      );
-
-      return { record_id, reward };
+      // 积分改为审核通过后发放，防止刷分
+      return { record_id, reward: 0 };
     } finally {
       client.release();
     }

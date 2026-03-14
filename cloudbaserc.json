@@ -94,6 +94,13 @@
       "handler": "index.main"
     },
     {
+      "name": "review-annotation",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": false,
+      "handler": "index.main"
+    },
+    {
       "name": "list-submissions",
       "timeout": 15,
       "runtime": "Nodejs16.13",
