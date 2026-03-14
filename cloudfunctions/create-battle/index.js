@@ -10,24 +10,34 @@ const pool = new Pool(
 
 /**
  * 创建对战 Session，分配 N 张图
- * 入参：{ mode_type, time_limit_sec, round_count }
+ * 入参：{ mode_type, time_limit_sec, round_count, cloudbase_uid?, email? }
  * 出参：{ session_id }
  */
 exports.main = async (event, context) => {
-  const { mode_type, time_limit_sec, round_count } = event;
-  const cloudbase_uid = context?.userInfo?.openId || context?.userInfo?.uid || "";
-  if (!cloudbase_uid) return { errMsg: "未登录" };
+  const raw = event && typeof event === "object" ? event : {};
+  const data = raw.body && typeof raw.body === "object" ? raw.body : raw;
+  const { mode_type, time_limit_sec, round_count, cloudbase_uid: clientUid, email: clientEmail } = data;
+  const cloudbase_uid =
+    context?.userInfo?.openId ||
+    context?.userInfo?.uid ||
+    (clientUid && String(clientUid).trim()) ||
+    "";
+  const email = clientEmail && String(clientEmail).trim();
+  if (!cloudbase_uid && !email) return { errMsg: "未登录" };
 
   const count = Math.min(round_count || 5, 10);
   const timeLimit = time_limit_sec || 30;
 
   const client = await pool.connect();
   try {
-    const userResult = await client.query(
-      "SELECT id FROM users WHERE cloudbase_uid = $1",
-      [cloudbase_uid]
-    );
-    if (userResult.rows.length === 0) return { errMsg: "用户不存在" };
+    let userResult;
+    if (cloudbase_uid) {
+      userResult = await client.query("SELECT id FROM users WHERE cloudbase_uid = $1", [cloudbase_uid]);
+    }
+    if ((!userResult || userResult.rows.length === 0) && email) {
+      userResult = await client.query("SELECT id FROM users WHERE email = $1", [email]);
+    }
+    if (!userResult || userResult.rows.length === 0) return { errMsg: "用户不存在" };
     const user_id = userResult.rows[0].id;
 
     const imagesResult = await client.query(

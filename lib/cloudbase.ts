@@ -161,6 +161,8 @@ export async function createBattle(params: {
   mode_type: string;
   time_limit_sec: number;
   round_count: number;
+  cloudbase_uid?: string;
+  email?: string;
 }): Promise<{ session_id: number }> {
   return callFunction("create-battle", params);
 }
@@ -171,6 +173,8 @@ export async function submitBattleRound(params: {
   round_index: number;
   user_guess_lat: number;
   user_guess_lng: number;
+  cloudbase_uid?: string;
+  email?: string;
 }): Promise<{
   user_score: number;
   ai_score: number;

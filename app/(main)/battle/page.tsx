@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { createBattle } from "@/lib/cloudbase";
+import { useAuthStore } from "@/lib/auth";
 
 const MODES = [
   { id: "general", label: "通用地理", desc: "全球各地景观" },
@@ -20,6 +21,7 @@ const ROUND_OPTIONS = [3, 5, 10];
 
 export default function BattleConfigPage() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const [mode, setMode] = useState("general");
   const [timeLimit, setTimeLimit] = useState(30);
   const [rounds, setRounds] = useState(5);
@@ -27,6 +29,13 @@ export default function BattleConfigPage() {
   const [error, setError] = useState<string | null>(null);
 
   const handleStart = async () => {
+    const currentUser = useAuthStore.getState().user;
+    const uid = currentUser?.uid ?? "";
+    const email = currentUser?.email ?? "";
+    if (!uid && !email) {
+      setError("登录信息未加载，请刷新页面后重试");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -34,6 +43,8 @@ export default function BattleConfigPage() {
         mode_type: mode,
         time_limit_sec: timeLimit,
         round_count: rounds,
+        cloudbase_uid: uid,
+        email: email,
       });
       router.push(`/battle/${session_id}/play`);
     } catch (e) {

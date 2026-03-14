@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import CountdownTimer from "@/components/battle/CountdownTimer";
 import BattleScoreBoard from "@/components/battle/BattleScoreBoard";
 import { submitBattleRound, getBattleResult, getTempFileURL } from "@/lib/cloudbase";
+import { useAuthStore } from "@/lib/auth";
 
 const MapPicker = dynamic(() => import("@/components/map/MapPicker"), { ssr: false });
 const MapDisplay = dynamic(() => import("@/components/map/MapDisplay"), { ssr: false });
@@ -31,6 +32,7 @@ interface SessionInfo {
 export default function BattlePlayPage() {
   const params = useParams();
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const sessionId = Number(params.sessionId);
 
   const [session, setSession] = useState<SessionInfo | null>(null);
@@ -103,6 +105,8 @@ export default function BattlePlayPage() {
         round_index: currentRound,
         user_guess_lat: pos.lat,
         user_guess_lng: pos.lng,
+        cloudbase_uid: user?.uid,
+        email: user?.email,
       });
       setRoundResult(res);
       setUserTotal((prev) => prev + res.user_score);

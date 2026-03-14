@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:seed": "npx prisma db seed"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@cloudbase/js-sdk": "^2.25.6",
@@ -38,6 +42,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "tsx": "^4.19.0",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20.11.0",
     "@types/pg": "^8.18.0",

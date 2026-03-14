@@ -26,12 +26,19 @@ function calcScore(distKm) {
 
 /**
  * 接收用户 lat/lng 猜测，调用 AI Mock，返回双方分数
- * 入参：{ session_id, round_index, user_guess_lat, user_guess_lng }
+ * 入参：{ session_id, round_index, user_guess_lat, user_guess_lng, cloudbase_uid?, email? }
  */
 exports.main = async (event, context) => {
-  const { session_id, round_index, user_guess_lat, user_guess_lng } = event;
-  const cloudbase_uid = context?.userInfo?.openId || context?.userInfo?.uid || "";
-  if (!cloudbase_uid) return { errMsg: "未登录" };
+  const raw = event && typeof event === "object" ? event : {};
+  const data = raw.body && typeof raw.body === "object" ? raw.body : raw;
+  const { session_id, round_index, user_guess_lat, user_guess_lng, cloudbase_uid: clientUid, email: clientEmail } = data;
+  const cloudbase_uid =
+    context?.userInfo?.openId ||
+    context?.userInfo?.uid ||
+    (clientUid && String(clientUid).trim()) ||
+    "";
+  const email = clientEmail && String(clientEmail).trim();
+  if (!cloudbase_uid && !email) return { errMsg: "未登录" };
   if (session_id == null || round_index == null) return { errMsg: "缺少必要参数" };
 
   const client = await pool.connect();
