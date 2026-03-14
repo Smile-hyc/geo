@@ -35,6 +35,35 @@ exports.main = async (event) => {
     params.push(limit, offset);
 
     const result = await client.query(query, params);
+    const rows = result.rows || [];
+
+    // 获取每条记录的 bboxes
+    const recordIds = rows.map((r) => r.id);
+    const bboxMap = {};
+    if (recordIds.length > 0) {
+      const placeholders = recordIds.map((_, i) => `$${i + 1}`).join(", ");
+      const bboxResult = await client.query(
+        `SELECT record_id, x, y, width, height, label_type, explanation
+         FROM annotation_bboxes WHERE record_id IN (${placeholders}) ORDER BY record_id, id`,
+        recordIds
+      );
+      for (const b of bboxResult.rows || []) {
+        if (!bboxMap[b.record_id]) bboxMap[b.record_id] = [];
+        bboxMap[b.record_id].push({
+          x: parseFloat(b.x),
+          y: parseFloat(b.y),
+          width: parseFloat(b.width),
+          height: parseFloat(b.height),
+          label_type: b.label_type || "",
+          explanation: b.explanation || "",
+        });
+      }
+    }
+
+    const submissions = rows.map((r) => ({
+      ...r,
+      bboxes: bboxMap[r.id] || [],
+    }));
 
     const countQuery = quality_status
       ? "SELECT COUNT(*) FROM annotation_records WHERE quality_status = $1"
@@ -42,7 +71,7 @@ exports.main = async (event) => {
     const countResult = await client.query(countQuery, quality_status ? [quality_status] : []);
 
     return {
-      submissions: result.rows,
+      submissions,
       total: parseInt(countResult.rows[0].count),
     };
   } catch (err) {

@@ -370,3 +370,40 @@ export async function adminDeletePrize(params: {
 }): Promise<{ success: boolean }> {
   return callFunction("admin-delete-prize", params);
 }
+
+/** 管理员：导出标注数据 */
+export async function exportAnnotations(params?: {
+  quality_status?: "approved" | "pending" | "rejected";
+  limit?: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  annotations: Array<{
+    record_id: number;
+    username: string;
+    image_id: number;
+    image_storage_url: string;
+    true_location: string;
+    lat: number | null;
+    lng: number | null;
+    mode_tags: string[];
+    mode_type: string;
+    thought_text: string;
+    final_answer: string;
+    confidence: number;
+    annotated_image_url: string | null;
+    quality_status: string;
+    created_at: string;
+    bboxes: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      label_type: string;
+      explanation: string;
+    }>;
+  }>;
+  total: number;
+}> {
+  return callFunction("export-annotations", params || {});
+}
