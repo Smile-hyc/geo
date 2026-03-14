@@ -70,6 +70,32 @@ export async function getLoginState() {
   return getAuth().getLoginState();
 }
 
+/** 忘记密码：发送邮箱验证码（邮箱必须已注册） */
+export async function sendPasswordResetCode(email: string): Promise<{ verification_id: string }> {
+  const auth = getAuth() as { getVerification: (opts: { email: string; target?: string }) => Promise<{ verification_id: string; is_user?: boolean }> };
+  const res = await auth.getVerification({ email, target: "USER" });
+  return { verification_id: res.verification_id };
+}
+
+/** 忘记密码：验证验证码并重置密码 */
+export async function resetPasswordWithCode(
+  email: string,
+  verification_id: string,
+  verification_code: string,
+  new_password: string
+): Promise<void> {
+  const auth = getAuth() as {
+    verify: (opts: { verification_id: string; verification_code: string }) => Promise<{ verification_token: string }>;
+    resetPassword: (opts: { email: string; new_password: string; verification_token: string }) => Promise<void>;
+  };
+  const verifyRes = await auth.verify({ verification_id, verification_code });
+  await auth.resetPassword({
+    email,
+    new_password,
+    verification_token: verifyRes.verification_token,
+  });
+}
+
 /** 调用云函数 */
 export async function callFunction<T = unknown>(
   name: string,
