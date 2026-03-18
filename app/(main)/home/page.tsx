@@ -9,10 +9,10 @@ import { useAuthStore } from "@/lib/auth";
 const MODES = [
   {
     id: "annotate",
-    href: "/annotate",
+    href: "/annotate/mode",
     icon: <MapPin className="h-8 w-8 text-blue-400" />,
     title: "标注任务",
-    description: "对地理图片进行 BBox 标注和思维链分析，收集训练数据",
+    description: "选择街景/遥感/地图/地形图/混合模式，对地理图片进行 BBox 标注和思维链分析",
     badge: "每次 +50 积分",
     badgeColor: "bg-blue-500/20 text-blue-400",
     difficulty: "★★★",

@@ -1,7 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +11,7 @@ import BBoxCanvas, { type BBox } from "@/components/annotation/BBoxCanvas";
 import ThoughtInput, { type ThoughtData } from "@/components/annotation/ThoughtInput";
 import { getNextTask, submitAnnotation, getTempFileURL } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
+import { getModeName } from "@/lib/modes";
 
 const MapPicker = dynamic(() => import("@/components/map/MapPicker"), { ssr: false });
 
@@ -22,7 +25,9 @@ interface Task {
 
 const INIT_THOUGHT: ThoughtData = { thought_text: "", final_answer: "", confidence: 50 };
 
-export default function AnnotatePage() {
+function AnnotateContent() {
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
   const user = useAuthStore((s) => s.user);
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +46,7 @@ export default function AnnotatePage() {
     setGuessPos(null);
     setSubmitted(false);
     try {
-      const res = await getNextTask();
+      const res = await getNextTask(mode ? { mode } : undefined);
       if (!res.task) {
         setError("暂无可用任务，请稍后再试");
         setTask(null);
@@ -62,7 +67,7 @@ export default function AnnotatePage() {
 
   useEffect(() => {
     loadTask();
-  }, []);
+  }, [mode]);
 
   const handleSubmit = async () => {
     if (!task) return;
@@ -75,7 +80,7 @@ export default function AnnotatePage() {
     try {
       const res = await submitAnnotation({
         image_id: task.id,
-        mode_type: task.mode_tags[0] ?? "general",
+        mode_type: mode,
         thought_text: thought.thought_text,
         final_answer: thought.final_answer,
         confidence: thought.confidence,
@@ -93,6 +98,18 @@ export default function AnnotatePage() {
       setSubmitting(false);
     }
   };
+
+  if (!mode) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-20 text-center">
+        <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <p className="text-muted-foreground mb-4">请先选择标注模式</p>
+        <Link href="/annotate/mode">
+          <button className="text-primary hover:underline">去选择模式 →</button>
+        </Link>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -114,7 +131,7 @@ export default function AnnotatePage() {
           感谢你的贡献，管理员审核通过后积分将自动到账
         </p>
         <Button onClick={loadTask} className="w-full max-w-xs">
-          继续下一题
+          继续下一题（{getModeName(mode)}）
         </Button>
       </div>
     );
@@ -124,8 +141,15 @@ export default function AnnotatePage() {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <p className="text-muted-foreground mb-4">{error ?? "暂无可用任务"}</p>
-        <Button variant="outline" onClick={loadTask}>重试</Button>
+        <p className="text-muted-foreground mb-4">
+          {error ?? `「${getModeName(mode)}」暂无可用题目，请稍后再试或换其他模式`}
+        </p>
+        <div className="flex gap-3 justify-center">
+          <Button variant="outline" onClick={loadTask}>重试</Button>
+          <Link href="/annotate/mode">
+            <Button variant="outline">换模式</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -134,14 +158,19 @@ export default function AnnotatePage() {
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">标注任务</h1>
+          <h1 className="text-xl font-bold">标注任务 · {getModeName(mode)}</h1>
           <p className="text-sm text-muted-foreground">
-            难度 {"★".repeat(task.difficulty)} · 模式：{task.mode_tags.join(", ") || "通用"}
+            难度 {"★".repeat(task.difficulty)} · 图库：{task.mode_tags.map(getModeName).join(", ") || "通用"}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={loadTask}>
-          换一题
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/annotate/mode">
+            <Button variant="ghost" size="sm">换模式</Button>
+          </Link>
+          <Button variant="outline" size="sm" onClick={loadTask}>
+            换一题
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -204,5 +233,17 @@ export default function AnnotatePage() {
         </Button>
       </div>
     </div>
+  );
+}
+
+export default function AnnotatePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <AnnotateContent />
+    </Suspense>
   );
 }

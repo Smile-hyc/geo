@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createQuestion, deleteImage, getTempFileURL, callFunction } from "@/lib/cloudbase";
 
-const MODE_OPTIONS = ["general", "urban", "nature", "landmark"];
+import { ANNOTATION_MODES } from "@/lib/modes";
+
+const MODE_OPTIONS = ANNOTATION_MODES.map((m) => m.id);
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
 interface ImageAsset {
@@ -30,7 +32,7 @@ export default function AdminImagesPage() {
   const [trueLocation, setTrueLocation] = useState("");
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
-  const [modes, setModes] = useState<string[]>(["general"]);
+  const [modes, setModes] = useState<string[]>(["street_view"]);
   const [difficulty, setDifficulty] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -180,7 +182,7 @@ export default function AdminImagesPage() {
                         modes.includes(m) ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
                       }`}
                     >
-                      {m}
+                      {ANNOTATION_MODES.find((x) => x.id === m)?.name ?? m}
                     </button>
                   ))}
                 </div>
