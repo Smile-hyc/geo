@@ -80,7 +80,7 @@ function AnnotateContent() {
     try {
       const res = await submitAnnotation({
         image_id: task.id,
-        mode_type: mode,
+        mode_type: mode!,
         thought_text: thought.thought_text,
         final_answer: thought.final_answer,
         confidence: thought.confidence,
