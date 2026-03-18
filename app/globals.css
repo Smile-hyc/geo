@@ -30,3 +30,106 @@
     @apply bg-background text-foreground antialiased;
   }
 }
+
+/* Wiki 文档正文样式（RTD 风格：层级、可读性、代码块） */
+.wiki-doc .wiki-article {
+  --wiki-text: #333;
+  --wiki-heading: #1f2328;
+  --wiki-muted: #656d76;
+  --wiki-link: #0969da;
+  --wiki-code-bg: #f0f2f5;
+  --wiki-border: #e1e4e8;
+}
+.wiki-doc .wiki-article h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--wiki-heading);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--wiki-border);
+}
+.wiki-doc .wiki-article h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--wiki-heading);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+.wiki-doc .wiki-article h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--wiki-heading);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.wiki-doc .wiki-article p {
+  color: var(--wiki-text);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+.wiki-doc .wiki-article ul,
+.wiki-doc .wiki-article ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  color: var(--wiki-text);
+  line-height: 1.7;
+}
+.wiki-doc .wiki-article li {
+  margin-bottom: 0.35rem;
+}
+.wiki-doc .wiki-article a {
+  color: var(--wiki-link);
+  text-decoration: none;
+}
+.wiki-doc .wiki-article a:hover {
+  text-decoration: underline;
+}
+.wiki-doc .wiki-article code {
+  background: var(--wiki-code-bg);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #cf222e;
+}
+.wiki-doc .wiki-article pre {
+  background: #1f2328;
+  color: #e6edf3;
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.wiki-doc .wiki-article pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+.wiki-doc .wiki-article blockquote {
+  border-left: 4px solid var(--wiki-border);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--wiki-muted);
+}
+.wiki-doc .wiki-article hr {
+  border: none;
+  border-top: 1px solid var(--wiki-border);
+  margin: 2rem 0;
+}
+.wiki-doc .wiki-article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.wiki-doc .wiki-article th,
+.wiki-doc .wiki-article td {
+  border: 1px solid var(--wiki-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.wiki-doc .wiki-article th {
+  background: var(--wiki-code-bg);
+  font-weight: 600;
+}

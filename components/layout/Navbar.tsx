@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MapPin, Trophy, Clock, User, LogOut, Coins, Gift } from "lucide-react";
+import { MapPin, Trophy, Clock, User, LogOut, Coins, Gift, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/auth";
 import { signOut } from "@/lib/cloudbase";
@@ -37,6 +37,7 @@ export default function Navbar() {
             <NavLink href="/rewards" icon={<Gift className="h-4 w-4" />} label="兑换" />
             <NavLink href="/leaderboard" icon={<Trophy className="h-4 w-4" />} label="排行" />
             <NavLink href="/history" icon={<Clock className="h-4 w-4" />} label="历史" />
+            <NavLink href="/wiki" icon={<BookOpen className="h-4 w-4" />} label="Wiki" />
           </div>
         </div>
         <div className="flex items-center gap-3">
