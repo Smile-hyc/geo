@@ -30,8 +30,7 @@ exports.main = async (event, context) => {
       `INSERT INTO users (cloudbase_uid, username, email, role, points_balance, level)
        VALUES ($1, $2, $3, 'user', 0, 1)
        ON CONFLICT (cloudbase_uid) DO UPDATE
-         SET username = EXCLUDED.username,
-             email = EXCLUDED.email,
+         SET email = EXCLUDED.email,
              updated_at = NOW()
        RETURNING id, role, username, points_balance, level`,
       [cloudbase_uid, username || email.split("@")[0], email]

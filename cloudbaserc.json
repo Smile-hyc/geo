@@ -190,6 +190,13 @@
       "runtime": "Nodejs16.13",
       "installDependency": false,
       "handler": "index.main"
+    },
+    {
+      "name": "update-username",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
     }
   ]
 }

@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { User, MapPin, Swords, Coins, Star, Loader2 } from "lucide-react";
+import { User, MapPin, Swords, Coins, Star, Loader2, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/lib/auth";
-import { getUserProfile } from "@/lib/cloudbase";
+import { getUserProfile, updateUsername } from "@/lib/cloudbase";
 
 interface ProfileData {
   id: number;
@@ -21,11 +23,17 @@ interface ProfileData {
 
 export default function ProfilePage() {
   const storeUser = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editUsername, setEditUsername] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
     getUserProfile({
       cloudbase_uid: storeUser?.uid,
       email: storeUser?.email,
@@ -34,6 +42,30 @@ export default function ProfilePage() {
       .catch((e) => setError(e instanceof Error ? e.message : "加载失败"))
       .finally(() => setLoading(false));
   }, [storeUser?.uid, storeUser?.email]);
+
+  const handleSaveUsername = async () => {
+    const name = editUsername.trim();
+    if (!name || name.length < 2) {
+      setSaveError("用户名至少 2 个字符");
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await updateUsername({
+        new_username: name,
+        cloudbase_uid: storeUser?.uid,
+        email: storeUser?.email,
+      });
+      setUser(storeUser ? { ...storeUser, username: res.username } : null);
+      setProfile((p) => (p ? { ...p, username: res.username } : null));
+      setEditing(false);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "保存失败");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const data = profile ?? {
     username: storeUser?.username ?? "—",
@@ -53,8 +85,44 @@ export default function ProfilePage() {
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
               <User className="h-8 w-8 text-primary" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold">{data.username}</h2>
+            <div className="flex-1 min-w-0">
+              {editing ? (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-username">用户名</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="edit-username"
+                      value={editUsername}
+                      onChange={(e) => setEditUsername(e.target.value)}
+                      placeholder="2-20 个字符"
+                      maxLength={20}
+                    />
+                    <Button size="sm" onClick={handleSaveUsername} disabled={saving}>
+                      {saving ? "保存中…" : "保存"}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setSaveError(null); }}>
+                      取消
+                    </Button>
+                  </div>
+                  {saveError && <p className="text-xs text-destructive">{saveError}</p>}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold">{data.username}</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      setEditUsername(data.username);
+                      setEditing(true);
+                    }}
+                    title="修改用户名"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
               <p className="text-muted-foreground text-sm">{data.email}</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs bg-accent/50 px-2 py-0.5 rounded-full">

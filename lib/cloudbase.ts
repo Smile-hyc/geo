@@ -159,6 +159,15 @@ export async function deleteImage(image_id: number): Promise<{ success: boolean 
   return callFunction("delete-image", { image_id });
 }
 
+/** 更新用户名 */
+export async function updateUsername(params: {
+  new_username: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ username: string }> {
+  return callFunction("update-username", params);
+}
+
 /** 获取用户信息 */
 export async function getUserProfile(params?: {
   cloudbase_uid?: string;
