@@ -1,122 +1,138 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, Swords, Trophy, Clock, Star, Gift } from "lucide-react";
+import {
+  BookOpen,
+  Clock,
+  Gift,
+  MapPin,
+  ShieldCheck,
+  Swords,
+  Trophy,
+} from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/auth";
 
-const MODES = [
+const ENTRY_CARDS = [
   {
     id: "annotate",
-    href: "/annotate/mode",
-    icon: <MapPin className="h-8 w-8 text-blue-400" />,
-    title: "标注任务",
-    description: "选择街景/遥感/地图/地形图/混合模式，对地理图片进行 BBox 标注和思维链分析",
-    badge: "每次 +50 积分",
-    badgeColor: "bg-blue-500/20 text-blue-400",
-    difficulty: "★★★",
+    href: "/app/annotate/mode",
+    icon: <MapPin className="h-8 w-8 text-blue-500" />,
+    title: "Annotation tasks",
+    description:
+      "Pick a data collection mode and choose whether to capture reasoning, geo-element boxes, or both.",
   },
   {
     id: "battle",
-    href: "/battle",
-    icon: <Swords className="h-8 w-8 text-red-400" />,
-    title: "AI 对战",
-    description: "与 AI 模型在限时内猜测地理位置，比拼地理直觉",
-    badge: "胜利 +200 积分",
-    badgeColor: "bg-red-500/20 text-red-400",
-    difficulty: "★★★★",
+    href: "/app/battle",
+    icon: <Swords className="h-8 w-8 text-rose-500" />,
+    title: "AI battle",
+    description:
+      "Configure timed rounds, choose a mock AI opponent, and compare scores round by round.",
   },
   {
     id: "rewards",
-    href: "/rewards",
-    icon: <Gift className="h-8 w-8 text-amber-400" />,
-    title: "积分兑换",
-    description: "用积分兑换心仪奖品，管理员持续上新",
-    badge: "消耗积分",
-    badgeColor: "bg-amber-500/20 text-amber-400",
-    difficulty: null,
+    href: "/app/rewards",
+    icon: <Gift className="h-8 w-8 text-amber-500" />,
+    title: "Rewards",
+    description:
+      "Redeem points and inspect the current reward inventory exposed by the admin side.",
   },
   {
     id: "leaderboard",
-    href: "/leaderboard",
-    icon: <Trophy className="h-8 w-8 text-yellow-400" />,
-    title: "排行榜",
-    description: "查看全球玩家积分排名，挑战登顶",
-    badge: "实时更新",
-    badgeColor: "bg-yellow-500/20 text-yellow-400",
-    difficulty: null,
+    href: "/app/leaderboard",
+    icon: <Trophy className="h-8 w-8 text-emerald-500" />,
+    title: "Leaderboard",
+    description:
+      "Review top performers and use the ranking area as the future entry for richer stats.",
   },
   {
     id: "history",
-    href: "/history",
-    icon: <Clock className="h-8 w-8 text-purple-400" />,
-    title: "历史记录",
-    description: "回顾你的标注记录和对战历史",
-    badge: "全部记录",
-    badgeColor: "bg-purple-500/20 text-purple-400",
-    difficulty: null,
+    href: "/app/history",
+    icon: <Clock className="h-8 w-8 text-violet-500" />,
+    title: "History",
+    description:
+      "Track past annotations, battles, and the current state of your collected data.",
   },
-];
+  {
+    id: "wiki",
+    href: "/wiki",
+    icon: <BookOpen className="h-8 w-8 text-sky-500" />,
+    title: "Public wiki",
+    description:
+      "Open the onboarding and research documentation without mixing it into the gameplay shell.",
+  },
+] as const;
 
 export default function HomePage() {
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((state) => state.user);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold mb-2">
-          欢迎回来，{user?.username ?? "探索者"} 👋
-        </h1>
-        <p className="text-muted-foreground">
-          选择一个模式开始你的地理探索之旅
+    <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
+      <section className="rounded-3xl border border-border bg-[linear-gradient(135deg,#0f172a,#111827_60%,#1e293b)] px-6 py-8 text-white">
+        <p className="text-sm uppercase tracking-[0.2em] text-sky-300">
+          Core App
         </p>
-        <div className="mt-4 flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-accent/50 rounded-full px-4 py-1.5 text-sm">
-            <Star className="h-4 w-4 text-yellow-500" />
-            <span>Lv.{user?.level ?? 1}</span>
+        <h1 className="mt-3 text-3xl font-semibold">
+          Welcome back, {user?.username ?? "Explorer"}.
+        </h1>
+        <p className="mt-3 max-w-2xl text-slate-300">
+          The platform is now organized around the requirement document: data collection,
+          AI battle, user progress, and research-facing admin workflows.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3 text-sm">
+          <div className="rounded-full bg-white/10 px-4 py-1.5">
+            Level {user?.level ?? 1}
           </div>
-          <div className="flex items-center gap-2 bg-accent/50 rounded-full px-4 py-1.5 text-sm">
-            <span className="text-yellow-500">✦</span>
-            <span>{user?.points_balance ?? 0} 积分</span>
+          <div className="rounded-full bg-white/10 px-4 py-1.5">
+            {user?.points_balance ?? 0} points
+          </div>
+          <div className="rounded-full bg-white/10 px-4 py-1.5">
+            Role: {user?.role ?? "user"}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {MODES.map((mode) => (
-          <Link key={mode.id} href={mode.href}>
-            <Card className="h-full hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer group">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="p-2 rounded-xl bg-accent/50 group-hover:bg-accent transition-colors">
-                    {mode.icon}
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${mode.badgeColor}`}>
-                    {mode.badge}
-                  </span>
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {ENTRY_CARDS.map((card) => (
+          <Link key={card.id} href={card.href}>
+            <Card className="h-full hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer">
+              <CardHeader className="space-y-4">
+                <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/50">
+                  {card.icon}
                 </div>
-                <CardTitle className="mt-3">{mode.title}</CardTitle>
-                <CardDescription>{mode.description}</CardDescription>
+                <div>
+                  <CardTitle>{card.title}</CardTitle>
+                  <CardDescription className="mt-2">
+                    {card.description}
+                  </CardDescription>
+                </div>
               </CardHeader>
-              {mode.difficulty && (
-                <CardContent className="pt-0">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>难度：</span>
-                    <span className="text-yellow-500">{mode.difficulty}</span>
-                  </div>
-                </CardContent>
-              )}
             </Card>
           </Link>
         ))}
-      </div>
+      </section>
 
-      <div className="mt-8 text-center">
-        <Button variant="ghost" asChild>
-          <Link href="/profile">查看我的主页 →</Link>
+      <section className="flex flex-wrap gap-3">
+        <Button asChild>
+          <Link href="/app/annotate/mode">Start annotation</Link>
         </Button>
-      </div>
+        <Button asChild variant="outline">
+          <Link href="/app/battle">Start battle</Link>
+        </Button>
+        <Button asChild variant="ghost">
+          <Link href="/app/profile">Open profile</Link>
+        </Button>
+        {user?.role === "admin" ? (
+          <Button asChild variant="secondary">
+            <Link href="/admin" className="inline-flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              Admin console
+            </Link>
+          </Button>
+        ) : null}
+      </section>
     </div>
   );
 }

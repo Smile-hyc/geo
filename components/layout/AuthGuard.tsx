@@ -18,7 +18,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       try {
         const loginState = await getLoginState();
         if (!loginState) {
-          router.replace("/login");
+          router.replace("/auth/login");
           return;
         }
         const uid = loginState.user.uid ?? "unknown";
@@ -62,7 +62,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
           }
         }
       } catch {
-        router.replace("/login");
+        router.replace("/auth/login");
       } finally {
         setLoading(false);
       }

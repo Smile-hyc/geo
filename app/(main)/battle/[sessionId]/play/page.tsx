@@ -3,16 +3,21 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { MapPin, Loader2 } from "lucide-react";
+import { Loader2, MapPin, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import CountdownTimer from "@/components/battle/CountdownTimer";
 import BattleScoreBoard from "@/components/battle/BattleScoreBoard";
-import { submitBattleRound, getBattleResult, getTempFileURL } from "@/lib/cloudbase";
+import { getBattleResult, getTempFileURL, submitBattleRound } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
+import { getAiOpponentLabel, getBattleModeLabel } from "@/features/battle/config";
 
-const MapPicker = dynamic(() => import("@/components/map/MapPicker"), { ssr: false });
-const MapDisplay = dynamic(() => import("@/components/map/MapDisplay"), { ssr: false });
+const MapPicker = dynamic(() => import("@/components/map/MapPicker"), {
+  ssr: false,
+});
+const MapDisplay = dynamic(() => import("@/components/map/MapDisplay"), {
+  ssr: false,
+});
 
 interface RoundResult {
   user_score: number;
@@ -24,6 +29,7 @@ interface RoundResult {
 }
 
 interface SessionInfo {
+  ai_model_id?: string;
   mode_type: string;
   time_limit_sec: number;
   round_count: number;
@@ -32,7 +38,7 @@ interface SessionInfo {
 export default function BattlePlayPage() {
   const params = useParams();
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((state) => state.user);
   const sessionId = Number(params.sessionId);
 
   const [session, setSession] = useState<SessionInfo | null>(null);
@@ -47,6 +53,7 @@ export default function BattlePlayPage() {
   const [timerKey, setTimerKey] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const guessRef = useRef<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
@@ -56,35 +63,39 @@ export default function BattlePlayPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const res = await getBattleResult({ session_id: sessionId });
+        const result = await getBattleResult({ session_id: sessionId });
         setSession({
-          mode_type: res.session.mode_type,
-          time_limit_sec: 30,
-          round_count: res.session.round_count,
+          ai_model_id: result.session.ai_model_id,
+          mode_type: result.session.mode_type,
+          time_limit_sec: result.session.time_limit_sec,
+          round_count: result.session.round_count,
         });
-        setUserTotal(res.session.user_total_score);
-        setAiTotal(res.session.ai_total_score);
-        await loadRoundImage(res.rounds[0]?.image_storage_url);
+        setUserTotal(result.session.user_total_score);
+        setAiTotal(result.session.ai_total_score);
+        await loadRoundImage(result.rounds[0]?.image_storage_url);
         setTimerRunning(true);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "加载对战失败");
+      } catch (reason) {
+        setError(reason instanceof Error ? reason.message : "Failed to load battle.");
       }
     };
+
     init();
   }, [sessionId]);
 
   const loadRoundImage = async (storageUrl?: string) => {
     setImageLoading(true);
     setImageUrl(null);
+
     if (!storageUrl) {
       setImageLoading(false);
       return;
     }
+
     try {
       let url = storageUrl;
       if (url.startsWith("cloud://") || url.startsWith("cos://")) {
-        const r = await getTempFileURL(url);
-        url = r.tempFileURL;
+        const file = await getTempFileURL(url);
+        url = file.tempFileURL;
       }
       setImageUrl(url);
     } catch {
@@ -94,48 +105,61 @@ export default function BattlePlayPage() {
     }
   };
 
-  const handleSubmitRound = async (forced = false) => {
-    if (submitting || roundResult) return;
+  const handleSubmitRound = async () => {
+    if (submitting || roundResult) {
+      return;
+    }
+
     setTimerRunning(false);
     setSubmitting(true);
-    const pos = guessRef.current ?? { lat: 0, lng: 0 };
+
+    const position = guessRef.current ?? { lat: 0, lng: 0 };
+
     try {
-      const res = await submitBattleRound({
+      const result = await submitBattleRound({
         session_id: sessionId,
         round_index: currentRound,
-        user_guess_lat: pos.lat,
-        user_guess_lng: pos.lng,
+        user_guess_lat: position.lat,
+        user_guess_lng: position.lng,
         cloudbase_uid: user?.uid,
         email: user?.email,
       });
-      setRoundResult(res);
-      setUserTotal((prev) => prev + res.user_score);
-      setAiTotal((prev) => prev + res.ai_score);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "提交失败");
+
+      setRoundResult(result);
+      setUserTotal((value) => value + result.user_score);
+      setAiTotal((value) => value + result.ai_score);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Failed to submit round.");
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleNextRound = async () => {
-    if (!roundResult) return;
-    if (roundResult.session_ended) {
-      router.push(`/battle/${sessionId}/result`);
+    if (!roundResult) {
       return;
     }
+
+    if (roundResult.session_ended) {
+      router.push(`/app/battle/${sessionId}/result`);
+      return;
+    }
+
     const nextRound = currentRound + 1;
     setCurrentRound(nextRound);
     setRoundResult(null);
     setGuessPos(null);
-    setTimerKey((k) => k + 1);
+    setTimerKey((value) => value + 1);
     setImageLoading(true);
+
     try {
-      const res = await getBattleResult({ session_id: sessionId });
-      await loadRoundImage(res.rounds[nextRound]?.image_storage_url);
+      const result = await getBattleResult({ session_id: sessionId });
+      await loadRoundImage(result.rounds[nextRound]?.image_storage_url);
       setTimerRunning(true);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "加载下一轮失败");
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : "Failed to load the next round."
+      );
     }
   };
 
@@ -143,7 +167,9 @@ export default function BattlePlayPage() {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <p className="text-destructive mb-4">{error}</p>
-        <Button variant="outline" onClick={() => router.push("/battle")}>返回</Button>
+        <Button variant="outline" onClick={() => router.push("/app/battle")}>
+          Back to battle setup
+        </Button>
       </div>
     );
   }
@@ -158,19 +184,34 @@ export default function BattlePlayPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <BattleScoreBoard
-          userScore={userTotal}
-          aiScore={aiTotal}
-          currentRound={currentRound + 1}
-          totalRounds={session.round_count}
-        />
-        <CountdownTimer
-          key={timerKey}
-          seconds={session.time_limit_sec}
-          running={timerRunning && !roundResult}
-          onExpire={() => handleSubmitRound(true)}
-        />
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-2">
+          <p className="text-sm uppercase tracking-[0.2em] text-primary">
+            Battle in progress
+          </p>
+          <h1 className="text-2xl font-semibold">
+            {getBattleModeLabel(session.mode_type)}
+          </h1>
+          <p className="text-sm text-muted-foreground inline-flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Opponent: {getAiOpponentLabel(session.ai_model_id || "mock-v1")}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <BattleScoreBoard
+            userScore={userTotal}
+            aiScore={aiTotal}
+            currentRound={currentRound + 1}
+            totalRounds={session.round_count}
+          />
+          <CountdownTimer
+            key={timerKey}
+            seconds={session.time_limit_sec}
+            running={timerRunning && !roundResult}
+            onExpire={handleSubmitRound}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -183,12 +224,12 @@ export default function BattlePlayPage() {
             ) : imageUrl ? (
               <img
                 src={imageUrl}
-                alt="对战图片"
+                alt="Battle round"
                 className="w-full rounded-lg object-cover max-h-80"
               />
             ) : (
               <div className="h-80 flex items-center justify-center text-muted-foreground">
-                图片加载失败
+                Image failed to load.
               </div>
             )}
           </CardContent>
@@ -198,49 +239,73 @@ export default function BattlePlayPage() {
           {!roundResult ? (
             <>
               <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-4 w-4" /> 在地图上标记你猜测的位置
+                <MapPin className="h-4 w-4" />
+                Drop a marker where you think the image belongs.
               </p>
               <MapPicker value={guessPos} onChange={setGuessPos} height="280px" />
               <Button
                 className="w-full"
-                onClick={() => handleSubmitRound(false)}
+                onClick={handleSubmitRound}
                 disabled={submitting || !guessPos}
               >
                 {submitting ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />提交中…</>
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Submitting guess
+                  </>
                 ) : (
-                  "确认猜测"
+                  "Lock in guess"
                 )}
               </Button>
             </>
           ) : (
             <div className="space-y-3">
               <div className="rounded-lg bg-accent/30 p-3 text-center space-y-1">
-                <p className="text-sm text-muted-foreground">本轮结果</p>
+                <p className="text-sm text-muted-foreground">Round summary</p>
                 <div className="flex justify-around">
                   <div>
-                    <p className="text-xs text-muted-foreground">你</p>
-                    <p className="text-2xl font-bold text-green-400">+{roundResult.user_score}</p>
+                    <p className="text-xs text-muted-foreground">You</p>
+                    <p className="text-2xl font-bold text-green-500">
+                      +{roundResult.user_score}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">AI</p>
-                    <p className="text-2xl font-bold text-red-400">+{roundResult.ai_score}</p>
+                    <p className="text-2xl font-bold text-rose-500">
+                      +{roundResult.ai_score}
+                    </p>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  距离真实位置 {roundResult.distance_km} km
+                  Your distance to truth: {roundResult.distance_km} km
                 </p>
               </div>
+
               <MapDisplay
                 markers={[
-                  ...(guessPos ? [{ lat: guessPos.lat, lng: guessPos.lng, label: "你", color: "#22c55e" }] : []),
-                  { lat: roundResult.true_lat, lng: roundResult.true_lng, label: "真实", color: "#ef4444" },
+                  ...(guessPos
+                    ? [
+                        {
+                          lat: guessPos.lat,
+                          lng: guessPos.lng,
+                          label: "You",
+                          color: "#22c55e",
+                        },
+                      ]
+                    : []),
+                  {
+                    lat: roundResult.true_lat,
+                    lng: roundResult.true_lng,
+                    label: "Truth",
+                    color: "#ef4444",
+                  },
                 ]}
                 height="200px"
                 drawLines
               />
+
               <Button className="w-full" onClick={handleNextRound}>
-                {roundResult.session_ended ? "查看最终结果" : "下一轮"}
+                {roundResult.session_ended ? "Open final result" : "Next round"}
               </Button>
             </div>
           )}

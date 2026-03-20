@@ -79,7 +79,7 @@ export default function AdminDashboard() {
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href="/admin/prizes">
+              <Link href="/admin/rewards">
                 <Gift className="h-4 w-4 mr-2" /> 添加奖品
               </Link>
             </Button>

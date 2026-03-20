@@ -1,65 +1,78 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useEffect, useState, Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BBoxCanvas, { type BBox } from "@/components/annotation/BBoxCanvas";
 import ThoughtInput, { type ThoughtData } from "@/components/annotation/ThoughtInput";
-import { getNextTask, submitAnnotation, getTempFileURL } from "@/lib/cloudbase";
+import LocationMap from "@/components/map/LocationMap";
+import { getNextTask, getTempFileURL, submitAnnotation } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
-import { getModeName } from "@/lib/modes";
-
-const MapPicker = dynamic(() => import("@/components/map/MapPicker"), { ssr: false });
+import { getAnnotationTypeName, getModeName } from "@/lib/modes";
 
 interface Task {
   id: number;
   storage_url: string;
   mode_tags: string[];
   difficulty: number;
+  lat?: number | null;
+  lng?: number | null;
+  true_location?: string | null;
   imageUrl?: string;
 }
 
-const INIT_THOUGHT: ThoughtData = { thought_text: "", final_answer: "", confidence: 50 };
+const INIT_THOUGHT: ThoughtData = {
+  thought_text: "",
+  final_answer: "",
+  confidence: 50,
+};
 
 function AnnotateContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
-  const user = useAuthStore((s) => s.user);
+  const annotationType = searchParams.get("annotationType") ?? "hybrid";
+  const user = useAuthStore((state) => state.user);
+
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bboxes, setBboxes] = useState<BBox[]>([]);
   const [thought, setThought] = useState<ThoughtData>(INIT_THOUGHT);
-  const [guessPos, setGuessPos] = useState<{ lat: number; lng: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const needsReasoning = annotationType === "reasoning" || annotationType === "hybrid";
+  const needsBoxes = annotationType === "bbox" || annotationType === "hybrid";
 
   const loadTask = async () => {
     setLoading(true);
     setError(null);
     setBboxes([]);
     setThought(INIT_THOUGHT);
-    setGuessPos(null);
     setSubmitted(false);
+
     try {
-      const res = await getNextTask(mode ? { mode } : undefined);
-      if (!res.task) {
-        setError("暂无可用任务，请稍后再试");
+      const response = await getNextTask(mode ? { mode } : undefined);
+      if (!response.task) {
         setTask(null);
+        setError("No task is currently available for the selected mode.");
         return;
       }
-      let imageUrl = res.task.storage_url;
+
+      let imageUrl = response.task.storage_url;
       if (imageUrl.startsWith("cloud://") || imageUrl.startsWith("cos://")) {
-        const r = await getTempFileURL(imageUrl);
-        imageUrl = r.tempFileURL;
+        const file = await getTempFileURL(imageUrl);
+        imageUrl = file.tempFileURL;
       }
-      setTask({ ...res.task, imageUrl });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "加载任务失败");
+
+      setTask({ ...response.task, imageUrl });
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : "Failed to load the next task."
+      );
     } finally {
       setLoading(false);
     }
@@ -67,33 +80,51 @@ function AnnotateContent() {
 
   useEffect(() => {
     loadTask();
-  }, [mode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, annotationType]);
 
   const handleSubmit = async () => {
-    if (!task) return;
-    if (!thought.thought_text.trim()) {
-      setError("请填写思维链分析");
+    if (!task || !mode) {
       return;
     }
+
+    if (needsReasoning && thought.thought_text.trim().length < 20) {
+      setError("Reasoning capture requires at least 20 characters of explanation.");
+      return;
+    }
+
+    if (needsBoxes && bboxes.length === 0) {
+      setError("Geo-element mode requires at least one bounding box.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
+
     try {
-      const res = await submitAnnotation({
+      await submitAnnotation({
         image_id: task.id,
-        mode_type: mode!,
-        thought_text: thought.thought_text,
-        final_answer: thought.final_answer,
-        confidence: thought.confidence,
+        mode_type: mode,
+        annotation_type: annotationType,
+        thought_text: needsReasoning ? thought.thought_text : "",
+        final_answer: needsReasoning ? thought.final_answer : "",
+        confidence: needsReasoning ? thought.confidence : 50,
         cloudbase_uid: user?.uid,
         email: user?.email,
-        bboxes: bboxes.map((b) => ({
-          x: b.x, y: b.y, width: b.width, height: b.height,
-          label_type: b.label_type, explanation: b.explanation,
-        })),
+        bboxes: needsBoxes
+          ? bboxes.map((bbox) => ({
+              x: bbox.x,
+              y: bbox.y,
+              width: bbox.width,
+              height: bbox.height,
+              label_type: bbox.label_type,
+              explanation: bbox.explanation,
+            }))
+          : [],
       });
       setSubmitted(true);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "提交失败");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Submission failed.");
     } finally {
       setSubmitting(false);
     }
@@ -103,10 +134,12 @@ function AnnotateContent() {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <p className="text-muted-foreground mb-4">请先选择标注模式</p>
-        <Link href="/annotate/mode">
-          <button className="text-primary hover:underline">去选择模式 →</button>
-        </Link>
+        <p className="text-muted-foreground mb-4">
+          Choose a mode before entering the annotation task page.
+        </p>
+        <Button asChild>
+          <Link href="/app/annotate/mode">Open mode selector</Link>
+        </Button>
       </div>
     );
   }
@@ -123,16 +156,16 @@ function AnnotateContent() {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold mb-2">提交成功！</h2>
-        <p className="text-muted-foreground mb-2">
-          审核通过后将获得积分奖励
+        <h2 className="text-2xl font-bold mb-2">Submission recorded</h2>
+        <p className="text-muted-foreground mb-6">
+          The annotation is stored and can now flow into review, export, and points logic.
         </p>
-        <p className="text-sm text-muted-foreground mb-8">
-          感谢你的贡献，管理员审核通过后积分将自动到账
-        </p>
-        <Button onClick={loadTask} className="w-full max-w-xs">
-          继续下一题（{getModeName(mode)}）
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button onClick={loadTask}>Next task</Button>
+          <Button asChild variant="outline">
+            <Link href="/app/home">Back to home</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -142,93 +175,131 @@ function AnnotateContent() {
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <p className="text-muted-foreground mb-4">
-          {error ?? `「${getModeName(mode)}」暂无可用题目，请稍后再试或换其他模式`}
+          {error ?? "No task is currently available."}
         </p>
         <div className="flex gap-3 justify-center">
-          <Button variant="outline" onClick={loadTask}>重试</Button>
-          <Link href="/annotate/mode">
-            <Button variant="outline">换模式</Button>
-          </Link>
+          <Button variant="outline" onClick={loadTask}>
+            Retry
+          </Button>
+          <Button asChild variant="ghost">
+            <Link href="/app/annotate/mode">Switch mode</Link>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-xl font-bold">标注任务 · {getModeName(mode)}</h1>
-          <p className="text-sm text-muted-foreground">
-            难度 {"★".repeat(task.difficulty)} · 图库：{task.mode_tags.map(getModeName).join(", ") || "通用"}
+          <p className="text-sm uppercase tracking-[0.2em] text-primary">
+            Annotation task
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold">
+            {getModeName(mode)} / {getAnnotationTypeName(annotationType)}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Difficulty {task.difficulty} | Dataset tags:{" "}
+            {task.mode_tags.map(getModeName).join(", ") || "General"}
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/annotate/mode">
-            <Button variant="ghost" size="sm">换模式</Button>
-          </Link>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/app/annotate/mode">Change setup</Link>
+          </Button>
           <Button variant="outline" size="sm" onClick={loadTask}>
-            换一题
+            Load another task
           </Button>
         </div>
       </div>
 
-      {error && (
+      {error ? (
         <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
           {error}
         </p>
-      )}
+      ) : null}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">图片标注</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {task.imageUrl && (
-              <BBoxCanvas
-                imageUrl={task.imageUrl}
-                bboxes={bboxes}
-                onChange={setBboxes}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        {needsBoxes ? (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">思维链分析</CardTitle>
+              <CardTitle>Geo-element annotation</CardTitle>
             </CardHeader>
             <CardContent>
-              <ThoughtInput value={thought} onChange={setThought} />
+              {task.imageUrl ? (
+                <BBoxCanvas imageUrl={task.imageUrl} bboxes={bboxes} onChange={setBboxes} />
+              ) : null}
             </CardContent>
           </Card>
+        ) : (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle>Task image</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {task.imageUrl ? (
+                <img
+                  src={task.imageUrl}
+                  alt="Task asset"
+                  className="w-full rounded-xl border border-border"
+                />
+              ) : null}
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="space-y-6">
+          {needsReasoning ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>Reasoning capture</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ThoughtInput value={thought} onChange={setThought} />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {task.lat != null && task.lng != null ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>Ground truth location</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LocationMap
+                  lat={task.lat}
+                  lng={task.lng}
+                  description={task.true_location ?? "Current task location metadata."}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">位置猜测（可选）</CardTitle>
+              <CardTitle>Submission checklist</CardTitle>
             </CardHeader>
-            <CardContent>
-              <MapPicker value={guessPos} onChange={setGuessPos} height="250px" />
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              <p>
+                Reasoning required: {needsReasoning ? "yes" : "no"}
+              </p>
+              <p>Bounding box required: {needsBoxes ? "yes" : "no"}</p>
+              <p>Truth location visible: {task.lat != null && task.lng != null ? "yes" : "no"}</p>
             </CardContent>
           </Card>
         </div>
       </div>
 
       <div className="flex justify-end">
-        <Button
-          onClick={handleSubmit}
-          disabled={submitting || !thought.thought_text.trim()}
-          className="px-8"
-        >
+        <Button onClick={handleSubmit} disabled={submitting} className="px-8">
           {submitting ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              提交中…
+              Submitting
             </>
           ) : (
-            "提交标注"
+            "Submit annotation"
           )}
         </Button>
       </div>
@@ -238,11 +309,13 @@ function AnnotateContent() {
 
 export default function AnnotatePage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
       <AnnotateContent />
     </Suspense>
   );

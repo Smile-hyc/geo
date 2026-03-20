@@ -1,36 +1,156 @@
 # GeoAnnotate
 
-地理图片推理与标注数据收集应用（类图寻 GeoGuessr，侧重数据回收）。
+GeoAnnotate is a geo-localization data collection and gameplay platform built with Next.js on the frontend and CloudBase cloud functions on the backend.
 
-## 技术栈
+The current repository now separates the product into clearer zones:
 
-- **前端**: Next.js 14 (App Router) + React + Tailwind CSS + shadcn/ui + react-konva
-- **后端**: 腾讯云开发 CloudBase（云函数 + 云数据库 + 云存储）
+- `/` public landing page
+- `/wiki` public documentation space
+- `/auth/*` authentication routes
+- `/app/*` core gameplay and user platform
+- `/admin/*` admin console
 
-## 本地开发
+## Tech Stack
 
-1. 安装依赖：`npm install`
-2. 复制环境变量：`cp .env.example .env.local`，填入 `NEXT_PUBLIC_CLOUDBASE_ENV_ID`
-3. 启动：`npm run dev`
+- Frontend: Next.js 14, React, TypeScript, Tailwind CSS, shadcn/ui
+- Interaction: Leaflet, react-konva, Zustand, React Hook Form, Zod
+- Backend: CloudBase cloud functions
+- Database: PostgreSQL with Prisma schema management
 
-## CloudBase 配置
+## Current Product Areas
 
-详细步骤见 **[docs/CLOUDBASE_DEPLOY.md](docs/CLOUDBASE_DEPLOY.md)**，包含：获取环境 ID、创建 Questions / Submissions 集合、CLI 与控制台两种方式部署云函数。
+### Public site
 
-简要步骤：
+- Landing page at `/`
+- Wiki pages at `/wiki`
 
-1. 在 [腾讯云开发控制台](https://console.cloud.tencent.com/tcb) 创建环境，记下 **环境 ID**，填入 `.env.local` 的 `NEXT_PUBLIC_CLOUDBASE_ENV_ID`。
-2. 在控制台「数据库」中新建集合：`Questions`、`Submissions`。
-3. 部署云函数：在项目根目录修改 `cloudbaserc.json` 中的 `envId` 后执行 `tcb fn deploy`（需先 `npm i -g @cloudbase/cli` 并 `tcb login`）；或按文档在控制台逐个上传 ZIP。
-4. 云存储需配置 CORS（若前端与图片非同源），以便画布导出图片。
+### Core app
 
-## 路由
+- Home dashboard
+- Annotation mode selection
+- Annotation task flow with reasoning / bbox / hybrid modes
+- AI battle configuration
+- Battle play and result pages
+- Profile, points, rewards, history, leaderboard
 
-- `/` 首页
-- `/play` 玩家答题与标注
-- `/admin` 管理后台（上传题目、查看提交）
+### Admin
 
-## 数据模型
+- Dashboard
+- Images
+- Reviews
+- Export
+- Rewards
+- Placeholder routes for users, AI models, and analytics
 
-- **Questions**: `_id`, `original_image_url`(fileID), `true_location`, `created_at`
-- **Submissions**: `_id`, `question_id`, `annotated_image_url`(fileID), `thought_process`, `submitted_at`
+## Project Structure
+
+### Frontend
+
+Main frontend code lives in:
+
+- `app/`
+- `components/`
+
+Page implementations are mostly in:
+
+- `app/(main)/...`
+- `app/(auth)/...`
+
+Route mapping layers are in:
+
+- `app/app/...`
+- `app/auth/...`
+
+### Backend
+
+Main backend code lives in:
+
+- `cloudfunctions/`
+- `prisma/`
+
+### Frontend-backend bridge
+
+The main bridge layer is:
+
+- `lib/cloudbase.ts`
+
+This file wraps CloudBase auth and cloud function calls for the frontend.
+
+### Shared config
+
+Shared product config and structure helpers live in:
+
+- `features/`
+- `types/`
+- `lib/modes.ts`
+
+## Local Development
+
+Install dependencies:
+
+```powershell
+cd D:\geoannotate
+npm.cmd install
+```
+
+Run the development server:
+
+```powershell
+npm.cmd run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Build for production check:
+
+```powershell
+npm.cmd run build
+```
+
+## Environment Notes
+
+Frontend rendering works locally once dependencies are installed, but full business functionality depends on backend environment setup:
+
+- `NEXT_PUBLIC_CLOUDBASE_ENV_ID`
+- CloudBase auth
+- deployed cloud functions
+- PostgreSQL connection variables
+- seeded image/task data
+
+Without those, pages can still render, but login, task fetch, annotation submit, and battle creation may fail.
+
+## Documentation
+
+Additional structure documentation is included in `docs/`:
+
+- [README project structure snippet](docs/README_PROJECT_STRUCTURE_SNIPPET.md)
+- [Detailed project structure guide](docs/PROJECT_STRUCTURE_GUIDE.md)
+- [Detailed project structure PDF](docs/PROJECT_STRUCTURE_GUIDE.pdf)
+- [CloudBase deployment guide](docs/CLOUDBASE_DEPLOY.md)
+
+## Branch Strategy
+
+Recommended long-lived branches:
+
+- `main`: always demoable and releasable
+- `develop`: integration and testing branch
+
+Current feature branches to keep available:
+
+- `feat/auth-wiki`
+- `feat/annotation-core`
+- `feat/battle-admin`
+
+## Status
+
+The current codebase has been validated with:
+
+```powershell
+npm.cmd run build
+```
+
+This confirms the current application structure compiles successfully after the route split, annotation flow restructuring, battle configuration updates, and documentation additions.

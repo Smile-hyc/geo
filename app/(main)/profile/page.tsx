@@ -172,10 +172,10 @@ export default function ProfilePage() {
           <Link href="/points">积分明细</Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/history">历史记录</Link>
+          <Link href="/app/history">历史记录</Link>
         </Button>
         <Button variant="outline" asChild className="col-span-2">
-          <Link href="/leaderboard">排行榜</Link>
+          <Link href="/app/leaderboard">排行榜</Link>
         </Button>
       </div>
 

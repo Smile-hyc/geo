@@ -1,45 +1,95 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, Satellite, Map, Mountain, Layers } from "lucide-react";
+import { useState } from "react";
+import { Layers, Map, MapPin, Mountain, Satellite } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ANNOTATION_MODES } from "@/lib/modes";
+import { Button } from "@/components/ui/button";
+import { ANNOTATION_MODES, ANNOTATION_TYPES, type AnnotationTypeId } from "@/lib/modes";
 
 const MODE_ICONS: Record<string, React.ReactNode> = {
-  street_view: <MapPin className="h-8 w-8 text-blue-400" />,
-  remote_sensing: <Satellite className="h-8 w-8 text-emerald-400" />,
-  map_mode: <Map className="h-8 w-8 text-amber-400" />,
-  terrain: <Mountain className="h-8 w-8 text-stone-400" />,
-  mixed: <Layers className="h-8 w-8 text-purple-400" />,
+  street_view: <MapPin className="h-8 w-8 text-blue-500" />,
+  remote_sensing: <Satellite className="h-8 w-8 text-emerald-500" />,
+  map_mode: <Map className="h-8 w-8 text-amber-500" />,
+  terrain: <Mountain className="h-8 w-8 text-stone-500" />,
+  mixed: <Layers className="h-8 w-8 text-violet-500" />,
 };
 
 export default function AnnotateModeSelectPage() {
+  const [annotationType, setAnnotationType] =
+    useState<AnnotationTypeId>("hybrid");
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">选择标注模式</h1>
-        <p className="text-muted-foreground">
-          不同模式对应不同的图库，选择后将从该图库中随机抽取题目进行标注
+    <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
+      <div className="space-y-3">
+        <p className="text-sm uppercase tracking-[0.2em] text-primary">
+          Annotation setup
+        </p>
+        <h1 className="text-3xl font-semibold">
+          Choose a mode and the annotation flow.
+        </h1>
+        <p className="max-w-3xl text-muted-foreground">
+          The requirement document asks for two explicit annotation paths:
+          reasoning capture and geo-element box annotation. This page now lets you
+          pick either one or a hybrid collection flow before entering a task.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <section className="grid gap-4 md:grid-cols-3">
+        {ANNOTATION_TYPES.map((type) => {
+          const selected = annotationType === type.id;
+          return (
+            <button
+              key={type.id}
+              type="button"
+              onClick={() => setAnnotationType(type.id)}
+              className={`rounded-2xl border p-5 text-left transition ${
+                selected
+                  ? "border-primary bg-primary/10 shadow-sm"
+                  : "border-border bg-card hover:border-primary/40"
+              }`}
+            >
+              <p className="text-sm font-medium text-primary">{type.name}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {type.description}
+              </p>
+            </button>
+          );
+        })}
+      </section>
+
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {ANNOTATION_MODES.map((mode) => (
-          <Link key={mode.id} href={`/annotate?mode=${encodeURIComponent(mode.id)}`}>
-            <Card className="h-full hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer group">
+          <Link
+            key={mode.id}
+            href={`/app/annotate?mode=${encodeURIComponent(mode.id)}&annotationType=${encodeURIComponent(annotationType)}`}
+          >
+            <Card className="h-full hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer">
               <CardHeader className="pb-3">
-                <div className="p-2 rounded-xl bg-accent/50 group-hover:bg-accent transition-colors w-fit">
-                  {MODE_ICONS[mode.id] ?? <MapPin className="h-8 w-8 text-muted-foreground" />}
+                <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/50">
+                  {MODE_ICONS[mode.id] ?? (
+                    <MapPin className="h-8 w-8 text-muted-foreground" />
+                  )}
                 </div>
                 <CardTitle className="mt-3">{mode.name}</CardTitle>
                 <CardDescription>{mode.description}</CardDescription>
               </CardHeader>
-              <CardContent className="pt-0">
-                <span className="text-xs text-primary font-medium">开始标注 →</span>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <p>Default reward: {mode.defaultReward} points</p>
+                <p>Truth map visibility: {mode.showTruthLocation ? "on" : "off"}</p>
+                <p className="font-medium text-primary">
+                  Start with {ANNOTATION_TYPES.find((type) => type.id === annotationType)?.name}
+                </p>
               </CardContent>
             </Card>
           </Link>
         ))}
+      </section>
+
+      <div className="flex justify-end">
+        <Button asChild variant="ghost">
+          <Link href="/app/home">Back to platform home</Link>
+        </Button>
       </div>
     </div>
   );

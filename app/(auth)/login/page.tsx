@@ -50,7 +50,7 @@ export default function LoginPage() {
         points_balance: dbUser.points_balance ?? 0,
         level: dbUser.level ?? 1,
       });
-      router.push("/home");
+      router.push("/app/home");
     } catch (e) {
       setError(e instanceof Error ? e.message : "登录失败，请重试");
     }
@@ -98,13 +98,13 @@ export default function LoginPage() {
           </Button>
         </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          <Link href="/forgot-password" className="text-primary hover:underline">
+          <Link href="/auth/forgot-password" className="text-primary hover:underline">
             忘记密码？
           </Link>
         </p>
         <p className="mt-2 text-center text-sm text-muted-foreground">
           还没有账号？{" "}
-          <Link href="/register" className="text-primary hover:underline">
+          <Link href="/auth/register" className="text-primary hover:underline">
             立即注册
           </Link>
         </p>

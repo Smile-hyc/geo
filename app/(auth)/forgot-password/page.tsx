@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
     try {
       await resetPasswordWithCode(email, verificationId, data.code, data.newPassword);
       setSuccess(true);
-      setTimeout(() => router.push("/login"), 2000);
+      setTimeout(() => router.push("/auth/login"), 2000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "重置失败，请检查验证码是否正确");
     }
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
         </CardHeader>
         <CardContent>
           <Button asChild className="w-full">
-            <Link href="/login">立即登录</Link>
+            <Link href="/auth/login">立即登录</Link>
           </Button>
         </CardContent>
       </Card>
@@ -193,7 +193,7 @@ export default function ForgotPasswordPage() {
           </Button>
         </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          <Link href="/login" className="text-primary hover:underline">
+          <Link href="/auth/login" className="text-primary hover:underline">
             返回登录
           </Link>
         </p>

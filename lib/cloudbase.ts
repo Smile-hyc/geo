@@ -120,7 +120,19 @@ export async function syncUserToDb(params: {
 /** 获取下一个标注任务 */
 export async function getNextTask(params?: {
   mode?: string;
-}): Promise<{ task: { id: number; storage_url: string; mode_tags: string[]; difficulty: number } | null }> {
+}): Promise<{
+  task:
+    | {
+        id: number;
+        storage_url: string;
+        mode_tags: string[];
+        difficulty: number;
+        lat?: number | null;
+        lng?: number | null;
+        true_location?: string | null;
+      }
+    | null;
+}> {
   return callFunction("get-next-task", params || {});
 }
 
@@ -128,6 +140,7 @@ export async function getNextTask(params?: {
 export async function submitAnnotation(params: {
   image_id: number;
   mode_type: string;
+  annotation_type?: string;
   thought_text: string;
   final_answer: string;
   confidence: number;
@@ -196,6 +209,7 @@ export async function createBattle(params: {
   mode_type: string;
   time_limit_sec: number;
   round_count: number;
+  ai_model_id?: string;
   cloudbase_uid?: string;
   email?: string;
 }): Promise<{ session_id: number }> {
@@ -226,8 +240,8 @@ export async function getBattleResult(params: {
   session_id: number;
 }): Promise<{
   session: {
-    id: number; mode_type: string; user_total_score: number;
-    ai_total_score: number; winner: string; round_count: number;
+    id: number; ai_model_id: string; mode_type: string; time_limit_sec: number;
+    user_total_score: number; ai_total_score: number; winner: string; round_count: number;
   };
   rounds: Array<{
     round_index: number; image_storage_url: string;

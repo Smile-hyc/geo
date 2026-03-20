@@ -1,0 +1,294 @@
+\documentclass[11pt,a4paper]{ctexart}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{array}
+\setlist[itemize]{leftmargin=1.8em}
+\setlist[enumerate]{leftmargin=2em}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue
+}
+
+\title{GeoAnnotate 项目结构详细说明}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{项目当前整体架构}
+
+当前项目不是传统意义上的纯前后端分仓，而是一个单仓库混合结构：
+
+\begin{itemize}
+  \item 浏览器端页面与交互使用 Next.js
+  \item 服务端逻辑主要使用 CloudBase 云函数
+  \item 数据结构和数据库模式由 Prisma 管理
+\end{itemize}
+
+从职责上看，可以拆成四层：
+
+\begin{enumerate}
+  \item 前端层
+  \item 后端层
+  \item 前后端连接层
+  \item 共享配置层
+\end{enumerate}
+
+\section{前端层}
+
+前端层主要负责：
+
+\begin{itemize}
+  \item 页面展示
+  \item 用户交互
+  \item 标注框绘制
+  \item 地图展示
+  \item 登录与注册
+  \item 管理后台页面
+  \item Wiki 页面壳与导航
+\end{itemize}
+
+\subsection{主要目录}
+
+\begin{itemize}
+  \item \texttt{app/}
+  \item \texttt{components/}
+  \item \texttt{app/globals.css}
+  \item \texttt{tailwind.config.ts}
+  \item \texttt{next.config.js}
+\end{itemize}
+
+\subsection{页面路由结构}
+
+\textbf{根页面}
+
+\begin{itemize}
+  \item \texttt{app/page.tsx}：项目落地页，用于区分 \texttt{/wiki} 和 \texttt{/app}
+\end{itemize}
+
+\textbf{核心应用页面}
+
+\begin{itemize}
+  \item \texttt{app/(main)/}：核心平台页面的主要实现位置
+\end{itemize}
+
+\textbf{认证页面}
+
+\begin{itemize}
+  \item \texttt{app/(auth)/}：登录、注册、找回密码
+\end{itemize}
+
+\textbf{管理后台}
+
+\begin{itemize}
+  \item \texttt{app/admin/}：管理端页面
+\end{itemize}
+
+\textbf{新路由分区}
+
+\begin{itemize}
+  \item \texttt{app/app/}
+  \item \texttt{app/auth/}
+\end{itemize}
+
+这两个目录更多是新的 URL 入口层，很多文件只是转发到原有页面实现。
+
+因此后续真正要改页面内容时，优先修改：
+
+\begin{itemize}
+  \item \texttt{app/(main)/...}
+  \item \texttt{app/(auth)/...}
+\end{itemize}
+
+\subsection{前端组件目录}
+
+\begin{itemize}
+  \item \texttt{components/layout/}：导航栏、整体页面壳、路由壳
+  \item \texttt{components/annotation/}：标注相关组件
+  \item \texttt{components/map/}：地图显示与选择
+  \item \texttt{components/battle/}：计时器、计分板
+  \item \texttt{components/wiki/}：Wiki 导航
+  \item \texttt{components/ui/}：通用 UI 组件
+\end{itemize}
+
+\subsection{前端常见修改位置}
+
+\textbf{改首页}
+
+\begin{itemize}
+  \item \texttt{app/page.tsx}
+  \item \texttt{app/(main)/home/page.tsx}
+\end{itemize}
+
+\textbf{改标注相关界面}
+
+\begin{itemize}
+  \item \texttt{app/(main)/annotate/mode/page.tsx}
+  \item \texttt{app/(main)/annotate/page.tsx}
+  \item \texttt{components/annotation/BBoxCanvas.tsx}
+  \item \texttt{components/annotation/ThoughtInput.tsx}
+  \item \texttt{components/map/LocationMap.tsx}
+\end{itemize}
+
+\textbf{改 AI 对战界面}
+
+\begin{itemize}
+  \item \texttt{app/(main)/battle/page.tsx}
+  \item \texttt{app/(main)/battle/[sessionId]/play/page.tsx}
+  \item \texttt{app/(main)/battle/[sessionId]/result/page.tsx}
+  \item \texttt{components/battle/CountdownTimer.tsx}
+  \item \texttt{components/battle/BattleScoreBoard.tsx}
+\end{itemize}
+
+\textbf{改整体布局}
+
+\begin{itemize}
+  \item \texttt{components/layout/Navbar.tsx}
+  \item \texttt{components/layout/AppShell.tsx}
+  \item \texttt{components/layout/MainRouteShell.tsx}
+  \item \texttt{app/admin/layout.tsx}
+  \item \texttt{app/(main)/wiki/layout.tsx}
+\end{itemize}
+
+\section{后端层}
+
+当前项目的后端不是独立 NestJS / FastAPI 服务，而是以 CloudBase 云函数作为主要后端执行层。
+
+\subsection{主要目录}
+
+\begin{itemize}
+  \item \texttt{cloudfunctions/}
+  \item \texttt{prisma/}
+\end{itemize}
+
+\subsection{后端负责的内容}
+
+\begin{itemize}
+  \item 任务分发
+  \item 标注提交
+  \item 用户信息读取
+  \item AI 对战创建
+  \item AI 对战结果读取
+  \item 奖励与积分逻辑
+  \item 排行榜与历史数据读取
+  \item 管理后台数据处理
+\end{itemize}
+
+\subsection{关键云函数}
+
+\begin{itemize}
+  \item \texttt{cloudfunctions/get-next-task/}
+  \item \texttt{cloudfunctions/submit-annotation/}
+  \item \texttt{cloudfunctions/create-battle/}
+  \item \texttt{cloudfunctions/submit-battle-round/}
+  \item \texttt{cloudfunctions/get-battle-result/}
+  \item \texttt{cloudfunctions/get-user-profile/}
+  \item \texttt{cloudfunctions/get-user-history/}
+  \item \texttt{cloudfunctions/get-points-history/}
+  \item \texttt{cloudfunctions/get-leaderboard/}
+  \item \texttt{cloudfunctions/list-images/}
+  \item \texttt{cloudfunctions/review-annotation/}
+  \item \texttt{cloudfunctions/export-annotations/}
+\end{itemize}
+
+\subsection{数据库层}
+
+数据库结构主要在：
+
+\begin{itemize}
+  \item \texttt{prisma/schema.prisma}
+\end{itemize}
+
+如果要改数据库结构，优先修改这个文件，并同步检查对应云函数和前端调用层。
+
+\section{前后端连接层}
+
+前端和后端之间并不是页面直接访问数据库，而是通过统一的调用层转发到云函数。
+
+最关键的文件是：
+
+\begin{itemize}
+  \item \texttt{lib/cloudbase.ts}
+\end{itemize}
+
+它的作用包括：
+
+\begin{itemize}
+  \item 封装 CloudBase SDK 初始化
+  \item 封装登录、注册、找回密码
+  \item 封装云函数调用
+  \item 给前端页面提供统一的方法名
+\end{itemize}
+
+如果后端新增或修改了接口，通常需要同步修改：
+
+\begin{itemize}
+  \item \texttt{cloudfunctions/...}
+  \item \texttt{lib/cloudbase.ts}
+\end{itemize}
+
+\section{配置与共享层}
+
+这部分不直接属于前端界面，也不属于后端业务逻辑，但它决定了项目的整体骨架。
+
+\subsection{主要目录和文件}
+
+\begin{itemize}
+  \item \texttt{features/}
+  \item \texttt{types/}
+  \item \texttt{lib/modes.ts}
+  \item \texttt{package.json}
+  \item \texttt{tsconfig.json}
+  \item \texttt{next.config.js}
+\end{itemize}
+
+\subsection{各部分作用}
+
+\begin{itemize}
+  \item \texttt{features/annotation/}：标注模式与标注类型配置
+  \item \texttt{features/battle/}：对战模式、AI 对手、回合数、时间配置
+  \item \texttt{features/admin/}：管理后台导航配置
+  \item \texttt{features/platform/}：平台入口与路由结构说明
+  \item \texttt{types/}：共享类型定义
+  \item \texttt{lib/modes.ts}：统一导出模式配置
+\end{itemize}
+
+\section{如何快速判断改哪里}
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\raggedright\arraybackslash}p{0.32\textwidth}|>{\raggedright\arraybackslash}p{0.34\textwidth}|}
+\hline
+\textbf{目标} & \textbf{优先修改位置} & \textbf{说明} \\
+\hline
+改页面样式和布局 & \texttt{app/(main)}、\texttt{components} & 前端页面与组件 \\
+\hline
+改导航和壳层 & \texttt{components/layout}、\texttt{app/admin/layout.tsx} & 页面骨架与导航结构 \\
+\hline
+改接口调用方式 & \texttt{lib/cloudbase.ts} & 前后端调用桥梁 \\
+\hline
+改业务逻辑 & \texttt{cloudfunctions} & 云函数处理数据库和逻辑 \\
+\hline
+改数据库结构 & \texttt{prisma/schema.prisma} & 数据表与字段定义 \\
+\hline
+改模式与配置 & \texttt{features}、\texttt{lib/modes.ts} & 全局配置与共享常量 \\
+\hline
+\end{longtable}
+
+\section{一句话总结}
+
+当前项目可以简单理解为：
+
+\begin{itemize}
+  \item \texttt{app/ + components/} = 前端
+  \item \texttt{cloudfunctions/ + prisma/} = 后端
+  \item \texttt{lib/cloudbase.ts} = 前后端连接层
+  \item \texttt{features/ + types/ + 配置文件} = 项目框架与共享配置
+\end{itemize}
+
+如果后续要同步到 GitHub README，建议用精简版放在 README 中，把详细版长期维护在 \texttt{docs/} 目录。
+
+\end{document}

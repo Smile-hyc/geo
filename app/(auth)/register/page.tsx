@@ -100,7 +100,7 @@ export default function RegisterPage() {
       points_balance: dbUser.points_balance ?? 0,
       level: dbUser.level ?? 1,
     });
-    router.push("/home");
+    router.push("/app/home");
   };
 
   // ── 第二步：输入验证码 ──────────────────────────────────
@@ -213,7 +213,7 @@ export default function RegisterPage() {
         </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           已有账号？{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link href="/auth/login" className="text-primary hover:underline">
             立即登录
           </Link>
         </p>
