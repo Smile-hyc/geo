@@ -1,32 +1,32 @@
 export const CORE_APP_ROUTES = [
   {
     href: "/app/home",
-    label: "Home",
-    description: "Platform home, profile snapshot, and task entry points.",
+    label: "首页",
+    description: "平台总览、个人概况与核心功能入口。",
   },
   {
     href: "/app/annotate/mode",
-    label: "Annotate",
-    description: "Choose mode and annotation flow for data collection.",
+    label: "标注",
+    description: "选择数据采集模式与标注流程。",
   },
   {
     href: "/app/battle",
-    label: "Battle",
-    description: "Configure human-vs-AI sessions and compare outcomes.",
+    label: "对战",
+    description: "配置人机对战并查看结果对比。",
   },
   {
     href: "/app/history",
-    label: "History",
-    description: "Review past annotations, battles, and earned points.",
+    label: "历史记录",
+    description: "查看过往标注、对战与积分变化。",
   },
   {
     href: "/app/rewards",
-    label: "Rewards",
-    description: "Redeem points and inspect reward inventory status.",
+    label: "奖励兑换",
+    description: "使用积分兑换奖品并查看库存状态。",
   },
   {
     href: "/app/leaderboard",
-    label: "Leaderboard",
-    description: "Track high performers across points and battle outcomes.",
+    label: "排行榜",
+    description: "查看积分表现与对战结果排名。",
   },
 ] as const;

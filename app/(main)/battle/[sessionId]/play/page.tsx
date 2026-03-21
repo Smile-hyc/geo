@@ -75,7 +75,7 @@ export default function BattlePlayPage() {
         await loadRoundImage(result.rounds[0]?.image_storage_url);
         setTimerRunning(true);
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "Failed to load battle.");
+        setError(reason instanceof Error ? reason.message : "加载对战失败。");
       }
     };
 
@@ -129,7 +129,7 @@ export default function BattlePlayPage() {
       setUserTotal((value) => value + result.user_score);
       setAiTotal((value) => value + result.ai_score);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Failed to submit round.");
+      setError(reason instanceof Error ? reason.message : "提交本轮结果失败。");
     } finally {
       setSubmitting(false);
     }
@@ -158,7 +158,7 @@ export default function BattlePlayPage() {
       setTimerRunning(true);
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Failed to load the next round."
+        reason instanceof Error ? reason.message : "加载下一轮失败。"
       );
     }
   };
@@ -168,7 +168,7 @@ export default function BattlePlayPage() {
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <p className="text-destructive mb-4">{error}</p>
         <Button variant="outline" onClick={() => router.push("/app/battle")}>
-          Back to battle setup
+          返回对战配置
         </Button>
       </div>
     );
@@ -187,14 +187,14 @@ export default function BattlePlayPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
           <p className="text-sm uppercase tracking-[0.2em] text-primary">
-            Battle in progress
+            对战进行中
           </p>
           <h1 className="text-2xl font-semibold">
             {getBattleModeLabel(session.mode_type)}
           </h1>
           <p className="text-sm text-muted-foreground inline-flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
-            Opponent: {getAiOpponentLabel(session.ai_model_id || "mock-v1")}
+            对手：{getAiOpponentLabel(session.ai_model_id || "mock-v1")}
           </p>
         </div>
 
@@ -224,12 +224,12 @@ export default function BattlePlayPage() {
             ) : imageUrl ? (
               <img
                 src={imageUrl}
-                alt="Battle round"
+                alt="对战题目"
                 className="w-full rounded-lg object-cover max-h-80"
               />
             ) : (
               <div className="h-80 flex items-center justify-center text-muted-foreground">
-                Image failed to load.
+                图片加载失败。
               </div>
             )}
           </CardContent>
@@ -240,7 +240,7 @@ export default function BattlePlayPage() {
             <>
               <p className="text-sm text-muted-foreground flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
-                Drop a marker where you think the image belongs.
+                在地图上落点，标记你认为图片所在的位置。
               </p>
               <MapPicker value={guessPos} onChange={setGuessPos} height="280px" />
               <Button
@@ -251,20 +251,20 @@ export default function BattlePlayPage() {
                 {submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Submitting guess
+                    提交猜测中
                   </>
                 ) : (
-                  "Lock in guess"
+                  "锁定猜测"
                 )}
               </Button>
             </>
           ) : (
             <div className="space-y-3">
               <div className="rounded-lg bg-accent/30 p-3 text-center space-y-1">
-                <p className="text-sm text-muted-foreground">Round summary</p>
+                <p className="text-sm text-muted-foreground">本轮结果</p>
                 <div className="flex justify-around">
                   <div>
-                    <p className="text-xs text-muted-foreground">You</p>
+                    <p className="text-xs text-muted-foreground">你</p>
                     <p className="text-2xl font-bold text-green-500">
                       +{roundResult.user_score}
                     </p>
@@ -277,7 +277,7 @@ export default function BattlePlayPage() {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Your distance to truth: {roundResult.distance_km} km
+                  你与真实位置的距离：{roundResult.distance_km} km
                 </p>
               </div>
 
@@ -288,7 +288,7 @@ export default function BattlePlayPage() {
                         {
                           lat: guessPos.lat,
                           lng: guessPos.lng,
-                          label: "You",
+                          label: "你",
                           color: "#22c55e",
                         },
                       ]
@@ -296,7 +296,7 @@ export default function BattlePlayPage() {
                   {
                     lat: roundResult.true_lat,
                     lng: roundResult.true_lng,
-                    label: "Truth",
+                    label: "真实位置",
                     color: "#ef4444",
                   },
                 ]}
@@ -305,7 +305,7 @@ export default function BattlePlayPage() {
               />
 
               <Button className="w-full" onClick={handleNextRound}>
-                {roundResult.session_ended ? "Open final result" : "Next round"}
+                {roundResult.session_ended ? "查看最终结果" : "下一轮"}
               </Button>
             </div>
           )}

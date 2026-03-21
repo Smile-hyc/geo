@@ -41,7 +41,7 @@ export default function AdminLayout({
           <p className="text-xs text-muted-foreground uppercase tracking-wider">
             GeoAnnotate
           </p>
-          <p className="font-semibold mt-0.5">Admin Console</p>
+          <p className="font-semibold mt-0.5">管理后台</p>
         </div>
 
         {ADMIN_NAV_ITEMS.map((item) => (
@@ -64,7 +64,7 @@ export default function AdminLayout({
             className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent w-full"
           >
             <LogOut className="h-4 w-4" />
-            Sign out
+            退出登录
           </button>
         </div>
       </aside>

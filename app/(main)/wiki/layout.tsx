@@ -18,7 +18,7 @@ export default function WikiLayout({
                 GeoAnnotate Wiki
               </p>
               <p className="text-sm text-[#57606a]">
-                Public docs for onboarding, workflows, datasets, and tools.
+                面向入门、流程、数据集与工具的公开文档。
               </p>
             </div>
             <div className="flex items-center gap-2 text-sm">
@@ -26,13 +26,13 @@ export default function WikiLayout({
                 href="/"
                 className="rounded-md px-3 py-1.5 text-[#57606a] hover:bg-[#f3f4f6]"
               >
-                Home
+                首页
               </Link>
               <Link
                 href="/app/home"
                 className="rounded-md bg-[#0969da] px-3 py-1.5 text-white"
               >
-                Open platform
+                打开平台
               </Link>
             </div>
           </div>

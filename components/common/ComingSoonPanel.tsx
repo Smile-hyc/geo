@@ -34,7 +34,7 @@ export default function ComingSoonPanel({
           </ul>
           <Button asChild>
             <Link href={backHref} className="inline-flex items-center gap-2">
-              Back to admin
+              返回管理后台
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

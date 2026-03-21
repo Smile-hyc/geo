@@ -48,38 +48,38 @@ export default function Navbar() {
             <NavLink
               href="/app/annotate/mode"
               icon={<MapPin className="h-4 w-4" />}
-              label="Annotate"
+              label="标注"
             />
             <NavLink
               href="/app/battle"
               icon={<Trophy className="h-4 w-4" />}
-              label="Battle"
+              label="对战"
             />
             <NavLink
               href="/app/rewards"
               icon={<Gift className="h-4 w-4" />}
-              label="Rewards"
+              label="奖励"
             />
             <NavLink
               href="/app/leaderboard"
               icon={<Trophy className="h-4 w-4" />}
-              label="Rankings"
+              label="排行榜"
             />
             <NavLink
               href="/app/history"
               icon={<Clock className="h-4 w-4" />}
-              label="History"
+              label="历史"
             />
             <NavLink
               href="/wiki"
               icon={<BookOpen className="h-4 w-4" />}
-              label="Wiki"
+              label="文档"
             />
             {user?.role === "admin" ? (
               <NavLink
                 href="/admin"
                 icon={<User className="h-4 w-4" />}
-                label="Admin"
+                label="管理"
               />
             ) : null}
           </div>
@@ -90,14 +90,14 @@ export default function Navbar() {
             <div className="hidden sm:flex items-center gap-2 text-sm">
               <Coins className="h-4 w-4 text-yellow-500" />
               <span className="font-medium">{user.points_balance}</span>
-              <span className="text-muted-foreground">Points</span>
+              <span className="text-muted-foreground">积分</span>
             </div>
           ) : null}
 
           <Link href="/app/profile">
             <Button variant="ghost" size="sm" className="gap-2">
               <User className="h-4 w-4" />
-              <span className="hidden sm:inline">{user?.username ?? "Profile"}</span>
+              <span className="hidden sm:inline">{user?.username ?? "个人中心"}</span>
             </Button>
           </Link>
 
@@ -108,7 +108,7 @@ export default function Navbar() {
             className="gap-2 text-muted-foreground"
           >
             <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign out</span>
+            <span className="hidden sm:inline">退出登录</span>
           </Button>
         </div>
       </div>

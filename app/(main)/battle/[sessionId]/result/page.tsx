@@ -50,7 +50,7 @@ export default function BattleResultPage() {
     getBattleResult({ session_id: sessionId })
       .then(setResult)
       .catch((reason) =>
-        setError(reason instanceof Error ? reason.message : "Failed to load result.")
+        setError(reason instanceof Error ? reason.message : "加载结果失败。")
       )
       .finally(() => setLoading(false));
   }, [sessionId]);
@@ -66,8 +66,8 @@ export default function BattleResultPage() {
   if (error || !result) {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
-        <p className="text-destructive mb-4">{error ?? "Failed to load battle result."}</p>
-        <Button onClick={() => router.push("/app/battle")}>Back to battle setup</Button>
+        <p className="text-destructive mb-4">{error ?? "加载对战结果失败。"}</p>
+        <Button onClick={() => router.push("/app/battle")}>返回对战配置</Button>
       </div>
     );
   }
@@ -87,7 +87,7 @@ export default function BattleResultPage() {
           />
         </div>
         <h1 className="text-3xl font-semibold">
-          {won ? "You win" : draw ? "Draw" : "AI wins"}
+          {won ? "你获胜" : draw ? "平局" : "AI 获胜"}
         </h1>
         <p className="text-muted-foreground">
           {getBattleModeLabel(session.mode_type)} | {getAiOpponentLabel(session.ai_model_id)}
@@ -99,14 +99,14 @@ export default function BattleResultPage() {
           <div className="grid gap-4 md:grid-cols-3 text-center">
             <div>
               <User className="h-6 w-6 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">You</p>
+              <p className="text-sm text-muted-foreground">你</p>
               <p className={`text-3xl font-bold ${won ? "text-green-500" : ""}`}>
                 {session.user_total_score}
               </p>
             </div>
             <div className="self-center">
               <p className="text-sm text-muted-foreground">
-                {session.round_count} rounds / {session.time_limit_sec}s
+                {session.round_count} 回合 / {session.time_limit_sec} 秒
               </p>
               <p className="mt-2 text-lg font-semibold text-muted-foreground">VS</p>
             </div>
@@ -126,17 +126,17 @@ export default function BattleResultPage() {
       </Card>
 
       <div className="space-y-4">
-        <h2 className="font-semibold">Round breakdown</h2>
+        <h2 className="font-semibold">回合明细</h2>
         {rounds.map((round) => (
           <Card key={round.round_index}>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">
-                Round {round.round_index + 1}
+                第 {round.round_index + 1} 轮
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex flex-wrap gap-4 text-sm">
-                <span className="text-green-600">You +{round.user_score}</span>
+                <span className="text-green-600">你 +{round.user_score}</span>
                 <span className="text-rose-600">AI +{round.ai_score}</span>
               </div>
               <MapDisplay
@@ -144,7 +144,7 @@ export default function BattleResultPage() {
                   {
                     lat: round.user_guess_lat,
                     lng: round.user_guess_lng,
-                    label: "You",
+                    label: "你",
                     color: "#22c55e",
                   },
                   {
@@ -156,7 +156,7 @@ export default function BattleResultPage() {
                   {
                     lat: round.true_lat,
                     lng: round.true_lng,
-                    label: "Truth",
+                    label: "真实位置",
                     color: "#ef4444",
                   },
                 ]}
@@ -170,14 +170,14 @@ export default function BattleResultPage() {
 
       <div className="flex gap-3">
         <Button className="flex-1" onClick={() => router.push("/app/battle")}>
-          Start another battle
+          再来一局
         </Button>
         <Button
           variant="outline"
           className="flex-1"
           onClick={() => router.push("/app/home")}
         >
-          Back to home
+          返回首页
         </Button>
       </div>
     </div>
