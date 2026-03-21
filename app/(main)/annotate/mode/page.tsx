@@ -23,15 +23,13 @@ export default function AnnotateModeSelectPage() {
     <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
       <div className="space-y-3">
         <p className="text-sm uppercase tracking-[0.2em] text-primary">
-          Annotation setup
+          标注配置
         </p>
         <h1 className="text-3xl font-semibold">
-          Choose a mode and the annotation flow.
+          选择模式与标注流程。
         </h1>
         <p className="max-w-3xl text-muted-foreground">
-          The requirement document asks for two explicit annotation paths:
-          reasoning capture and geo-element box annotation. This page now lets you
-          pick either one or a hybrid collection flow before entering a task.
+          需求文档要求明确区分思维链标注和地理元素框选两条流程。你可以先在这里选择其中一种，或直接进入混合采集流程。
         </p>
       </div>
 
@@ -75,10 +73,10 @@ export default function AnnotateModeSelectPage() {
                 <CardDescription>{mode.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>Default reward: {mode.defaultReward} points</p>
-                <p>Truth map visibility: {mode.showTruthLocation ? "on" : "off"}</p>
+                <p>默认奖励：{mode.defaultReward} 积分</p>
+                <p>真实位置地图：{mode.showTruthLocation ? "显示" : "隐藏"}</p>
                 <p className="font-medium text-primary">
-                  Start with {ANNOTATION_TYPES.find((type) => type.id === annotationType)?.name}
+                  当前流程：{ANNOTATION_TYPES.find((type) => type.id === annotationType)?.name}
                 </p>
               </CardContent>
             </Card>
@@ -88,7 +86,7 @@ export default function AnnotateModeSelectPage() {
 
       <div className="flex justify-end">
         <Button asChild variant="ghost">
-          <Link href="/app/home">Back to platform home</Link>
+          <Link href="/app/home">返回应用首页</Link>
         </Button>
       </div>
     </div>

@@ -12,52 +12,53 @@ import { CORE_APP_ROUTES } from "@/features/platform/routes";
 
 export default function RootPage() {
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#020617,#0f172a_35%,#f8fafc_35%)] text-foreground">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#eff6ff,#f7fafc_38%,#edf4fb_100%)] text-foreground">
       <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
-        <div className="max-w-3xl text-white">
-          <p className="text-sm uppercase tracking-[0.25em] text-sky-300">
-            GeoAnnotate Platform
+        <div className="max-w-3xl text-slate-900">
+          <p className="text-sm uppercase tracking-[0.25em] text-sky-700">
+            GeoAnnotate 平台
           </p>
           <h1 className="mt-4 text-5xl font-semibold leading-tight">
-            A clearer split between public docs and the geo-annotation gameplay app.
+            把公开文档与地理标注应用明确分区。
           </h1>
-          <p className="mt-6 text-lg text-slate-300">
-            The landing page now reflects the requirement document: a public Wiki
-            under <code className="mx-1 rounded bg-white/10 px-1.5 py-0.5">/wiki</code>
-            and a task-focused application under
-            <code className="mx-1 rounded bg-white/10 px-1.5 py-0.5">/app</code>.
+          <p className="mt-6 text-lg text-slate-600">
+            首页现在按照需求文档完成拆分：公开的 Wiki 位于
+            <code className="mx-1 rounded bg-sky-100 px-1.5 py-0.5 text-sky-900">/wiki</code>
+            ，任务驱动的应用位于
+            <code className="mx-1 rounded bg-sky-100 px-1.5 py-0.5 text-sky-900">/app</code>
+            。
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
               <Link href="/app/home" className="inline-flex items-center gap-2">
-                Enter platform
+                进入平台
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="secondary" size="lg">
-              <Link href="/wiki">Browse wiki</Link>
+              <Link href="/wiki">浏览 Wiki</Link>
             </Button>
             <Button
               asChild
               variant="outline"
               size="lg"
-              className="bg-transparent text-white border-white/20 hover:bg-white/10 hover:text-white"
+              className="bg-white/80 text-slate-900 border-slate-200 hover:bg-white hover:text-slate-900"
             >
-              <Link href="/auth/login">Sign in</Link>
+              <Link href="/auth/login">登录</Link>
             </Button>
           </div>
         </div>
       </section>
 
       <section className="max-w-6xl mx-auto px-6 pb-20 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-slate-200 shadow-xl shadow-slate-900/5">
+        <Card className="border-slate-200 bg-white/90 shadow-xl shadow-sky-900/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-blue-600" />
-              Core platform
+              核心应用
             </CardTitle>
             <CardDescription>
-              Human reasoning capture, AI battles, points, rewards, and admin workflows.
+              覆盖人工推理采集、AI 对战、积分奖励与管理流程。
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
@@ -77,43 +78,42 @@ export default function RootPage() {
         </Card>
 
         <div className="grid gap-6">
-          <Card className="border-slate-200 shadow-xl shadow-slate-900/5">
+          <Card className="border-slate-200 bg-white/90 shadow-xl shadow-sky-900/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-sky-600" />
-                Public wiki
+                公开 Wiki
               </CardTitle>
               <CardDescription>
-                Sphinx-style onboarding content, reading paths, datasets, tools, and lab notes.
+                面向入门、阅读路径、数据集、工具和实验笔记的公开文档区。
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline">
-                <Link href="/wiki">Open /wiki</Link>
+                <Link href="/wiki">打开 /wiki</Link>
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 shadow-xl shadow-slate-900/5">
+          <Card className="border-slate-200 bg-white/90 shadow-xl shadow-sky-900/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Swords className="h-5 w-5 text-rose-600" />
-                Requirement-driven MVP
+                按需求文档搭建的 MVP
               </CardTitle>
               <CardDescription>
-                The repo now exposes the route partitions and placeholder surfaces
-                requested by the new requirement document.
+                当前仓库已经把需求文档要求的路由分区和预留页面搭起来了。
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p>Added /app and /auth route groups that mirror the document.</p>
-              <p>Kept /wiki visually separate and public.</p>
-              <p>Reserved admin surfaces for users, AI models, analytics, and rewards.</p>
+              <p>新增了与文档一致的 `/app` 与 `/auth` 路由分区。</p>
+              <p>保留了公开且独立视觉风格的 `/wiki`。</p>
+              <p>为用户、AI 模型、分析与奖励后台预留了页面位置。</p>
               <div className="pt-2">
                 <Button asChild variant="ghost" className="px-0">
                   <Link href="/admin" className="inline-flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4" />
-                    Open admin area
+                    打开管理后台
                   </Link>
                 </Button>
               </div>

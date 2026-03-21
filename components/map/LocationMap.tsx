@@ -25,7 +25,7 @@ export default function LocationMap({
       <div className="flex items-start justify-between gap-3 rounded-xl border border-border bg-accent/20 px-4 py-3">
         <div>
           <p className="text-sm font-medium">
-            {label ?? "Ground truth location"}
+            {label ?? "真实位置"}
           </p>
           {description ? (
             <p className="mt-1 text-xs text-muted-foreground">{description}</p>
@@ -37,7 +37,7 @@ export default function LocationMap({
         </div>
       </div>
       <MapDisplay
-        markers={[{ lat, lng, label: "Truth", color: "#ef4444" }]}
+        markers={[{ lat, lng, label: "真实位置", color: "#ef4444" }]}
         height={height}
       />
     </div>

@@ -8,11 +8,11 @@ export default function AppShell({
 }) {
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-slate-950 text-slate-100">
-        <div className="absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,#2563eb33,transparent_65%)] pointer-events-none" />
+      <div className="min-h-screen bg-transparent text-foreground">
+        <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,#60a5fa33,transparent_70%)] pointer-events-none" />
         <div className="relative min-h-screen flex flex-col">
           <Navbar />
-          <main className="flex-1 bg-background text-foreground">{children}</main>
+          <main className="flex-1 bg-transparent text-foreground">{children}</main>
         </div>
       </div>
     </AuthGuard>

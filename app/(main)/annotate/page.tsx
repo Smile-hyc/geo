@@ -58,7 +58,7 @@ function AnnotateContent() {
       const response = await getNextTask(mode ? { mode } : undefined);
       if (!response.task) {
         setTask(null);
-        setError("No task is currently available for the selected mode.");
+        setError("当前所选模式暂无可用任务。");
         return;
       }
 
@@ -71,7 +71,7 @@ function AnnotateContent() {
       setTask({ ...response.task, imageUrl });
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Failed to load the next task."
+        reason instanceof Error ? reason.message : "加载下一条任务失败。"
       );
     } finally {
       setLoading(false);
@@ -89,12 +89,12 @@ function AnnotateContent() {
     }
 
     if (needsReasoning && thought.thought_text.trim().length < 20) {
-      setError("Reasoning capture requires at least 20 characters of explanation.");
+      setError("思维链说明至少需要输入 20 个字符。");
       return;
     }
 
     if (needsBoxes && bboxes.length === 0) {
-      setError("Geo-element mode requires at least one bounding box.");
+      setError("地理元素标注至少需要绘制一个框。");
       return;
     }
 
@@ -124,7 +124,7 @@ function AnnotateContent() {
       });
       setSubmitted(true);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Submission failed.");
+      setError(reason instanceof Error ? reason.message : "提交失败。");
     } finally {
       setSubmitting(false);
     }
@@ -135,10 +135,10 @@ function AnnotateContent() {
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <p className="text-muted-foreground mb-4">
-          Choose a mode before entering the annotation task page.
+          进入标注页前请先选择模式。
         </p>
         <Button asChild>
-          <Link href="/app/annotate/mode">Open mode selector</Link>
+          <Link href="/app/annotate/mode">打开模式选择</Link>
         </Button>
       </div>
     );
@@ -156,14 +156,14 @@ function AnnotateContent() {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Submission recorded</h2>
+        <h2 className="text-2xl font-bold mb-2">提交成功</h2>
         <p className="text-muted-foreground mb-6">
-          The annotation is stored and can now flow into review, export, and points logic.
+          标注结果已保存，可以继续进入审核、导出和积分流程。
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button onClick={loadTask}>Next task</Button>
+          <Button onClick={loadTask}>下一题</Button>
           <Button asChild variant="outline">
-            <Link href="/app/home">Back to home</Link>
+            <Link href="/app/home">返回首页</Link>
           </Button>
         </div>
       </div>
@@ -175,14 +175,14 @@ function AnnotateContent() {
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <p className="text-muted-foreground mb-4">
-          {error ?? "No task is currently available."}
+          {error ?? "当前暂无可用任务。"}
         </p>
         <div className="flex gap-3 justify-center">
           <Button variant="outline" onClick={loadTask}>
-            Retry
+            重试
           </Button>
           <Button asChild variant="ghost">
-            <Link href="/app/annotate/mode">Switch mode</Link>
+            <Link href="/app/annotate/mode">切换模式</Link>
           </Button>
         </div>
       </div>
@@ -194,22 +194,22 @@ function AnnotateContent() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-primary">
-            Annotation task
+            标注任务
           </p>
           <h1 className="mt-2 text-2xl font-semibold">
             {getModeName(mode)} / {getAnnotationTypeName(annotationType)}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Difficulty {task.difficulty} | Dataset tags:{" "}
-            {task.mode_tags.map(getModeName).join(", ") || "General"}
+            难度 {task.difficulty} | 数据集标签：
+            {task.mode_tags.map(getModeName).join("、") || "综合"}
           </p>
         </div>
         <div className="flex gap-2">
           <Button asChild variant="ghost" size="sm">
-            <Link href="/app/annotate/mode">Change setup</Link>
+            <Link href="/app/annotate/mode">修改配置</Link>
           </Button>
           <Button variant="outline" size="sm" onClick={loadTask}>
-            Load another task
+            加载另一题
           </Button>
         </div>
       </div>
@@ -224,7 +224,7 @@ function AnnotateContent() {
         {needsBoxes ? (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle>Geo-element annotation</CardTitle>
+              <CardTitle>地理元素标注</CardTitle>
             </CardHeader>
             <CardContent>
               {task.imageUrl ? (
@@ -235,13 +235,13 @@ function AnnotateContent() {
         ) : (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle>Task image</CardTitle>
+              <CardTitle>任务图片</CardTitle>
             </CardHeader>
             <CardContent>
               {task.imageUrl ? (
                 <img
                   src={task.imageUrl}
-                  alt="Task asset"
+                  alt="任务图片"
                   className="w-full rounded-xl border border-border"
                 />
               ) : null}
@@ -253,7 +253,7 @@ function AnnotateContent() {
           {needsReasoning ? (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Reasoning capture</CardTitle>
+                <CardTitle>思维链记录</CardTitle>
               </CardHeader>
               <CardContent>
                 <ThoughtInput value={thought} onChange={setThought} />
@@ -264,13 +264,13 @@ function AnnotateContent() {
           {task.lat != null && task.lng != null ? (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Ground truth location</CardTitle>
+                <CardTitle>真实位置</CardTitle>
               </CardHeader>
               <CardContent>
                 <LocationMap
                   lat={task.lat}
                   lng={task.lng}
-                  description={task.true_location ?? "Current task location metadata."}
+                  description={task.true_location ?? "当前任务的位置元数据。"}
                 />
               </CardContent>
             </Card>
@@ -278,14 +278,14 @@ function AnnotateContent() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle>Submission checklist</CardTitle>
+              <CardTitle>提交检查</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
               <p>
-                Reasoning required: {needsReasoning ? "yes" : "no"}
+                需要推理：{needsReasoning ? "是" : "否"}
               </p>
-              <p>Bounding box required: {needsBoxes ? "yes" : "no"}</p>
-              <p>Truth location visible: {task.lat != null && task.lng != null ? "yes" : "no"}</p>
+              <p>需要框选：{needsBoxes ? "是" : "否"}</p>
+              <p>显示真实位置：{task.lat != null && task.lng != null ? "是" : "否"}</p>
             </CardContent>
           </Card>
         </div>
@@ -296,10 +296,10 @@ function AnnotateContent() {
           {submitting ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Submitting
+              提交中
             </>
           ) : (
-            "Submit annotation"
+            "提交标注"
           )}
         </Button>
       </div>

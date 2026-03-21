@@ -40,7 +40,7 @@ export default function BattleConfigPage() {
     const email = currentUser?.email ?? "";
 
     if (!uid && !email) {
-      setError("Login state is not ready yet. Refresh once and try again.");
+      setError("登录状态尚未就绪，请刷新后重试。");
       return;
     }
 
@@ -58,7 +58,7 @@ export default function BattleConfigPage() {
       });
       router.push(`/app/battle/${session_id}/play`);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Failed to create battle.");
+      setError(reason instanceof Error ? reason.message : "创建对战失败。");
       setLoading(false);
     }
   };
@@ -69,10 +69,9 @@ export default function BattleConfigPage() {
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-rose-500/10 mb-4">
           <Swords className="h-8 w-8 text-rose-500" />
         </div>
-        <h1 className="text-3xl font-semibold">Configure an AI battle</h1>
+        <h1 className="text-3xl font-semibold">配置 AI 对战</h1>
         <p className="mt-2 text-muted-foreground">
-          This page now exposes mode, timer, rounds, and AI opponent selection,
-          which aligns better with the requirement document's battle framework.
+          当前页面已经支持模式、限时、回合数和 AI 对手选择，更贴近需求文档里的对战框架。
         </p>
       </div>
 
@@ -85,9 +84,9 @@ export default function BattleConfigPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle>Battle mode</CardTitle>
+            <CardTitle>对战模式</CardTitle>
             <CardDescription>
-              Select the task family used to draw battle rounds.
+              选择本次对战要抽取的题目类型。
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
@@ -113,9 +112,9 @@ export default function BattleConfigPage() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle>AI opponent</CardTitle>
+            <CardTitle>AI 对手</CardTitle>
             <CardDescription>
-              The current backend still uses a mock provider, but the session now stores an explicit model choice.
+              当前后端仍使用模拟 provider，但 session 已会明确记录所选模型。
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
@@ -144,7 +143,7 @@ export default function BattleConfigPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Per-round timer
+                每轮限时
               </CardTitle>
             </CardHeader>
             <CardContent className="flex gap-2">
@@ -167,7 +166,7 @@ export default function BattleConfigPage() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle>Round count</CardTitle>
+              <CardTitle>回合数</CardTitle>
             </CardHeader>
             <CardContent className="flex gap-2">
               {ROUND_OPTIONS.map((roundOption) => (
@@ -192,17 +191,17 @@ export default function BattleConfigPage() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
-              Session summary
+              对战摘要
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>Mode: {getBattleModeLabel(mode)}</p>
-            <p>Opponent: {getAiOpponentLabel(aiOpponent)}</p>
-            <p>Timer: {timeLimit} seconds per round</p>
-            <p>Rounds: {rounds}</p>
-            <p>Scoring: max(0, 5000 - distanceKm * 2)</p>
+            <p>模式：{getBattleModeLabel(mode)}</p>
+            <p>对手：{getAiOpponentLabel(aiOpponent)}</p>
+            <p>限时：每轮 {timeLimit} 秒</p>
+            <p>回合：{rounds}</p>
+            <p>计分：max(0, 5000 - distanceKm * 2)</p>
             <Label className="pt-2 block">
-              Future extension point: provider registry, caching, and AI adapter selection.
+              后续扩展点：provider registry、缓存和 AI 适配器选择。
             </Label>
           </CardContent>
         </Card>
@@ -211,12 +210,12 @@ export default function BattleConfigPage() {
           {loading ? (
             <>
               <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              Preparing battle
+              正在创建对战
             </>
           ) : (
             <>
               <Swords className="h-5 w-5 mr-2" />
-              Start battle
+              开始对战
             </>
           )}
         </Button>

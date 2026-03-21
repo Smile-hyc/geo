@@ -1,36 +1,36 @@
 export const BATTLE_MODES = [
   {
     id: "general",
-    label: "General Geo",
-    description: "A balanced set across multiple geo-localization styles.",
+    label: "综合模式",
+    description: "覆盖多种地理定位风格的平衡题集。",
   },
   {
     id: "street_view",
-    label: "Street View",
-    description: "Urban clues, roads, signage, and built environment hints.",
+    label: "街景模式",
+    description: "以城市环境、道路、路牌和建筑线索为主。",
   },
   {
     id: "remote_sensing",
-    label: "Remote Sensing",
-    description: "Aerial and satellite imagery with larger uncertainty radius.",
+    label: "遥感模式",
+    description: "以航拍和卫星影像为主，定位范围通常更大。",
   },
   {
     id: "terrain",
-    label: "Terrain",
-    description: "Topography-focused rounds with relief and contour cues.",
+    label: "地形模式",
+    description: "以地貌、起伏和等高线线索为主。",
   },
 ] as const;
 
 export const AI_OPPONENTS = [
   {
     id: "mock-v1",
-    label: "Mock Explorer",
-    description: "Current local mock provider wired through cloud functions.",
+    label: "模拟对手",
+    description: "当前通过云函数接入的本地模拟 AI。",
   },
   {
     id: "research-baseline",
-    label: "Research Baseline",
-    description: "Placeholder for the future pluggable AI adapter layer.",
+    label: "研究基线",
+    description: "为后续可插拔 AI 适配层预留的基线对手。",
   },
 ] as const;
 

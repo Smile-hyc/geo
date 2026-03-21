@@ -1,40 +1,40 @@
 export const ANNOTATION_MODES = [
   {
     id: "street_view",
-    name: "Street View",
-    description: "Panoramas, roads, storefronts, signs, and urban clues.",
+    name: "街景",
+    description: "适合包含道路、店铺、路牌与城市线索的图像。",
     defaultReward: 50,
     showTruthLocation: true,
     enabled: true,
   },
   {
     id: "remote_sensing",
-    name: "Remote Sensing",
-    description: "Satellite imagery, land cover, and large-scale spatial cues.",
+    name: "遥感",
+    description: "适合卫星图像、地表覆盖与大尺度空间线索。",
     defaultReward: 60,
     showTruthLocation: true,
     enabled: true,
   },
   {
     id: "map_mode",
-    name: "Map",
-    description: "Map screenshots, cartographic symbols, and road topology.",
+    name: "地图",
+    description: "适合地图截图、制图符号与道路拓扑判断。",
     defaultReward: 45,
     showTruthLocation: true,
     enabled: true,
   },
   {
     id: "terrain",
-    name: "Terrain",
-    description: "Topographic maps, contour lines, and elevation patterns.",
+    name: "地形",
+    description: "适合地形图、等高线与海拔变化模式。",
     defaultReward: 55,
     showTruthLocation: true,
     enabled: true,
   },
   {
     id: "mixed",
-    name: "Mixed",
-    description: "A mixed pool for broader data collection experiments.",
+    name: "混合",
+    description: "用于更广泛采集实验的混合题池。",
     defaultReward: 65,
     showTruthLocation: true,
     enabled: true,
@@ -44,18 +44,18 @@ export const ANNOTATION_MODES = [
 export const ANNOTATION_TYPES = [
   {
     id: "reasoning",
-    name: "Reasoning Capture",
-    description: "Record reasoning text, final answer, and confidence.",
+    name: "思维链标注",
+    description: "记录推理过程、最终答案与置信度。",
   },
   {
     id: "bbox",
-    name: "Geo Element BBoxes",
-    description: "Draw bounding boxes, assign labels, and explain clues.",
+    name: "地理元素框选",
+    description: "绘制目标框、标记类别并补充线索说明。",
   },
   {
     id: "hybrid",
-    name: "Hybrid",
-    description: "Combine reasoning capture with geo-element box annotations.",
+    name: "混合标注",
+    description: "同时采集思维链与地理元素框选信息。",
   },
 ] as const;
 
@@ -68,7 +68,7 @@ export function getModeName(id: string): string {
     return found.name;
   }
   if (id === "general") {
-    return "General";
+    return "综合";
   }
   return id;
 }
