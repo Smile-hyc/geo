@@ -1,0 +1,40 @@
+name: Notify Feishu
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    types: [opened, reopened]
+    branches: [main, develop]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send to Feishu
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # PR 专用提醒
+            BODY=$(jq -n \
+              --arg title "${{ github.event.pull_request.title }}" \
+              --arg url "${{ github.event.pull_request.html_url }}" \
+              --arg author "${{ github.event.pull_request.user.login }}" \
+              --arg base "${{ github.event.pull_request.base.ref }}" \
+              --arg head "${{ github.event.pull_request.head.ref }}" \
+              --arg repo "${{ github.repository }}" \
+              '{msg_type:"text",content:{text:("📢 新的 Pull Request 提醒\n\n仓库: "+$repo+"\n标题: "+$title+"\n作者: "+$author+"\n合并: "+$head+" → "+$base+"\n\n点击查看: "+$url)}}')
+          else
+            # Push 通知
+            MSG="${{ github.event.head_commit.message }}"
+            BODY=$(jq -n \
+              --arg repo "${{ github.repository }}" \
+              --arg branch "${{ github.ref_name }}" \
+              --arg msg "$MSG" \
+              --arg actor "${{ github.actor }}" \
+              '{msg_type:"text",content:{text:("GitHub 推送通知\n仓库: "+$repo+"\n分支: "+$branch+"\n提交: "+$msg+"\n作者: "+$actor)}}')
+          fi
+          curl -s -X POST "$FEISHU_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "$BODY"
