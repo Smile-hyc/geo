@@ -72,18 +72,33 @@ exports.main = async (event, context) => {
     }
 
     const userId = userResult.rows[0].id;
-    const imagesResult = await client.query(
-      `SELECT id, lat, lng
-       FROM image_assets
-       WHERE lat IS NOT NULL AND lng IS NOT NULL
-       ORDER BY RANDOM()
-       LIMIT $1`,
-      [count]
-    );
+    const resolvedModeType = mode_type && String(mode_type).trim()
+      ? String(mode_type).trim()
+      : "general";
+    /** 综合模式：全库有坐标的图片；其它模式与标注任务池一致（mode_tags 包含该模式） */
+    const useModePool = resolvedModeType !== "general";
+
+    const imagesSql = useModePool
+      ? `SELECT id, lat, lng
+         FROM image_assets
+         WHERE lat IS NOT NULL AND lng IS NOT NULL
+           AND $2 = ANY(mode_tags)
+         ORDER BY RANDOM()
+         LIMIT $1`
+      : `SELECT id, lat, lng
+         FROM image_assets
+         WHERE lat IS NOT NULL AND lng IS NOT NULL
+         ORDER BY RANDOM()
+         LIMIT $1`;
+
+    const imagesParams = useModePool ? [count, resolvedModeType] : [count];
+    const imagesResult = await client.query(imagesSql, imagesParams);
 
     if (imagesResult.rows.length < count) {
       return {
-        errMsg: `Not enough geocoded images. Available: ${imagesResult.rows.length}.`,
+        errMsg: useModePool
+          ? `该对战模式下可用题目不足（需有坐标且 mode_tags 含「${resolvedModeType}」）。当前可用: ${imagesResult.rows.length}。`
+          : `Not enough geocoded images. Available: ${imagesResult.rows.length}.`,
       };
     }
 
@@ -92,7 +107,7 @@ exports.main = async (event, context) => {
          (user_id, ai_model_id, mode_type, time_limit_sec, round_count, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, 'active', NOW(), NOW())
        RETURNING id`,
-      [userId, aiModelId, mode_type || "general", timeLimit, count]
+      [userId, aiModelId, resolvedModeType, timeLimit, count]
     );
 
     const sessionId = sessionResult.rows[0].id;
