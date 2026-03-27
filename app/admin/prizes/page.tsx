@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import {
   adminListPrizes,
   adminCreatePrize,
@@ -22,6 +23,7 @@ interface Prize {
   stock: number;
   image_url: string | null;
   is_active: boolean;
+  deleted_at: string | null;
   created_at: string;
 }
 
@@ -140,15 +142,20 @@ export default function AdminPrizesPage() {
 
   return (
     <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">奖品管理</h1>
           <p className="text-sm text-muted-foreground mt-1">添加和管理可兑换奖品</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          {showForm ? "取消" : "添加奖品"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/admin/rewards/redemptions">兑换记录</Link>
+          </Button>
+          <Button onClick={() => setShowForm(!showForm)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            {showForm ? "取消" : "添加奖品"}
+          </Button>
+        </div>
       </div>
 
       {showForm && (
@@ -226,8 +233,10 @@ export default function AdminPrizesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {prizes.map((prize) => (
-              <Card key={prize.id} className="overflow-hidden">
+            {prizes.map((prize) => {
+              const removed = !!prize.deleted_at;
+              return (
+              <Card key={prize.id} className={`overflow-hidden ${removed ? "opacity-75" : ""}`}>
                 <div className="aspect-video bg-accent/20 flex items-center justify-center overflow-hidden">
                   {prize.image_url ? (
                     <img src={prize.image_url} alt={prize.name} className="w-full h-full object-cover" />
@@ -236,14 +245,18 @@ export default function AdminPrizesPage() {
                   )}
                 </div>
                 <CardContent className="p-3 space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <p className="font-medium truncate">{prize.name}</p>
                     <span
-                      className={`text-xs px-2 py-0.5 rounded ${
-                        prize.is_active ? "bg-green-500/20 text-green-400" : "bg-muted text-muted-foreground"
+                      className={`text-xs px-2 py-0.5 rounded shrink-0 ${
+                        removed
+                          ? "bg-muted text-muted-foreground"
+                          : prize.is_active
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {prize.is_active ? "上架" : "下架"}
+                      {removed ? "已移除" : prize.is_active ? "上架" : "下架"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -256,6 +269,7 @@ export default function AdminPrizesPage() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
+                      disabled={removed}
                       onClick={() => handleToggleActive(prize)}
                     >
                       <Edit2 className="h-3 w-3 mr-1" />
@@ -264,6 +278,7 @@ export default function AdminPrizesPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      disabled={removed}
                       onClick={() => {
                         const v = prompt("请输入新库存数量", String(prize.stock));
                         if (v !== null) handleUpdateStock(prize, parseInt(v, 10) || 0);
@@ -271,17 +286,20 @@ export default function AdminPrizesPage() {
                     >
                       改库存
                     </Button>
-                    <button
-                      onClick={() => handleDelete(prize.id)}
-                      className="p-2 rounded hover:bg-destructive/10 text-destructive"
-                      title="删除"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {!removed && (
+                      <button
+                        onClick={() => handleDelete(prize.id)}
+                        className="p-2 rounded hover:bg-destructive/10 text-destructive"
+                        title="从列表移除"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

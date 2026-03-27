@@ -1,6 +1,7 @@
 "use client";
 
 import cloudbase from "@cloudbase/js-sdk";
+import type { QuestionPublic, Submission } from "@/types/db";
 
 const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID || "";
 
@@ -279,6 +280,36 @@ export function getTempFileURL(fileID: string): Promise<{ tempFileURL: string }>
   });
 }
 
+/** 获取随机一题（兼容旧版） */
+export async function getRandomQuestion(): Promise<QuestionPublic | null> {
+  const result = await callFunction<{ question: QuestionPublic | null }>(
+    "getRandomQuestion"
+  );
+  return result.question;
+}
+
+/** 管理员：获取提交列表（兼容旧版） */
+export async function listSubmissionsLegacy(params?: {
+  limit?: number;
+  offset?: number;
+  question_id?: string;
+}): Promise<{ submissions: Submission[] }> {
+  const result = await callFunction<{ submissions: Submission[] }>(
+    "listSubmissions",
+    params || {}
+  );
+  return result;
+}
+
+/** 提交答案（兼容旧版 PlayContent） */
+export async function submitAnswer(params: {
+  question_id: string;
+  annotated_image_base64: string;
+  thought_process: string;
+}): Promise<{ submission_id: string }> {
+  return callFunction("submitAnswer", params);
+}
+
 /** 获取可兑换奖品列表 */
 export async function listPrizes(params?: { limit?: number }): Promise<{
   prizes: Array<{
@@ -320,10 +351,34 @@ export async function adminListPrizes(params?: {
     stock: number;
     image_url: string | null;
     is_active: boolean;
+    deleted_at: string | null;
     created_at: string;
   }>;
 }> {
   return callFunction("admin-list-prizes", params || {});
+}
+
+/** 管理员：分页查询兑换记录 */
+export async function adminListRedemptions(params?: {
+  limit?: number;
+  offset?: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  redemptions: Array<{
+    id: number;
+    user_id: number;
+    prize_id: number;
+    points_spent: number;
+    username: string;
+    email: string;
+    prize_name: string;
+    prize_removed: boolean;
+    created_at: string;
+  }>;
+  total: number;
+}> {
+  return callFunction("admin-list-redemptions", params || {});
 }
 
 /** 管理员：添加奖品 */

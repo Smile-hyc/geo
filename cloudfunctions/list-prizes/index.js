@@ -30,7 +30,7 @@ exports.main = async (event) => {
       const result = await client.query(
         `SELECT id, name, description, points_cost, stock, image_url
          FROM prizes
-         WHERE is_active = true AND stock > 0
+         WHERE is_active = true AND stock > 0 AND deleted_at IS NULL
          ORDER BY points_cost ASC
          LIMIT $1`,
         [limit]

@@ -131,15 +131,16 @@ model PointsLedger {
 }
 
 model Prize {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
   description String?
   points_cost Int
-  stock       Int      @default(0)
+  stock       Int       @default(0)
   image_url   String?
-  is_active   Boolean  @default(true)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  is_active   Boolean   @default(true)
+  deleted_at  DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 
   redemptions PrizeRedemption[]
 

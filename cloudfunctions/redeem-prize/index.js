@@ -47,7 +47,7 @@ exports.main = async (event, context) => {
       const user_balance = parseInt(user.points_balance, 10) || 0;
 
       const prizeResult = await client.query(
-        "SELECT id, name, points_cost, stock FROM prizes WHERE id = $1 AND is_active = true",
+        "SELECT id, name, points_cost, stock FROM prizes WHERE id = $1 AND is_active = true AND deleted_at IS NULL",
         [prize_id]
       );
       if (prizeResult.rows.length === 0) return { errMsg: "奖品不存在或已下架" };
@@ -68,10 +68,13 @@ exports.main = async (event, context) => {
           "INSERT INTO points_ledger (user_id, change_amount, balance_after, reason_type) VALUES ($1, $2, $3, 'prize_redemption')",
           [user_id, -points_cost, newBalance]
         );
-        await client.query(
-          "UPDATE prizes SET stock = stock - 1, updated_at = NOW() WHERE id = $1",
+        const stockUpd = await client.query(
+          "UPDATE prizes SET stock = stock - 1, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL AND stock > 0",
           [prize_id]
         );
+        if (stockUpd.rowCount === 0) {
+          throw new Error("库存不足或奖品已下架");
+        }
         await client.query(
           "INSERT INTO prize_redemptions (user_id, prize_id, points_spent) VALUES ($1, $2, $3)",
           [user_id, prize_id, points_cost]
