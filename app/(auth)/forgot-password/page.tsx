@@ -11,6 +11,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { sendPasswordResetCode, resetPasswordWithCode } from "@/lib/cloudbase";
+import { 
+  Loader2, 
+  Mail, 
+  KeyRound, 
+  CheckCircle, 
+  Eye, 
+  EyeOff, 
+  AlertCircle, 
+  ArrowLeft,
+  ShieldCheck
+} from "lucide-react";
+
+// 统一样式规范
+const primaryButtonStyle = "rounded-2xl border-2 border-transparent bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200/50 transition-all hover:-translate-y-1 hover:bg-blue-700 active:scale-95 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0";
+const secondaryButtonStyle = "rounded-2xl border-2 border-slate-200 bg-white px-8 py-3 text-sm font-bold text-slate-700 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-600 hover:text-blue-600 active:scale-95 inline-flex items-center justify-center gap-2";
 
 const step1Schema = z.object({
   email: z.string().email("请输入有效的邮箱地址"),
@@ -35,6 +50,10 @@ export default function ForgotPasswordPage() {
   const [verificationId, setVerificationId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  
+  // 密码显示状态
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const step1Form = useForm<Step1Data>({ resolver: zodResolver(step1Schema) });
   const step2Form = useForm<Step2Data>({ resolver: zodResolver(step2Schema) });
@@ -47,7 +66,7 @@ export default function ForgotPasswordPage() {
       setVerificationId(res.verification_id);
       setStep("reset");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "发送验证码失败，请确认邮箱已注册");
+      setError(e instanceof Error ? e.message : "发送失败，请确认邮箱已注册");
     }
   };
 
@@ -56,23 +75,27 @@ export default function ForgotPasswordPage() {
     try {
       await resetPasswordWithCode(email, verificationId, data.code, data.newPassword);
       setSuccess(true);
-      setTimeout(() => router.push("/auth/login"), 2000);
+      setTimeout(() => router.push("/auth/login"), 2500);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "重置失败，请检查验证码是否正确");
+      setError(e instanceof Error ? e.message : "重置失败，请检查验证码");
     }
   };
 
+  // ── 成功状态 ──
   if (success) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl text-green-500">密码已重置</CardTitle>
-          <CardDescription>
-            新密码已生效，即将跳转到登录页…
+      <Card className="rounded-[32px] border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur-sm text-center">
+        <CardHeader className="pb-6">
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-[28px] bg-green-50 text-green-500 shadow-sm">
+            <CheckCircle className="h-10 w-10" />
+          </div>
+          <CardTitle className="text-2xl font-extrabold text-slate-900">密码已重置</CardTitle>
+          <CardDescription className="text-sm font-medium text-slate-500 mt-2">
+            新密码已生效，正在为您跳转至登录页...
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button asChild className="w-full">
+          <Button asChild className={primaryButtonStyle + " w-full"}>
             <Link href="/auth/login">立即登录</Link>
           </Button>
         </CardContent>
@@ -80,123 +103,124 @@ export default function ForgotPasswordPage() {
     );
   }
 
+  // ── 第二步：设置新密码 ──
   if (step === "reset") {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">设置新密码</CardTitle>
-          <CardDescription>
-            验证码已发送至 <span className="font-medium text-foreground">{email}</span>，
-            请查收邮件并输入验证码
+      <Card className="rounded-[32px] border border-slate-200 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
+        <CardHeader className="space-y-1 pb-6">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+            <ShieldCheck className="h-6 w-6" />
+          </div>
+          <CardTitle className="text-2xl font-extrabold tracking-tight text-slate-900">安全验证</CardTitle>
+          <CardDescription className="text-sm font-medium text-slate-500 leading-relaxed">
+            验证码已发送至 <span className="font-bold text-blue-600">{email}</span>，请输入验证码并设置新密码。
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={step2Form.handleSubmit(onResetPassword)} className="space-y-4">
             {error && (
-              <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
-                {error}
-              </p>
+              <div className="flex items-center gap-2 rounded-2xl bg-rose-50 p-4 text-xs font-bold text-rose-500 border border-rose-100">
+                <AlertCircle className="h-4 w-4 shrink-0" /> {error}
+              </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="code">邮箱验证码</Label>
+            
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700 uppercase tracking-widest ml-1">验证码</Label>
               <Input
-                id="code"
-                placeholder="请输入 6 位验证码"
+                placeholder="6 位数字"
+                className="rounded-xl border-slate-200 bg-slate-50/50 focus:border-blue-600 focus:bg-white transition-all h-11 font-mono tracking-widest"
                 {...step2Form.register("code")}
-                maxLength={10}
               />
-              {step2Form.formState.errors.code && (
-                <p className="text-xs text-destructive">{step2Form.formState.errors.code.message}</p>
-              )}
+              {step2Form.formState.errors.code && <p className="text-[10px] font-bold text-rose-500 uppercase ml-1">{step2Form.formState.errors.code.message}</p>}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">新密码</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                placeholder="至少 6 位"
-                {...step2Form.register("newPassword")}
-              />
-              {step2Form.formState.errors.newPassword && (
-                <p className="text-xs text-destructive">{step2Form.formState.errors.newPassword.message}</p>
-              )}
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700 uppercase tracking-widest ml-1">新密码</Label>
+              <div className="relative">
+                <Input
+                  type={showPass ? "text" : "password"}
+                  placeholder="" 
+                  className="rounded-xl border-slate-200 bg-slate-50/50 focus:border-blue-600 focus:bg-white transition-all h-11 pr-11"
+                  {...step2Form.register("newPassword")}
+                />
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-blue-600">
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {step2Form.formState.errors.newPassword && <p className="text-[10px] font-bold text-rose-500 uppercase ml-1">{step2Form.formState.errors.newPassword.message}</p>}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">确认新密码</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="再次输入新密码"
-                {...step2Form.register("confirmPassword")}
-              />
-              {step2Form.formState.errors.confirmPassword && (
-                <p className="text-xs text-destructive">{step2Form.formState.errors.confirmPassword.message}</p>
-              )}
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700 uppercase tracking-widest ml-1">确认新密码</Label>
+              <div className="relative">
+                <Input
+                  type={showConfirm ? "text" : "password"}
+                  placeholder=""
+                  className="rounded-xl border-slate-200 bg-slate-50/50 focus:border-blue-600 focus:bg-white transition-all h-11 pr-11"
+                  {...step2Form.register("confirmPassword")}
+                />
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-blue-600">
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {step2Form.formState.errors.confirmPassword && <p className="text-[10px] font-bold text-rose-500 uppercase ml-1">{step2Form.formState.errors.confirmPassword.message}</p>}
             </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={step2Form.formState.isSubmitting}
-            >
-              {step2Form.formState.isSubmitting ? "重置中…" : "重置密码"}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={() => {
-                setStep("email");
-                setError(null);
-              }}
-            >
-              返回修改邮箱
-            </Button>
+
+            <div className="flex flex-col gap-3 pt-2">
+              <button type="submit" className={primaryButtonStyle + " w-full h-12"} disabled={step2Form.formState.isSubmitting}>
+                {step2Form.formState.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <KeyRound className="h-5 w-5" />}
+                重置账户密码
+              </button>
+              <button type="button" className={secondaryButtonStyle + " w-full h-12"} onClick={() => { setStep("email"); setError(null); }}>
+                返回修改邮箱
+              </button>
+            </div>
           </form>
         </CardContent>
       </Card>
     );
   }
 
+  // ── 第一步：输入邮箱 ──
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl">忘记密码</CardTitle>
-        <CardDescription>
-          输入注册时使用的邮箱，我们将发送验证码帮助您重置密码
+    <Card className="rounded-[32px] border border-slate-200 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
+      <CardHeader className="space-y-1 pb-6">
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.3em] text-blue-500 opacity-80">Security Recovery</p>
+        <CardTitle className="text-3xl font-extrabold tracking-tight text-slate-900">忘记密码</CardTitle>
+        <CardDescription className="text-sm font-medium text-slate-500">
+          请输入您的注册邮箱，我们将发送验证码帮助您重置密码。
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={step1Form.handleSubmit(onSendCode)} className="space-y-4">
+        <form onSubmit={step1Form.handleSubmit(onSendCode)} className="space-y-6">
           {error && (
-            <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
-              {error}
-            </p>
+            <div className="flex items-center gap-2 rounded-2xl bg-rose-50 p-4 text-xs font-bold text-rose-500 border border-rose-100">
+              <AlertCircle className="h-4 w-4 shrink-0" /> {error}
+            </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email">邮箱</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              {...step1Form.register("email")}
-            />
-            {step1Form.formState.errors.email && (
-              <p className="text-xs text-destructive">{step1Form.formState.errors.email.message}</p>
-            )}
+            <Label className="text-xs font-bold text-slate-700 uppercase tracking-widest ml-1">电子邮箱</Label>
+            <div className="relative">
+              <Input
+                type="email"
+                placeholder="name@example.com"
+                className="rounded-xl border-slate-200 bg-slate-50/50 focus:border-blue-600 focus:bg-white transition-all h-12 pl-11"
+                {...step1Form.register("email")}
+              />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            </div>
+            {step1Form.formState.errors.email && <p className="text-[10px] font-bold text-rose-500 uppercase ml-1">{step1Form.formState.errors.email.message}</p>}
           </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={step1Form.formState.isSubmitting}
-          >
-            {step1Form.formState.isSubmitting ? "发送中…" : "发送验证码"}
-          </Button>
+          <button type="submit" className={primaryButtonStyle + " w-full h-12"} disabled={step1Form.formState.isSubmitting}>
+            {step1Form.formState.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "获取验证码"}
+          </button>
         </form>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          <Link href="/auth/login" className="text-primary hover:underline">
-            返回登录
+        
+        <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+          <Link href="/auth/login" className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest">
+            <ArrowLeft className="h-3 w-3" /> 返回登录
           </Link>
-        </p>
+        </div>
       </CardContent>
     </Card>
   );
