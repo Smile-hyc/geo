@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Gift, Loader2, Plus, Trash2, Edit2, CheckCircle } from "lucide-react";
+import { Gift, Loader2, Plus, Trash2, Edit2, CheckCircle, Pencil, X, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import {
@@ -27,6 +28,11 @@ interface Prize {
   created_at: string;
 }
 
+type ModalState =
+  | null
+  | { kind: "edit"; prize: Prize }
+  | { kind: "stock"; prize: Prize };
+
 export default function AdminPrizesPage() {
   const user = useAuthStore((s) => s.user);
   const [prizes, setPrizes] = useState<Prize[]>([]);
@@ -42,9 +48,21 @@ export default function AdminPrizesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+  const [modal, setModal] = useState<ModalState>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    description: "",
+    points_cost: "",
+    image_url: "",
+  });
+  const [stockValue, setStockValue] = useState("");
+  const [modalBusy, setModalBusy] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const loadPrizes = useCallback(async () => {
     setLoading(true);
+    setListError(null);
     try {
       const res = await adminListPrizes({
         cloudbase_uid: user?.uid,
@@ -53,6 +71,7 @@ export default function AdminPrizesPage() {
       setPrizes(res.prizes ?? []);
     } catch {
       setPrizes([]);
+      setListError("加载奖品列表失败");
     } finally {
       setLoading(false);
     }
@@ -61,6 +80,29 @@ export default function AdminPrizesPage() {
   useEffect(() => {
     loadPrizes();
   }, [loadPrizes]);
+
+  const closeModal = () => {
+    setModal(null);
+    setModalError(null);
+    setModalBusy(false);
+  };
+
+  const openEditModal = (prize: Prize) => {
+    setModalError(null);
+    setEditForm({
+      name: prize.name,
+      description: prize.description || "",
+      points_cost: String(prize.points_cost),
+      image_url: prize.image_url || "",
+    });
+    setModal({ kind: "edit", prize });
+  };
+
+  const openStockModal = (prize: Prize) => {
+    setModalError(null);
+    setStockValue(String(prize.stock));
+    setModal({ kind: "stock", prize });
+  };
 
   const handleSubmit = async () => {
     const name = form.name.trim();
@@ -97,7 +139,66 @@ export default function AdminPrizesPage() {
     }
   };
 
+  const handleSaveEdit = async () => {
+    if (!modal || modal.kind !== "edit") return;
+    const name = editForm.name.trim();
+    const points_cost = parseInt(editForm.points_cost, 10);
+    if (!name) {
+      setModalError("请输入奖品名称");
+      return;
+    }
+    if (isNaN(points_cost) || points_cost < 0) {
+      setModalError("积分须为大于等于 0 的整数");
+      return;
+    }
+    setModalBusy(true);
+    setModalError(null);
+    try {
+      await adminUpdatePrize({
+        prize_id: modal.prize.id,
+        name,
+        description: editForm.description.trim(),
+        points_cost,
+        image_url: editForm.image_url.trim(),
+        cloudbase_uid: user?.uid,
+        email: user?.email,
+      });
+      closeModal();
+      await loadPrizes();
+    } catch (e) {
+      setModalError(e instanceof Error ? e.message : "保存失败");
+    } finally {
+      setModalBusy(false);
+    }
+  };
+
+  const handleSaveStock = async () => {
+    if (!modal || modal.kind !== "stock") return;
+    const v = parseInt(stockValue, 10);
+    if (isNaN(v) || v < 0) {
+      setModalError("请输入大于等于 0 的整数库存");
+      return;
+    }
+    setModalBusy(true);
+    setModalError(null);
+    try {
+      await adminUpdatePrize({
+        prize_id: modal.prize.id,
+        stock: v,
+        cloudbase_uid: user?.uid,
+        email: user?.email,
+      });
+      closeModal();
+      await loadPrizes();
+    } catch (e) {
+      setModalError(e instanceof Error ? e.message : "更新失败");
+    } finally {
+      setModalBusy(false);
+    }
+  };
+
   const handleToggleActive = async (prize: Prize) => {
+    setListError(null);
     try {
       await adminUpdatePrize({
         prize_id: prize.id,
@@ -107,27 +208,13 @@ export default function AdminPrizesPage() {
       });
       await loadPrizes();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "更新失败");
-    }
-  };
-
-  const handleUpdateStock = async (prize: Prize, newStock: number) => {
-    if (newStock < 0) return;
-    try {
-      await adminUpdatePrize({
-        prize_id: prize.id,
-        stock: newStock,
-        cloudbase_uid: user?.uid,
-        email: user?.email,
-      });
-      await loadPrizes();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "更新失败");
+      setListError(e instanceof Error ? e.message : "上下架失败");
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("确认删除该奖品？已兑换记录将保留。")) return;
+    if (!confirm("确认从奖品列表中移除？历史兑换记录将保留。")) return;
+    setListError(null);
     try {
       await adminDeletePrize({
         prize_id: id,
@@ -136,12 +223,16 @@ export default function AdminPrizesPage() {
       });
       await loadPrizes();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "删除失败");
+      setListError(e instanceof Error ? e.message : "移除失败");
     }
   };
 
   return (
     <div className="p-8 space-y-6">
+      {listError && (
+        <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{listError}</p>
+      )}
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">奖品管理</h1>
@@ -211,8 +302,9 @@ export default function AdminPrizesPage() {
               </div>
               <div className="md:col-span-2 space-y-2">
                 <Label>奖品描述（可选）</Label>
-                <Input
+                <Textarea
                   placeholder="奖品描述"
+                  className="min-h-[88px]"
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 />
@@ -259,35 +351,45 @@ export default function AdminPrizesPage() {
                       {removed ? "已移除" : prize.is_active ? "上架" : "下架"}
                     </span>
                   </div>
+                  {prize.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">{prize.description}</p>
+                  )}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>{prize.points_cost} 积分</span>
                     <span>·</span>
                     <span>库存 {prize.stock}</span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1"
+                      disabled={removed}
+                      onClick={() => openEditModal(prize)}
+                    >
+                      <Pencil className="h-3 w-3 mr-1" />
+                      编辑
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={removed}
+                      onClick={() => openStockModal(prize)}
+                    >
+                      <Package className="h-3 w-3 mr-1" />
+                      库存
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       disabled={removed}
                       onClick={() => handleToggleActive(prize)}
                     >
                       <Edit2 className="h-3 w-3 mr-1" />
                       {prize.is_active ? "下架" : "上架"}
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={removed}
-                      onClick={() => {
-                        const v = prompt("请输入新库存数量", String(prize.stock));
-                        if (v !== null) handleUpdateStock(prize, parseInt(v, 10) || 0);
-                      }}
-                    >
-                      改库存
-                    </Button>
                     {!removed && (
                       <button
+                        type="button"
                         onClick={() => handleDelete(prize.id)}
                         className="p-2 rounded hover:bg-destructive/10 text-destructive"
                         title="从列表移除"
@@ -303,6 +405,97 @@ export default function AdminPrizesPage() {
           </div>
         )}
       </div>
+
+      {modal?.kind === "edit" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" role="dialog" aria-modal>
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-lg border-border">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+              <CardTitle className="text-base">编辑奖品信息</CardTitle>
+              <button type="button" className="rounded p-1 hover:bg-accent" onClick={closeModal} aria-label="关闭">
+                <X className="h-4 w-4" />
+              </button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {modalError && (
+                <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{modalError}</p>
+              )}
+              <div className="space-y-2">
+                <Label>名称 *</Label>
+                <Input value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>积分 *</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={editForm.points_cost}
+                  onChange={(e) => setEditForm((f) => ({ ...f, points_cost: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>图片 URL</Label>
+                <Input
+                  value={editForm.image_url}
+                  onChange={(e) => setEditForm((f) => ({ ...f, image_url: e.target.value }))}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>描述</Label>
+                <Textarea
+                  className="min-h-[88px]"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" type="button" onClick={closeModal} disabled={modalBusy}>
+                  取消
+                </Button>
+                <Button type="button" onClick={handleSaveEdit} disabled={modalBusy}>
+                  {modalBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "保存"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {modal?.kind === "stock" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" role="dialog" aria-modal>
+          <Card className="w-full max-w-md shadow-lg border-border">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+              <CardTitle className="text-base">调整库存 · {modal.prize.name}</CardTitle>
+              <button type="button" className="rounded p-1 hover:bg-accent" onClick={closeModal} aria-label="关闭">
+                <X className="h-4 w-4" />
+              </button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {modalError && (
+                <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{modalError}</p>
+              )}
+              <p className="text-xs text-muted-foreground">当前库存：{modal.prize.stock}。可直接设为运营盘点后的数量。</p>
+              <div className="space-y-2">
+                <Label>新库存</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={stockValue}
+                  onChange={(e) => setStockValue(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" type="button" onClick={closeModal} disabled={modalBusy}>
+                  取消
+                </Button>
+                <Button type="button" onClick={handleSaveStock} disabled={modalBusy}>
+                  {modalBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "保存"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
