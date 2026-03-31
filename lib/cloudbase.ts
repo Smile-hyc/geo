@@ -1,7 +1,6 @@
 "use client";
 
 import cloudbase from "@cloudbase/js-sdk";
-import type { QuestionPublic, Submission } from "@/types/db";
 
 const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID || "";
 
@@ -278,36 +277,6 @@ export function getTempFileURL(fileID: string): Promise<{ tempFileURL: string }>
     if (item?.tempFileURL) return { tempFileURL: item.tempFileURL };
     throw new Error((item as { message?: string })?.message || "获取临时链接失败");
   });
-}
-
-/** 获取随机一题（兼容旧版） */
-export async function getRandomQuestion(): Promise<QuestionPublic | null> {
-  const result = await callFunction<{ question: QuestionPublic | null }>(
-    "getRandomQuestion"
-  );
-  return result.question;
-}
-
-/** 管理员：获取提交列表（兼容旧版） */
-export async function listSubmissionsLegacy(params?: {
-  limit?: number;
-  offset?: number;
-  question_id?: string;
-}): Promise<{ submissions: Submission[] }> {
-  const result = await callFunction<{ submissions: Submission[] }>(
-    "listSubmissions",
-    params || {}
-  );
-  return result;
-}
-
-/** 提交答案（兼容旧版 PlayContent） */
-export async function submitAnswer(params: {
-  question_id: string;
-  annotated_image_base64: string;
-  thought_process: string;
-}): Promise<{ submission_id: string }> {
-  return callFunction("submitAnswer", params);
 }
 
 /** 获取可兑换奖品列表 */
