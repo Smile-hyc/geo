@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle, XCircle, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { listSubmissions, getTempFileURL, callFunction, exportAnnotations } from "@/lib/cloudbase";
-import { useAuthStore } from "@/lib/auth";
+import { useAuthStore, useAuthStoreHydrated } from "@/lib/auth";
 
 interface BBoxItem {
   x: number;
@@ -45,6 +45,8 @@ type Draft = { comment: string; score: string };
 
 export default function AdminReviewsPage() {
   const user = useAuthStore((s) => s.user);
+  const authHydrated = useAuthStoreHydrated();
+  const fetchGenRef = useRef(0);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("pending");
@@ -66,15 +68,26 @@ export default function AdminReviewsPage() {
   };
 
   const loadData = useCallback(async () => {
+    if (!authHydrated) return;
+    if (!user || (!user.uid && !user.email)) {
+      setLoading(false);
+      setListError(null);
+      setSubmissions([]);
+      setTotal(0);
+      return;
+    }
+    const { uid: cloudbase_uid, email } = user;
+    const gen = ++fetchGenRef.current;
     setLoading(true);
     setListError(null);
     try {
       const res = await listSubmissions({
         limit: 30,
         quality_status: filter === "all" ? undefined : filter,
-        cloudbase_uid: user?.uid,
-        email: user?.email,
+        cloudbase_uid,
+        email,
       });
+      if (gen !== fetchGenRef.current) return;
       const list = (res.submissions as unknown as Submission[]) ?? [];
       setTotal(res.total ?? 0);
 
@@ -97,16 +110,20 @@ export default function AdminReviewsPage() {
           return { ...sub, tempAnnotatedUrl, tempImageUrl };
         })
       );
+      if (gen !== fetchGenRef.current) return;
       setSubmissions(withUrls);
     } catch (e) {
+      if (gen !== fetchGenRef.current) return;
       setSubmissions([]);
       setListError(e instanceof Error ? e.message : "加载失败");
     } finally {
-      setLoading(false);
+      if (gen === fetchGenRef.current) setLoading(false);
     }
-  }, [filter, user?.uid, user?.email]);
+  }, [authHydrated, filter, user?.uid, user?.email]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
   const runReview = async (id: number, status: "approved" | "rejected") => {
     setReviewError(null);
@@ -207,7 +224,13 @@ export default function AdminReviewsPage() {
             {{ all: "全部", pending: "待审核", approved: "已通过", rejected: "已拒绝" }[s]}
           </button>
         ))}
-        <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="ml-auto">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => void loadData()}
+          disabled={loading || !authHydrated || !user}
+          className="ml-auto"
+        >
           {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : "刷新"}
         </Button>
         <Button
@@ -222,7 +245,7 @@ export default function AdminReviewsPage() {
         </Button>
       </div>
 
-      {loading ? (
+      {!authHydrated || loading ? (
         <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : (
         <div className="space-y-4">
