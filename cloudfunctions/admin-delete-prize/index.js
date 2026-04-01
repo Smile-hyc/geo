@@ -16,7 +16,7 @@ function getPool() {
 }
 
 /**
- * 管理员删除奖品
+ * 管理员移除奖品（软删除，保留历史兑换记录）
  * 入参：{ prize_id, cloudbase_uid?, email? }
  */
 exports.main = async (event, context) => {
@@ -45,8 +45,15 @@ exports.main = async (event, context) => {
         return { errMsg: "无权限" };
       }
 
-      await client.query("DELETE FROM prize_redemptions WHERE prize_id = $1", [prize_id]);
-      await client.query("DELETE FROM prizes WHERE id = $1", [prize_id]);
+      const upd = await client.query(
+        `UPDATE prizes
+         SET deleted_at = NOW(), is_active = false, updated_at = NOW()
+         WHERE id = $1 AND deleted_at IS NULL`,
+        [prize_id]
+      );
+      if (upd.rowCount === 0) {
+        return { errMsg: "奖品不存在或已移除" };
+      }
       return { success: true };
     } finally {
       client.release();

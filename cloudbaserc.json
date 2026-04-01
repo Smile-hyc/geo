@@ -3,6 +3,34 @@
   "functionRoot": "./cloudfunctions",
   "functions": [
     {
+      "name": "getRandomQuestion",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "createQuestion",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "submitAnswer",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "listSubmissions",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
       "name": "auth-sync",
       "timeout": 10,
       "runtime": "Nodejs16.13",
@@ -161,6 +189,13 @@
       "timeout": 10,
       "runtime": "Nodejs16.13",
       "installDependency": false,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-list-redemptions",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
       "handler": "index.main"
     },
     {

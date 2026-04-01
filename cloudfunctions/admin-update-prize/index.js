@@ -45,8 +45,14 @@ exports.main = async (event, context) => {
         return { errMsg: "无权限" };
       }
 
-      const existResult = await client.query("SELECT id FROM prizes WHERE id = $1", [prize_id]);
+      const existResult = await client.query(
+        "SELECT id, deleted_at FROM prizes WHERE id = $1",
+        [prize_id]
+      );
       if (existResult.rows.length === 0) return { errMsg: "奖品不存在" };
+      if (existResult.rows[0].deleted_at != null) {
+        return { errMsg: "该奖品已移除，无法编辑" };
+      }
 
       const updates = [];
       const values = [];
