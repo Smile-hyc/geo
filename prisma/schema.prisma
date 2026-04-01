@@ -18,10 +18,11 @@ model User {
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
-  annotations  AnnotationRecord[]
-  battles      BattleSession[]
-  pointsLedger PointsLedger[]
-  redemptions  PrizeRedemption[]
+  annotations   AnnotationRecord[]
+  battles       BattleSession[]
+  pointsLedger  PointsLedger[]
+  redemptions   PrizeRedemption[]
+  reviewRecords ReviewRecord[]
 
   @@map("users")
 }
@@ -59,8 +60,25 @@ model AnnotationRecord {
   user   User       @relation(fields: [user_id], references: [id])
   image  ImageAsset @relation(fields: [image_id], references: [id])
   bboxes AnnotationBBox[]
+  reviews ReviewRecord[]
 
   @@map("annotation_records")
+}
+
+model ReviewRecord {
+  id                   Int      @id @default(autoincrement())
+  annotation_record_id Int
+  reviewer_id          Int
+  review_status        String
+  review_score         Int?
+  comments             String?
+  created_at           DateTime @default(now())
+
+  annotation AnnotationRecord @relation(fields: [annotation_record_id], references: [id], onDelete: Cascade)
+  reviewer   User            @relation(fields: [reviewer_id], references: [id])
+
+  @@index([annotation_record_id])
+  @@map("review_records")
 }
 
 model AnnotationBBox {

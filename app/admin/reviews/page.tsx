@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { CheckCircle, XCircle, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { listSubmissions, getTempFileURL, callFunction, exportAnnotations } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
 
@@ -27,12 +30,18 @@ interface Submission {
   annotated_image_url: string | null;
   image_storage_url: string;
   created_at: string;
+  last_review_score?: number | null;
+  last_review_comments?: string | null;
+  last_reviewed_at?: string | null;
+  last_reviewer_username?: string | null;
   bboxes?: BBoxItem[];
   tempAnnotatedUrl?: string;
   tempImageUrl?: string;
 }
 
 const STATUS_FILTER = ["all", "pending", "approved", "rejected"];
+
+type Draft = { comment: string; score: string };
 
 export default function AdminReviewsPage() {
   const user = useAuthStore((s) => s.user);
@@ -42,13 +51,29 @@ export default function AdminReviewsPage() {
   const [total, setTotal] = useState(0);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<Record<number, Draft>>({});
+
+  const getDraft = (id: number): Draft =>
+    drafts[id] ?? { comment: "", score: "" };
+
+  const setDraftField = (id: number, partial: Partial<Draft>) => {
+    setDrafts((prev) => ({
+      ...prev,
+      [id]: { ...getDraft(id), ...partial },
+    }));
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setListError(null);
     try {
       const res = await listSubmissions({
         limit: 30,
         quality_status: filter === "all" ? undefined : filter,
+        cloudbase_uid: user?.uid,
+        email: user?.email,
       });
       const list = (res.submissions as unknown as Submission[]) ?? [];
       setTotal(res.total ?? 0);
@@ -62,33 +87,74 @@ export default function AdminReviewsPage() {
               const r = await getTempFileURL(sub.annotated_image_url);
               tempAnnotatedUrl = r.tempFileURL;
             }
-          } catch { }
+          } catch { /* ignore */ }
           try {
             if (sub.image_storage_url) {
               const r = await getTempFileURL(sub.image_storage_url);
               tempImageUrl = r.tempFileURL;
             }
-          } catch { }
+          } catch { /* ignore */ }
           return { ...sub, tempAnnotatedUrl, tempImageUrl };
         })
       );
       setSubmissions(withUrls);
-    } catch {
+    } catch (e) {
       setSubmissions([]);
+      setListError(e instanceof Error ? e.message : "加载失败");
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, user?.uid, user?.email]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleReview = async (id: number, status: "approved" | "rejected") => {
+  const runReview = async (id: number, status: "approved" | "rejected") => {
+    setReviewError(null);
     setActionLoading(id);
+    const d = getDraft(id);
+    const scoreRaw = d.score.trim();
+    let review_score: number | undefined;
+    if (scoreRaw) {
+      const n = parseInt(scoreRaw, 10);
+      if (!Number.isNaN(n) && n >= 1 && n <= 5) review_score = n;
+    }
     try {
-      await callFunction("review-annotation", { record_id: id, quality_status: status });
-      setSubmissions((prev) => prev.map((s) => s.id === id ? { ...s, quality_status: status } : s));
-    } catch { }
-    setActionLoading(null);
+      await callFunction("review-annotation", {
+        record_id: id,
+        quality_status: status,
+        comments: d.comment.trim() || undefined,
+        review_score: review_score ?? undefined,
+        cloudbase_uid: user?.uid,
+        email: user?.email,
+      });
+      setSubmissions((prev) =>
+        prev.map((s) =>
+          s.id === id
+            ? {
+                ...s,
+                quality_status: status,
+                last_reviewer_username: user?.username ?? s.last_reviewer_username,
+                last_review_score: review_score ?? null,
+                last_review_comments: d.comment.trim() || null,
+                last_reviewed_at: new Date().toISOString(),
+              }
+            : s
+        )
+      );
+      setDrafts((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    } catch (e) {
+      setReviewError(e instanceof Error ? e.message : "审核失败");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReview = (id: number, status: "approved" | "rejected") => {
+    void runReview(id, status);
   };
 
   const handleExport = async (qualityFilter?: "approved" | "pending" | "rejected") => {
@@ -116,6 +182,13 @@ export default function AdminReviewsPage() {
 
   return (
     <div className="p-8 space-y-6">
+      {listError && (
+        <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{listError}</p>
+      )}
+      {reviewError && (
+        <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{reviewError}</p>
+      )}
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">标注审核</h1>
         <p className="text-sm text-muted-foreground">共 {total} 条</p>
@@ -125,6 +198,7 @@ export default function AdminReviewsPage() {
         {STATUS_FILTER.map((s) => (
           <button
             key={s}
+            type="button"
             onClick={() => setFilter(s)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
               filter === s ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/50"
@@ -174,6 +248,21 @@ export default function AdminReviewsPage() {
                   </span>
                 </div>
 
+                {sub.last_reviewer_username && (
+                  <div className="text-xs rounded-md border border-border bg-muted/20 px-3 py-2 space-y-1">
+                    <p className="font-medium text-muted-foreground">最近审核</p>
+                    <p>
+                      {sub.last_reviewer_username}
+                      {sub.last_reviewed_at &&
+                        ` · ${new Date(sub.last_reviewed_at).toLocaleString("zh-CN")}`}
+                      {sub.last_review_score != null && ` · 质量分 ${sub.last_review_score}/5`}
+                    </p>
+                    {sub.last_review_comments && (
+                      <p className="text-muted-foreground whitespace-pre-wrap">{sub.last_review_comments}</p>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   {sub.tempImageUrl && (
                     <img src={sub.tempImageUrl} alt="原图" className="h-24 w-36 object-cover rounded-lg border border-border flex-shrink-0" />
@@ -221,24 +310,51 @@ export default function AdminReviewsPage() {
                 )}
 
                 {sub.quality_status === "pending" && (
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm" variant="outline"
-                      className="gap-1.5 text-green-400 border-green-400/40 hover:bg-green-400/10"
-                      onClick={() => handleReview(sub.id, "approved")}
-                      disabled={actionLoading === sub.id}
-                    >
-                      {actionLoading === sub.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3" />}
-                      通过
-                    </Button>
-                    <Button
-                      size="sm" variant="outline"
-                      className="gap-1.5 text-red-400 border-red-400/40 hover:bg-red-400/10"
-                      onClick={() => handleReview(sub.id, "rejected")}
-                      disabled={actionLoading === sub.id}
-                    >
-                      <XCircle className="h-3 w-3" /> 拒绝
-                    </Button>
+                  <div className="space-y-3 rounded-lg border border-border p-3 bg-muted/10">
+                    <p className="text-xs font-medium text-muted-foreground">审核信息（写入审计表）</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">质量分 1–5（可选）</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={5}
+                          placeholder="不填则无分数"
+                          value={getDraft(sub.id).score}
+                          onChange={(e) => setDraftField(sub.id, { score: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">备注（可选，拒绝时建议填写原因）</Label>
+                      <Textarea
+                        className="min-h-[72px] text-sm"
+                        placeholder="审核说明、拒绝原因等"
+                        value={getDraft(sub.id).comment}
+                        onChange={(e) => setDraftField(sub.id, { comment: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 text-green-400 border-green-400/40 hover:bg-green-400/10"
+                        onClick={() => handleReview(sub.id, "approved")}
+                        disabled={actionLoading === sub.id}
+                      >
+                        {actionLoading === sub.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3" />}
+                        通过
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 text-red-400 border-red-400/40 hover:bg-red-400/10"
+                        onClick={() => handleReview(sub.id, "rejected")}
+                        disabled={actionLoading === sub.id}
+                      >
+                        <XCircle className="h-3 w-3" /> 拒绝
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>

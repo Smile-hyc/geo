@@ -259,12 +259,32 @@ export async function listSubmissions(params?: {
   limit?: number;
   offset?: number;
   quality_status?: string;
+  cloudbase_uid?: string;
+  email?: string;
 }): Promise<{
   submissions: Array<{
-    id: number; username: string; mode_type: string;
-    thought_text: string; final_answer: string;
-    quality_status: string; created_at: string;
+    id: number;
+    username: string;
+    mode_type: string;
+    thought_text: string;
+    final_answer: string;
+    confidence: number;
+    quality_status: string;
+    created_at: string;
     image_storage_url: string;
+    annotated_image_url?: string | null;
+    last_review_score?: number | null;
+    last_review_comments?: string | null;
+    last_reviewed_at?: string | null;
+    last_reviewer_username?: string | null;
+    bboxes?: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      label_type: string;
+      explanation: string;
+    }>;
   }>;
   total: number;
 }> {

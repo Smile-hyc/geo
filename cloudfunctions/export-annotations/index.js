@@ -50,10 +50,22 @@ exports.main = async (event, context) => {
       let recordsQuery = `
         SELECT ar.id, ar.user_id, ar.image_id, ar.mode_type, ar.thought_text, ar.final_answer,
                ar.confidence, ar.annotated_image_url, ar.quality_status, ar.created_at,
-               u.username, ia.storage_url AS image_storage_url, ia.true_location, ia.lat, ia.lng, ia.mode_tags
+               u.username, ia.storage_url AS image_storage_url, ia.true_location, ia.lat, ia.lng, ia.mode_tags,
+               lr.review_score AS last_review_score,
+               lr.comments AS last_review_comments,
+               lr.created_at AS last_reviewed_at,
+               ru.username AS last_reviewer_username
         FROM annotation_records ar
         JOIN users u ON u.id = ar.user_id
         JOIN image_assets ia ON ia.id = ar.image_id
+        LEFT JOIN LATERAL (
+          SELECT rr.reviewer_id, rr.review_score, rr.comments, rr.created_at
+          FROM review_records rr
+          WHERE rr.annotation_record_id = ar.id
+          ORDER BY rr.created_at DESC
+          LIMIT 1
+        ) lr ON true
+        LEFT JOIN users ru ON ru.id = lr.reviewer_id
       `;
       const params = [];
       if (quality_status) {
@@ -97,6 +109,10 @@ exports.main = async (event, context) => {
           annotated_image_url: r.annotated_image_url || null,
           quality_status: r.quality_status,
           created_at: r.created_at ? new Date(r.created_at).toISOString() : "",
+          last_review_score: r.last_review_score != null ? parseInt(r.last_review_score, 10) : null,
+          last_review_comments: r.last_review_comments || null,
+          last_reviewed_at: r.last_reviewed_at ? new Date(r.last_reviewed_at).toISOString() : null,
+          last_reviewer_username: r.last_reviewer_username || null,
           bboxes,
         });
       }
