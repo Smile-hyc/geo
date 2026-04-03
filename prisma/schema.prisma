@@ -8,44 +8,81 @@ datasource db {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  cloudbase_uid  String   @unique
+  id             Int       @id @default(autoincrement())
+  cloudbase_uid  String    @unique
   username       String
-  email          String   @unique
-  role           String   @default("user")
-  points_balance Int      @default(0)
-  level          Int      @default(1)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  email          String    @unique
+  avatar_url     String?
+  role           String    @default("user")
+  status         String    @default("active")
+  points_balance Int       @default(0)
+  level          Int       @default(1)
+  last_login_at  DateTime?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
 
-  annotations  AnnotationRecord[]
-  battles      BattleSession[]
-  pointsLedger PointsLedger[]
-  redemptions  PrizeRedemption[]
+  annotations    AnnotationRecord[]
+  battles        BattleSession[]
+  pointsLedger   PointsLedger[]
+  redemptions    PrizeRedemption[]
+  reviewRecords  ReviewRecord[]
+  behaviorEvents BehaviorEvent[]
 
   @@map("users")
 }
 
 model ImageAsset {
-  id            Int      @id @default(autoincrement())
-  storage_url   String
-  lat           Float?
-  lng           Float?
-  true_location String
-  mode_tags     String[] @default([])
-  difficulty    Int      @default(1)
-  created_at    DateTime @default(now())
+  id              Int       @id @default(autoincrement())
+  storage_url     String
+  lat             Float?
+  lng             Float?
+  true_location   String
+  source_type     String?
+  external_ref    String?
+  country         String?
+  region          String?
+  city            String?
+  image_meta_json Json?
+  mode_tags       String[]  @default([])
+  difficulty      Int       @default(1)
+  is_active       Boolean   @default(true)
+  deleted_at      DateTime?
+  created_at      DateTime  @default(now())
 
-  annotations AnnotationRecord[]
-  battleRounds BattleRound[]
+  annotations     AnnotationRecord[]
+  battleRounds    BattleRound[]
+  annotationTasks AnnotationTask[]
 
   @@map("image_assets")
+}
+
+model AnnotationTask {
+  id              Int      @id @default(autoincrement())
+  image_id        Int
+  mode_type       String
+  annotation_type String   @default("bbox")
+  status          String   @default("active")
+  reward_points   Int      @default(50)
+  source_type     String?
+  difficulty      Int      @default(1)
+  enabled         Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  image             ImageAsset         @relation(fields: [image_id], references: [id])
+  annotationRecords AnnotationRecord[]
+
+  @@index([image_id])
+  @@index([mode_type, status])
+  @@index([enabled, status])
+  @@map("annotation_tasks")
 }
 
 model AnnotationRecord {
   id                  Int      @id @default(autoincrement())
   user_id             Int
   image_id            Int
+  task_id             Int?
   mode_type           String
   annotation_type     String   @default("bbox")
   thought_text        String?
@@ -53,18 +90,25 @@ model AnnotationRecord {
   confidence          Int      @default(50)
   annotated_image_url String?
   quality_status      String   @default("pending")
+  quality_score       Int?
   reward_granted      Boolean  @default(false)
+  submitted_at        DateTime @default(now())
   created_at          DateTime @default(now())
 
-  user   User       @relation(fields: [user_id], references: [id])
-  image  ImageAsset @relation(fields: [image_id], references: [id])
-  bboxes AnnotationBBox[]
+  user          User             @relation(fields: [user_id], references: [id])
+  image         ImageAsset       @relation(fields: [image_id], references: [id])
+  task          AnnotationTask?  @relation(fields: [task_id], references: [id])
+  bboxes        AnnotationBBox[]
+  reviewRecords ReviewRecord[]
 
+  @@index([user_id, created_at])
+  @@index([quality_status, created_at])
+  @@index([task_id])
   @@map("annotation_records")
 }
 
 model AnnotationBBox {
-  id          Int    @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   record_id   Int
   x           Float
   y           Float
@@ -75,58 +119,91 @@ model AnnotationBBox {
 
   record AnnotationRecord @relation(fields: [record_id], references: [id])
 
+  @@index([record_id])
   @@map("annotation_bboxes")
 }
 
+model ReviewRecord {
+  id                   Int      @id @default(autoincrement())
+  annotation_record_id Int
+  reviewer_id          Int
+  review_status        String
+  review_score         Int?
+  comments             String?
+  created_at           DateTime @default(now())
+
+  annotationRecord AnnotationRecord @relation(fields: [annotation_record_id], references: [id])
+  reviewer         User             @relation(fields: [reviewer_id], references: [id])
+
+  @@index([annotation_record_id, created_at])
+  @@index([reviewer_id, created_at])
+  @@map("review_records")
+}
+
 model BattleSession {
-  id               Int      @id @default(autoincrement())
+  id               Int       @id @default(autoincrement())
   user_id          Int
-  ai_model_id      String   @default("mock-v1")
+  ai_model_id      String    @default("mock-v1")
   mode_type        String
-  time_limit_sec   Int      @default(30)
-  round_count      Int      @default(5)
-  user_total_score Int      @default(0)
-  ai_total_score   Int      @default(0)
+  time_limit_sec   Int       @default(30)
+  round_count      Int       @default(5)
+  user_total_score Int       @default(0)
+  ai_total_score   Int       @default(0)
   winner           String?
-  status           String   @default("active")
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  winner_type      String?
+  status           String    @default("active")
+  started_at       DateTime?
+  finished_at      DateTime?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
 
   user   User          @relation(fields: [user_id], references: [id])
   rounds BattleRound[]
 
+  @@index([user_id, created_at])
   @@map("battle_sessions")
 }
 
 model BattleRound {
-  id             Int    @id @default(autoincrement())
-  session_id     Int
-  round_index    Int
-  image_id       Int
-  user_guess_lat Float?
-  user_guess_lng Float?
-  ai_guess_lat   Float?
-  ai_guess_lng   Float?
-  user_score     Int    @default(0)
-  ai_score       Int    @default(0)
-  completed      Boolean @default(false)
+  id                Int       @id @default(autoincrement())
+  session_id        Int
+  round_index       Int
+  image_id          Int
+  user_guess_lat    Float?
+  user_guess_lng    Float?
+  ai_guess_lat      Float?
+  ai_guess_lng      Float?
+  ground_truth_lat  Float?
+  ground_truth_lng  Float?
+  user_distance_km  Float?
+  ai_distance_km    Float?
+  user_score        Int       @default(0)
+  ai_score          Int       @default(0)
+  round_winner_type String?
+  elapsed_ms_user   Int?
+  elapsed_ms_ai     Int?
+  submitted_at      DateTime?
+  completed         Boolean   @default(false)
 
   session BattleSession @relation(fields: [session_id], references: [id])
   image   ImageAsset    @relation(fields: [image_id], references: [id])
 
+  @@index([session_id, round_index])
   @@map("battle_rounds")
 }
 
 model PointsLedger {
-  id             Int      @id @default(autoincrement())
-  user_id        Int
-  change_amount  Int
-  balance_after  Int
-  reason_type    String
-  created_at     DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  user_id       Int
+  change_amount Int
+  balance_after Int
+  reason_type   String
+  reference_id  String?
+  created_at    DateTime @default(now())
 
   user User @relation(fields: [user_id], references: [id])
 
+  @@index([user_id, created_at])
   @@map("points_ledger")
 }
 
@@ -148,14 +225,65 @@ model Prize {
 }
 
 model PrizeRedemption {
-  id          Int      @id @default(autoincrement())
-  user_id     Int
-  prize_id    Int
+  id           Int       @id @default(autoincrement())
+  user_id      Int
+  prize_id     Int
   points_spent Int
-  created_at  DateTime @default(now())
+  status       String    @default("pending")
+  fulfilled_at DateTime?
+  created_at   DateTime  @default(now())
 
   user  User  @relation(fields: [user_id], references: [id])
   prize Prize @relation(fields: [prize_id], references: [id])
 
+  @@index([user_id, created_at])
   @@map("prize_redemptions")
+}
+
+model Mode {
+  id                      Int      @id @default(autoincrement())
+  code                    String   @unique
+  name                    String
+  description             String?
+  enabled                 Boolean  @default(true)
+  allow_panorama          Boolean  @default(false)
+  allow_single_image      Boolean  @default(true)
+  show_true_location      Boolean  @default(false)
+  default_annotation_type String   @default("bbox")
+  default_reward_points   Int      @default(50)
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+
+  @@index([enabled])
+  @@map("modes")
+}
+
+model TaskConfig {
+  id                 Int      @id @default(autoincrement())
+  daily_task_limit   Int      @default(20)
+  min_thought_length Int      @default(50)
+  base_reward_points Int      @default(50)
+  bbox_bonus_per_box Int      @default(5)
+  battle_win_bonus   Int      @default(200)
+  quality_bonus      Int      @default(30)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  @@index([created_at])
+  @@map("task_configs")
+}
+
+model BehaviorEvent {
+  id                 Int      @id @default(autoincrement())
+  session_id         String?
+  user_id            Int?
+  event_type         String
+  event_payload_json Json?
+  created_at         DateTime @default(now())
+
+  user User? @relation(fields: [user_id], references: [id])
+
+  @@index([event_type, created_at])
+  @@index([user_id, created_at])
+  @@map("behavior_events")
 }

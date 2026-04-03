@@ -16,13 +16,23 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
+  const loading = useAuthStore((state) => state.loading);
   const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
-    if (user && user.role !== "admin") {
+    if (loading) {
+      return;
+    }
+
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+
+    if (user.role !== "admin") {
       router.replace("/app/home");
     }
-  }, [router, user]);
+  }, [loading, router, user]);
 
   const handleLogout = async () => {
     try {

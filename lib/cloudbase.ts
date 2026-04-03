@@ -2,6 +2,7 @@
 
 import cloudbase from "@cloudbase/js-sdk";
 import type { QuestionPublic, Submission } from "@/types/db";
+import { useAuthStore } from "@/lib/auth";
 
 const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID || "";
 
@@ -101,7 +102,19 @@ export async function callFunction<T = unknown>(
   name: string,
   data?: Record<string, unknown>
 ): Promise<T> {
-  const res = await getApp().callFunction({ name, data });
+  const payload = { ...(data || {}) };
+  const currentUser = useAuthStore.getState().user;
+
+  if (currentUser) {
+    if (payload.cloudbase_uid === undefined) {
+      payload.cloudbase_uid = currentUser.uid;
+    }
+    if (payload.email === undefined) {
+      payload.email = currentUser.email;
+    }
+  }
+
+  const res = await getApp().callFunction({ name, data: payload });
   const result = res.result as T & { errMsg?: string } | undefined;
   if (result?.errMsg) throw new Error(result.errMsg);
   if (result !== undefined && result !== null) return result as T;
@@ -453,4 +466,102 @@ export async function exportAnnotations(params?: {
   total: number;
 }> {
   return callFunction("export-annotations", params || {});
+}
+
+/** 获取当前任务配置 */
+export async function getTaskConfig(params?: {
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  config: {
+    daily_task_limit: number;
+    min_thought_length: number;
+    base_reward_points: number;
+    bbox_bonus_per_box: number;
+    battle_win_bonus: number;
+    quality_bonus: number;
+  };
+}> {
+  return callFunction("get-task-config", params || {});
+}
+
+/** 更新当前任务配置 */
+export async function setTaskConfig(params: {
+  daily_task_limit: number;
+  min_thought_length: number;
+  base_reward_points: number;
+  bbox_bonus_per_box: number;
+  battle_win_bonus: number;
+  quality_bonus: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  success: boolean;
+  config: {
+    daily_task_limit: number;
+    min_thought_length: number;
+    base_reward_points: number;
+    bbox_bonus_per_box: number;
+    battle_win_bonus: number;
+    quality_bonus: number;
+  };
+}> {
+  return callFunction("set-task-config", params);
+}
+
+/** 获取已启用模式列表 */
+export async function getModes(params?: {
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  modes: Array<{
+    id: number;
+    code: string;
+    name: string;
+    description: string;
+    enabled: boolean;
+    allow_panorama: boolean;
+    allow_single_image: boolean;
+    show_true_location: boolean;
+    default_annotation_type: string;
+    default_reward_points: number;
+    created_at: string;
+    updated_at: string;
+  }>;
+}> {
+  return callFunction("get-modes", params || {});
+}
+
+/** 管理员更新模式配置 */
+export async function adminUpdateMode(params: {
+  id?: number;
+  code?: string;
+  name?: string;
+  description?: string;
+  enabled?: boolean;
+  allow_panorama?: boolean;
+  allow_single_image?: boolean;
+  show_true_location?: boolean;
+  default_annotation_type?: string;
+  default_reward_points?: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  success: boolean;
+  mode: {
+    id: number;
+    code: string;
+    name: string;
+    description: string;
+    enabled: boolean;
+    allow_panorama: boolean;
+    allow_single_image: boolean;
+    show_true_location: boolean;
+    default_annotation_type: string;
+    default_reward_points: number;
+    created_at: string;
+    updated_at: string;
+  };
+}> {
+  return callFunction("admin-update-mode", params);
 }
