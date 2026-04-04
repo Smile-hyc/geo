@@ -23,10 +23,22 @@ exports.main = async (event, context) => {
       SELECT ar.id, u.username, ar.mode_type,
              ar.thought_text, ar.final_answer, ar.confidence,
              ar.quality_status, ar.annotated_image_url,
-             ar.created_at, ia.storage_url AS image_storage_url
+             ar.created_at, ia.storage_url AS image_storage_url,
+             lr.review_score AS last_review_score,
+             lr.comments AS last_review_comments,
+             lr.created_at AS last_reviewed_at,
+             ru.username AS last_reviewer_username
       FROM annotation_records ar
       JOIN users u ON u.id = ar.user_id
       JOIN image_assets ia ON ia.id = ar.image_id
+      LEFT JOIN LATERAL (
+        SELECT rr.reviewer_id, rr.review_score, rr.comments, rr.created_at
+        FROM review_records rr
+        WHERE rr.annotation_record_id = ar.id
+        ORDER BY rr.created_at DESC
+        LIMIT 1
+      ) lr ON true
+      LEFT JOIN users ru ON ru.id = lr.reviewer_id
     `;
     const params = [];
 
@@ -68,9 +80,22 @@ exports.main = async (event, context) => {
       }
     }
 
-    const submissions = rows.map((row) => ({
-      ...row,
-      bboxes: bboxMap[row.id] || [],
+    const submissions = rows.map((r) => ({
+      id: r.id,
+      username: r.username,
+      mode_type: r.mode_type,
+      thought_text: r.thought_text || "",
+      final_answer: r.final_answer || "",
+      confidence: r.confidence ?? 50,
+      quality_status: r.quality_status || "pending",
+      annotated_image_url: r.annotated_image_url || null,
+      created_at: r.created_at ? new Date(r.created_at).toISOString() : "",
+      image_storage_url: r.image_storage_url || "",
+      last_review_score: r.last_review_score != null ? parseInt(r.last_review_score, 10) : null,
+      last_review_comments: r.last_review_comments || null,
+      last_reviewed_at: r.last_reviewed_at ? new Date(r.last_reviewed_at).toISOString() : null,
+      last_reviewer_username: r.last_reviewer_username || null,
+      bboxes: bboxMap[r.id] || [],
     }));
 
     const countQuery = quality_status
