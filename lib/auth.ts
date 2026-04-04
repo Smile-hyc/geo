@@ -32,6 +32,9 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "geoannotate-auth",
       partialize: (state) => ({ user: state.user }),
+      onRehydrateStorage: () => (state) => {
+        state?.setLoading(false);
+      },
     }
   )
 );

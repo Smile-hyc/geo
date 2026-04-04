@@ -8,11 +8,18 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { getRandomQuestion, getTempFileURL, submitAnswer } from "@/lib/cloudbase";
-import type { QuestionPublic } from "@/types/db";
+import { getNextTask, getTempFileURL, submitAnnotation } from "@/lib/cloudbase";
+import { useAuthStore } from "@/lib/auth";
 
 const BRUSH_COLORS = ["#ef4444", "#22c55e", "#3b82f6", "#eab308", "#ffffff"];
 const BRUSH_SIZES = [2, 4, 8, 12];
+
+interface Task {
+  id: number;
+  storage_url: string;
+  mode_tags: string[];
+  imageUrl?: string;
+}
 
 function DrawingImage({
   src,
@@ -34,9 +41,10 @@ function DrawingImage({
 }
 
 export default function PlayContent() {
+  const user = useAuthStore((s) => s.user);
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
-  const [question, setQuestion] = useState<QuestionPublic | null>(null);
+  const [task, setTask] = useState<Task | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,14 +61,20 @@ export default function PlayContent() {
     setLoading(true);
     setError(null);
     try {
-      const q = await getRandomQuestion();
-      setQuestion(q);
-      if (q) {
-        const { tempFileURL } = await getTempFileURL(q.original_image_url);
-        setImageUrl(tempFileURL);
-      } else {
+      const res = await getNextTask();
+      const t = res.task;
+      if (!t) {
+        setTask(null);
         setImageUrl(null);
+        return;
       }
+      let url = t.storage_url;
+      if (url.startsWith("cloud://") || url.startsWith("cos://")) {
+        const { tempFileURL } = await getTempFileURL(url);
+        url = tempFileURL;
+      }
+      setTask({ id: t.id, storage_url: t.storage_url, mode_tags: t.mode_tags ?? [], imageUrl: url });
+      setImageUrl(url);
       setLines([]);
       setCurrentLine([]);
       setThoughtProcess("");
@@ -91,7 +105,7 @@ export default function PlayContent() {
   }, []);
 
   const handlePointerDown = (e: Konva.KonvaEventObject<PointerEvent>) => {
-    if (submitDone || !question) return;
+    if (submitDone || !task) return;
     const stage = e.target.getStage();
     if (!stage) return;
     const pos = stage.getPointerPosition();
@@ -100,7 +114,7 @@ export default function PlayContent() {
   };
 
   const handlePointerMove = (e: Konva.KonvaEventObject<PointerEvent>) => {
-    if (submitDone || !question || currentLine.length === 0) return;
+    if (submitDone || !task || currentLine.length === 0) return;
     const stage = e.target.getStage();
     if (!stage) return;
     const pos = stage.getPointerPosition();
@@ -131,7 +145,7 @@ export default function PlayContent() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!question || submitting || submitDone) return;
+    if (!task || submitting || submitDone) return;
     const text = thoughtProcess.trim();
     if (!text) {
       setError("请填写推理思维过程");
@@ -142,10 +156,17 @@ export default function PlayContent() {
     try {
       let base64 = await exportToBase64();
       if (base64.indexOf(",") >= 0) base64 = base64.split(",")[1]!;
-      await submitAnswer({
-        question_id: question._id,
+      const modeType = task.mode_tags[0] ?? "street_view";
+      await submitAnnotation({
+        image_id: task.id,
+        mode_type: modeType,
+        annotation_type: "reasoning",
+        thought_text: text,
+        final_answer: text,
+        confidence: 50,
+        cloudbase_uid: user?.uid,
+        email: user?.email,
         annotated_image_base64: base64,
-        thought_process: text,
       });
       setSubmitDone(true);
     } catch (e) {
@@ -155,7 +176,7 @@ export default function PlayContent() {
     }
   };
 
-  if (loading && !question) {
+  if (loading && !task) {
     return (
       <main className="min-h-screen p-6 flex flex-col items-center justify-center">
         <p className="text-muted-foreground">加载题目中…</p>
@@ -163,7 +184,7 @@ export default function PlayContent() {
     );
   }
 
-  if (!question) {
+  if (!task) {
     return (
       <main className="min-h-screen p-6 flex flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">暂无题目，请先在管理后台上传。</p>

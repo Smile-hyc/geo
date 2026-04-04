@@ -1,35 +1,7 @@
 {
-  "envId": "geoannotate-5g8zmuwzf8181f98",
+  "envId": "geoannotate-test-0fsumvz7da92b47",
   "functionRoot": "./cloudfunctions",
   "functions": [
-    {
-      "name": "getRandomQuestion",
-      "timeout": 10,
-      "runtime": "Nodejs16.13",
-      "installDependency": true,
-      "handler": "index.main"
-    },
-    {
-      "name": "createQuestion",
-      "timeout": 15,
-      "runtime": "Nodejs16.13",
-      "installDependency": true,
-      "handler": "index.main"
-    },
-    {
-      "name": "submitAnswer",
-      "timeout": 15,
-      "runtime": "Nodejs16.13",
-      "installDependency": true,
-      "handler": "index.main"
-    },
-    {
-      "name": "listSubmissions",
-      "timeout": 10,
-      "runtime": "Nodejs16.13",
-      "installDependency": true,
-      "handler": "index.main"
-    },
     {
       "name": "auth-sync",
       "timeout": 10,
@@ -189,6 +161,41 @@
       "timeout": 10,
       "runtime": "Nodejs16.13",
       "installDependency": false,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-list-redemptions",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-task-config",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "set-task-config",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-modes",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-update-mode",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
       "handler": "index.main"
     },
     {
