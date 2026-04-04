@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -38,3 +39,17 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+/** True after zustand persist has rehydrated from localStorage (client). Avoid calling APIs that need `user` before this. */
+export function useAuthStoreHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(
+    () => typeof window !== "undefined" && useAuthStore.persist.hasHydrated()
+  );
+
+  useEffect(() => {
+    setHydrated(useAuthStore.persist.hasHydrated());
+    return useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+  }, []);
+
+  return hydrated;
+}
