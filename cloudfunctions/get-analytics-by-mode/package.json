@@ -1,0 +1,7 @@
+{
+  "name": "get-analytics-by-mode",
+  "main": "index.js",
+  "dependencies": {
+    "pg": "^8.11.3"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "get-analytics-timeseries",
+  "main": "index.js",
+  "dependencies": {
+    "pg": "^8.11.3"
+  }
+}
