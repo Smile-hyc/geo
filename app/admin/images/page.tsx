@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Upload, Loader2, CheckCircle, Trash2 } from "lucide-react";
+import { Upload, Loader2, CheckCircle, Trash2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -129,126 +129,196 @@ export default function AdminImagesPage() {
   };
 
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="text-2xl font-bold">图片管理</h1>
+    // 采用 MasterGo 导出的背景渐变色，并设置了和设计稿一致的 32px 内边距
+    <div className="min-h-screen bg-gradient-to-b from-[#F9FAFB] to-[#EFF6FF] p-8 font-sans">
+      <div className="max-w-[1120px] mx-auto space-y-6">
+        
+        {/* 页面大标题 */}
+        <h1 className="text-[24px] font-[700] text-[#111827] leading-[32px]">图片</h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Upload className="h-4 w-4" /> 上传新图片
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {uploadError && (
-            <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{uploadError}</p>
-          )}
-          {uploadSuccess && (
-            <div className="flex items-center gap-2 text-green-400 text-sm">
-              <CheckCircle className="h-4 w-4" /> 上传成功
-            </div>
-          )}
+        {/* 上传新图片卡片：圆角 8px，轻微阴影，完美还原设计图 */}
+        <Card className="rounded-[8px] border border-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] bg-white/60 backdrop-blur-sm p-6">
+          <CardHeader className="p-0 pb-6">
+            <CardTitle className="text-[20px] font-[600] text-[#111827] flex items-center gap-2">
+              <Upload className="h-5 w-5 text-[#111827]" /> 上传新图片
+            </CardTitle>
+          </CardHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>地理图片（≤5MB）</Label>
-              <Input type="file" accept="image/*" onChange={onFileChange} />
-              {previewUrl && (
-                <img src={previewUrl} alt="预览" className="rounded-lg max-h-40 object-contain border border-border" />
-              )}
+          <CardContent className="p-0 space-y-6">
+            {uploadError && (
+              <p className="text-sm text-[#F53F3F] bg-[#F53F3F]/10 px-4 py-3 rounded-md">{uploadError}</p>
+            )}
+            {uploadSuccess && (
+              <div className="flex items-center gap-2 text-[#00B42A] text-sm bg-[#00B42A]/10 px-4 py-3 rounded-md">
+                <CheckCircle className="h-4 w-4" /> 上传成功
+              </div>
+            )}
+
+            {/* 左右分栏布局 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* 左侧：文件选择 */}
+              <div className="space-y-3">
+                <Label className="text-[14px] font-[500] text-[#111827]">地理图片 (≤5MB)</Label>
+                <div className="border border-[#EBE5EA] rounded-[8px] p-3 bg-white hover:border-[#165DFF] transition-colors">
+                  <Input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={onFileChange} 
+                    className="border-none shadow-none p-0 cursor-pointer text-[#6B7280]"
+                  />
+                </div>
+                {previewUrl && (
+                  <div className="mt-4 rounded-[8px] overflow-hidden border border-[#EBE5EA]">
+                    <img src={previewUrl} alt="预览" className="w-full max-h-48 object-cover" />
+                  </div>
+                )}
+              </div>
+
+              {/* 右侧：位置与坐标 */}
+              <div className="space-y-5">
+                <div className="space-y-3">
+                  <Label className="text-[14px] font-[500] text-[#111827]">真实地点 *</Label>
+                  <Input 
+                    placeholder="例如：云南省大理市" 
+                    value={trueLocation} 
+                    onChange={(e) => setTrueLocation(e.target.value)} 
+                    className="h-[38px] rounded-[8px] border-[#EBE5EA] bg-white placeholder:text-[#9CA3AF] focus-visible:ring-[#165DFF]"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <Label className="text-[14px] font-[500] text-[#111827]">纬度</Label>
+                    <Input 
+                      placeholder="25.6" 
+                      value={lat} 
+                      onChange={(e) => setLat(e.target.value)} 
+                      className="h-[38px] rounded-[8px] border-[#EBE5EA] bg-white text-[#0A0A0A] focus-visible:ring-[#165DFF]"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[14px] font-[500] text-[#111827]">经度</Label>
+                    <Input 
+                      placeholder="100.2" 
+                      value={lng} 
+                      onChange={(e) => setLng(e.target.value)} 
+                      className="h-[38px] rounded-[8px] border-[#EBE5EA] bg-white text-[#0A0A0A] focus-visible:ring-[#165DFF]"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label>真实地点 *</Label>
-                <Input placeholder="例如：云南省大理市" value={trueLocation} onChange={(e) => setTrueLocation(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label>纬度</Label>
-                  <Input placeholder="25.6" value={lat} onChange={(e) => setLat(e.target.value)} />
-                </div>
-                <div className="space-y-1">
-                  <Label>经度</Label>
-                  <Input placeholder="100.2" value={lng} onChange={(e) => setLng(e.target.value)} />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label>模式标签</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {MODE_OPTIONS.map((m) => (
+
+            {/* 模式标签 */}
+            <div className="space-y-3 pt-2">
+              <Label className="text-[14px] font-[500] text-[#111827]">模式标签</Label>
+              <div className="flex gap-3 flex-wrap">
+                {MODE_OPTIONS.map((m) => {
+                  const isActive = modes.includes(m);
+                  return (
                     <button
                       key={m}
                       onClick={() => toggleMode(m)}
-                      className={`px-2 py-0.5 rounded text-xs border transition-colors ${
-                        modes.includes(m) ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+                      className={`h-[36px] px-4 rounded-[4px] text-[14px] transition-colors ${
+                        isActive 
+                          ? "bg-[#165DFF] text-white" // 选中态：主品牌色
+                          : "bg-[#F3F4F6] text-[#374151] hover:bg-[#E5E7EB]" // 未选中态：灰底灰字
                       }`}
                     >
                       {ANNOTATION_MODES.find((x) => x.id === m)?.name ?? m}
                     </button>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
-              <div className="space-y-1">
-                <Label>难度（1-5）</Label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((d) => (
+            </div>
+
+            {/* 难度选择 */}
+            <div className="space-y-3 pt-2">
+              <Label className="text-[14px] font-[500] text-[#111827]">难度 (1-5)</Label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((d) => {
+                  const isActive = difficulty === d;
+                  return (
                     <button
                       key={d}
                       onClick={() => setDifficulty(d)}
-                      className={`h-8 w-8 rounded border text-sm font-medium transition-colors ${
-                        difficulty === d ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+                      className={`h-[48px] w-[48px] rounded-[4px] text-[14px] font-[500] transition-colors border ${
+                        isActive 
+                          ? "border-[#165DFF] text-[#165DFF] bg-blue-50/50" // 选中态：蓝色边框
+                          : "border-[#EBE5EA] text-[#4B5563] hover:bg-gray-50" // 未选中态：灰色边框
                       }`}
                     >
                       {d}
                     </button>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
             </div>
-          </div>
 
-          <Button onClick={handleUpload} disabled={uploading || !file || !trueLocation.trim()}>
-            {uploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />上传中…</> : "上传图片"}
-          </Button>
-        </CardContent>
-      </Card>
+            {/* 提交按钮：精确还原品牌蓝与尺寸 */}
+            <div className="pt-4">
+              <Button 
+                onClick={handleUpload} 
+                disabled={uploading || !file || !trueLocation.trim()}
+                className="h-[44px] px-8 bg-[#165DFF] hover:bg-[#0E42C9] text-white rounded-[4px] text-[14px] font-[500]"
+              >
+                {uploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />上传中…</> : "上传图片"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold">已上传图片（{images.length}）</h2>
-          <Button variant="outline" size="sm" onClick={loadImages} disabled={loadingImages}>
-            {loadingImages ? <Loader2 className="h-3 w-3 animate-spin" /> : "刷新"}
-          </Button>
-        </div>
-        {loadingImages ? (
-          <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {images.map((img) => (
-              <Card key={img.id} className="overflow-hidden">
-                <div className="aspect-video bg-accent/20 overflow-hidden relative group">
-                  {img.tempUrl ? (
-                    <img src={img.tempUrl} alt={img.true_location} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">无法加载</div>
-                  )}
-                  <button
-                    onClick={() => handleDelete(img.id)}
-                    className="absolute top-1 right-1 bg-black/60 hover:bg-destructive text-white rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="删除图片"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-                <CardContent className="p-2 space-y-1">
-                  <p className="text-xs font-medium truncate">{img.true_location}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {"★".repeat(img.difficulty)} · {img.mode_tags.join(", ")}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+        {/* 已上传图片列表区域 */}
+        <Card className="rounded-[8px] border border-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] bg-white/60 backdrop-blur-sm p-6">
+          <CardHeader className="p-0 pb-6 flex flex-row items-center justify-between border-b border-[#E5E6EB] mb-6">
+            <CardTitle className="text-[20px] font-[600] text-[#111827]">
+              已上传图片 ({images.length})
+            </CardTitle>
+            <Button variant="outline" size="sm" onClick={loadImages} disabled={loadingImages} className="border-[#EBE5EA] text-[#4E5969]">
+              {loadingImages ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            </Button>
+          </CardHeader>
+          
+          <CardContent className="p-0">
+            {loadingImages ? (
+              <div className="flex flex-col items-center justify-center py-12 text-[#6B7280]">
+                <Loader2 className="h-8 w-8 animate-spin mb-4 text-[#165DFF]" />
+                <p className="text-[16px]">加载中...</p>
+              </div>
+            ) : images.length === 0 ? (
+               <div className="flex flex-col items-center justify-center py-12 text-[#6B7280]">
+                 <p className="text-[16px]">暂无上传的图片</p>
+               </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {images.map((img) => (
+                  <Card key={img.id} className="overflow-hidden border-[#EBE5EA] shadow-sm hover:shadow-md transition-shadow">
+                    <div className="aspect-video bg-[#F2F3F5] overflow-hidden relative group">
+                      {img.tempUrl ? (
+                        <img src={img.tempUrl} alt={img.true_location} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[#86909C] text-xs">无法加载</div>
+                      )}
+                      <button
+                        onClick={() => handleDelete(img.id)}
+                        className="absolute top-2 right-2 bg-black/60 hover:bg-[#F53F3F] text-white rounded p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="删除图片"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <CardContent className="p-3 space-y-1 bg-white">
+                      <p className="text-[14px] font-[500] text-[#1D2129] truncate">{img.true_location}</p>
+                      <p className="text-[12px] text-[#86909C]">
+                        <span className="text-[#FF7D00]">{"★".repeat(img.difficulty)}</span> · {img.mode_tags.join(", ")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
       </div>
     </div>
   );
