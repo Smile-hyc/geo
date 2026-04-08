@@ -177,17 +177,17 @@ export default function AdminReviewsPage() {
   const handleExport = async (qualityFilter?: "approved" | "pending" | "rejected") => {
     setExporting(true);
     try {
-      const res = await exportAnnotations({
+      const jsonl = await exportAnnotations({
         quality_status: qualityFilter,
         limit: 5000,
         cloudbase_uid: user?.uid,
         email: user?.email,
       });
-      const blob = new Blob([JSON.stringify(res.annotations, null, 2)], { type: "application/json" });
+      const blob = new Blob([jsonl], { type: "application/x-ndjson" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `geoannotate-export-${qualityFilter || "all"}-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `geoannotate-export-${qualityFilter || "all"}-${new Date().toISOString().slice(0, 10)}.jsonl`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
@@ -241,7 +241,7 @@ export default function AdminReviewsPage() {
           className="gap-1.5"
         >
           {exporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
-          导出 JSON
+          导出 JSONL
         </Button>
       </div>
 

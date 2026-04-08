@@ -81,13 +81,15 @@ exports.main = async (event, context) => {
     const imagesSql = useModePool
       ? `SELECT id, lat, lng
          FROM image_assets
-         WHERE lat IS NOT NULL AND lng IS NOT NULL
+         WHERE deleted_at IS NULL
+           AND lat IS NOT NULL AND lng IS NOT NULL
            AND $2 = ANY(mode_tags)
          ORDER BY RANDOM()
          LIMIT $1`
       : `SELECT id, lat, lng
          FROM image_assets
-         WHERE lat IS NOT NULL AND lng IS NOT NULL
+         WHERE deleted_at IS NULL
+           AND lat IS NOT NULL AND lng IS NOT NULL
          ORDER BY RANDOM()
          LIMIT $1`;
 

@@ -1,5 +1,6 @@
 "use strict";
 
+const sizeOf = require("image-size");
 const tcb = require("@cloudbase/node-sdk");
 const { getPool } = require("../_shared/db");
 const { requireRole } = require("../_shared/auth");
@@ -46,12 +47,34 @@ exports.main = async (event, context) => {
     return fail("缺少 true_location");
   }
 
+  const MAX_BYTES = 5 * 1024 * 1024;
+
   const client = await getPool().connect();
   try {
     await requireRole(client, event, context, ["admin"]);
 
     const buffer = Buffer.from(original_image_base64, "base64");
-    const cloudPath = `questions/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+    if (buffer.length > MAX_BYTES) {
+      return fail("图片超过 5MB");
+    }
+    if (buffer.length < 32) {
+      return fail("图片数据无效");
+    }
+
+    let width;
+    let height;
+    let mimeHint = "jpeg";
+    try {
+      const dim = sizeOf(buffer);
+      width = dim.width;
+      height = dim.height;
+      if (dim.type) mimeHint = dim.type;
+    } catch (_) {
+      return fail("无法解析图片尺寸，请上传有效 JPG/PNG 等图片");
+    }
+
+    const ext = mimeHint === "png" ? "png" : "jpg";
+    const cloudPath = `questions/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     const app = getApp(context);
     const uploadResult = await app.uploadFile({ cloudPath, fileContent: buffer });
@@ -61,9 +84,15 @@ exports.main = async (event, context) => {
       return fail("上传云存储失败");
     }
 
+    const imageMeta = {
+      width,
+      height,
+      original_filename: typeof data.original_filename === "string" ? data.original_filename.slice(0, 255) : undefined,
+    };
+
     const result = await client.query(
-      `INSERT INTO image_assets (storage_url, lat, lng, true_location, mode_tags, difficulty)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO image_assets (storage_url, lat, lng, true_location, mode_tags, difficulty, image_meta_json)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
        RETURNING id`,
       [
         fileID,
@@ -72,6 +101,7 @@ exports.main = async (event, context) => {
         true_location.trim(),
         mode_tags,
         difficulty,
+        JSON.stringify(imageMeta),
       ]
     );
 
