@@ -177,7 +177,7 @@ export default function AdminReviewsPage() {
   const handleExport = async (qualityFilter?: "approved" | "pending" | "rejected") => {
     setExporting(true);
     try {
-      const jsonl = await exportAnnotations({
+      const { jsonl, skipped } = await exportAnnotations({
         quality_status: qualityFilter,
         limit: 5000,
         cloudbase_uid: user?.uid,
@@ -190,6 +190,12 @@ export default function AdminReviewsPage() {
       a.download = `geoannotate-export-${qualityFilter || "all"}-${new Date().toISOString().slice(0, 10)}.jsonl`;
       a.click();
       URL.revokeObjectURL(url);
+      if (skipped.length > 0) {
+        const details = skipped
+          .map((s) => `记录 ${s.record_id}（图片 ${s.image_id}）：${s.reason}`)
+          .join("\n");
+        alert(`导出完成，但跳过了 ${skipped.length} 条不完整记录：\n${details}`);
+      }
     } catch (e) {
       alert(e instanceof Error ? e.message : "导出失败");
     } finally {
