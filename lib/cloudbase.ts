@@ -529,7 +529,8 @@ export async function adminAdjustUserPoints(params: {
   return callFunction("admin-adjust-user-points", params);
 }
 
-type ExportAnnotationsResult = { jsonl?: string; success?: boolean; errMsg?: string };
+type SkippedRecord = { record_id: number; image_id: number; reason: string };
+type ExportAnnotationsResult = { jsonl?: string; skipped?: SkippedRecord[]; success?: boolean; errMsg?: string };
 
 /** 管理员/审核员：导出标注为 JSONL（每行一个 JSON） */
 export async function exportAnnotations(params?: {
@@ -537,9 +538,9 @@ export async function exportAnnotations(params?: {
   limit?: number;
   cloudbase_uid?: string;
   email?: string;
-}): Promise<string> {
+}): Promise<{ jsonl: string; skipped: SkippedRecord[] }> {
   const res = await callFunction<ExportAnnotationsResult>("export-annotations", params || {});
-  if (typeof res.jsonl === "string") return res.jsonl;
+  if (typeof res.jsonl === "string") return { jsonl: res.jsonl, skipped: res.skipped || [] };
   throw new Error("导出失败：响应中无 JSONL 正文");
 }
 

@@ -35,6 +35,8 @@ interface ImageAsset {
 export default function AdminImagesPage() {
   const [images, setImages] = useState<ImageAsset[]>([]);
   const [loadingImages, setLoadingImages] = useState(true);
+  /** 为 true 时 list-images 传入 include_deleted，便于查看与恢复软删图片 */
+  const [includeDeleted, setIncludeDeleted] = useState(false);
   const [editImg, setEditImg] = useState<ImageAsset | null>(null);
   const [editSaving, setEditSaving] = useState(false);
   const [restoreImage, setRestoreImage] = useState(false);
@@ -53,7 +55,10 @@ export default function AdminImagesPage() {
   const loadImages = useCallback(async () => {
     setLoadingImages(true);
     try {
-      const res = await callFunction<{ images: ImageAsset[] }>("list-images", { limit: 30 });
+      const res = await callFunction<{ images: ImageAsset[] }>("list-images", {
+        limit: 30,
+        ...(includeDeleted ? { include_deleted: true } : {}),
+      });
       const list = res.images ?? [];
       const withUrls = await Promise.all(
         list.map(async (img) => {
@@ -74,7 +79,7 @@ export default function AdminImagesPage() {
     } finally {
       setLoadingImages(false);
     }
-  }, []);
+  }, [includeDeleted]);
 
   useEffect(() => { loadImages(); }, [loadImages]);
 
@@ -225,18 +230,31 @@ export default function AdminImagesPage() {
       </Card>
 
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h2 className="font-semibold">已上传图片（{images.length}）</h2>
-          <Button variant="outline" size="sm" onClick={loadImages} disabled={loadingImages}>
-            {loadingImages ? <Loader2 className="h-3 w-3 animate-spin" /> : "刷新"}
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeDeleted}
+                onChange={(e) => setIncludeDeleted(e.target.checked)}
+              />
+              显示已软删（可编辑恢复）
+            </label>
+            <Button variant="outline" size="sm" onClick={loadImages} disabled={loadingImages}>
+              {loadingImages ? <Loader2 className="h-3 w-3 animate-spin" /> : "刷新"}
+            </Button>
+          </div>
         </div>
         {loadingImages ? (
           <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {images.map((img) => (
-              <Card key={img.id} className="overflow-hidden">
+              <Card
+                key={img.id}
+                className={`overflow-hidden ${img.deleted_at ? "opacity-80 ring-1 ring-destructive/30" : ""}`}
+              >
                 <div className="aspect-video bg-accent/20 overflow-hidden relative group">
                   {img.tempUrl ? (
                     <img src={img.tempUrl} alt={img.true_location} className="w-full h-full object-cover" />

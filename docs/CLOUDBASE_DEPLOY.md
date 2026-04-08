@@ -112,7 +112,8 @@ tcb login
 #### 4. 配置并部署
 
 1. 在项目**根目录**确认 `cloudbaserc.json` 中 **`envId`** 正确。
-2. 在项目**根目录**打开终端，执行：
+2. **（必选）** 各云函数仅打包自己的子目录，公共代码在 `cloudfunctions/_shared`。部署前在根目录执行一次 `npm run cloudfunctions:sync-shared`，将 `_shared` 复制进每个引用它的函数目录（含 `require("./_shared/...")` 的 `index.js`），否则会报 `Cannot find module '../_shared/db'`（或 `./_shared/db` 未同步）。可再执行 `npm run cloudfunctions:verify-shared` 做本地自检（通过后再 `tcb fn deploy`）。
+3. 在项目**根目录**打开终端，执行：
 
 ```bash
 tcb fn deploy
@@ -126,6 +127,12 @@ tcb fn deploy create-question
 ```
 
 部署成功会提示各函数部署完成。
+
+若批量部署时个别函数（常见为 `create-question`，依赖较多、包体较大）失败，且 CloudBase CLI 报 `e.message.includes is not a function`（属 CLI 处理非标准错误时的缺陷），可在同步与自检后对该函数单独使用 ZIP 上传：
+
+```bash
+tcb fn deploy create-question --deployMode zip --force --yes -e <你的环境ID>
+```
 
 ---
 
@@ -141,9 +148,10 @@ tcb fn deploy create-question
 
 任选一个目录，例如 `cloudfunctions/get-next-task`：
 
-1. 进入该目录并执行 `npm install`（若有 `package.json`）。
-2. 将该目录下**所有内容**打成 ZIP，**解压后根目录须有 `index.js`**（不要多包一层文件夹）。
-3. 对其余 `cloudfunctions/` 子目录重复同样步骤。
+1. 若该函数的 `index.js` 含 `require("./_shared/...")`，须先执行 `npm run cloudfunctions:sync-shared`，或手动把 `cloudfunctions/_shared` 拷入该函数目录内再打 ZIP。
+2. 进入该目录并执行 `npm install`（若有 `package.json`）。
+3. 将该目录下**所有内容**打成 ZIP，**解压后根目录须有 `index.js`**（不要多包一层文件夹）。
+4. 对其余 `cloudfunctions/` 子目录重复同样步骤。
 
 #### 3. 在控制台新建函数并上传
 

@@ -1,8 +1,8 @@
 "use strict";
 
-const { getPool } = require("../_shared/db");
-const { requireRole } = require("../_shared/auth");
-const { ok, fail } = require("../_shared/response");
+const { getPool } = require("./_shared/db");
+const { requireRole } = require("./_shared/auth");
+const { ok, fail } = require("./_shared/response");
 
 const BASE_REWARD = 50;
 const MAX_COMMENTS_LEN = 4000;
@@ -42,7 +42,7 @@ exports.main = async (event, context) => {
   const client = await getPool().connect();
   try {
     const reviewer = await requireRole(client, event, context, ["admin", "reviewer"]);
-    const reviewer_id = reviewer.id;
+    const reviewer_uid = reviewer.cloudbase_uid;
 
     const recordResult = await client.query(
       `SELECT ar.id, ar.user_id, ar.reward_granted,
@@ -64,9 +64,9 @@ exports.main = async (event, context) => {
     await client.query("BEGIN");
     try {
       await client.query(
-        `INSERT INTO review_records (annotation_record_id, reviewer_id, review_status, review_score, comments)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [record_id, reviewer_id, quality_status, review_score, comments]
+        `INSERT INTO review_records (record_id, reviewer_uid, decision, comment)
+         VALUES ($1, $2, $3, $4)`,
+        [record_id, reviewer_uid, quality_status, comments]
       );
 
       await client.query(

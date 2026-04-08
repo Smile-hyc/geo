@@ -2,9 +2,9 @@
 
 const sizeOf = require("image-size");
 const tcb = require("@cloudbase/node-sdk");
-const { getPool } = require("../_shared/db");
-const { requireRole } = require("../_shared/auth");
-const { ok, fail } = require("../_shared/response");
+const { getPool } = require("./_shared/db");
+const { requireRole } = require("./_shared/auth");
+const { ok, fail } = require("./_shared/response");
 
 let cbApp = null;
 
