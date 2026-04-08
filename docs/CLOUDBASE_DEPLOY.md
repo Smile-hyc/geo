@@ -180,6 +180,15 @@ tcb fn deploy create-question
 
 ---
 
+## 六（补充）、标注导出 JSONL 与环境变量
+
+- 管理端 **「导出数据」** 与审核页导出均调用 `export-annotations`，成功时返回 **`{ jsonl: string }`**（纯文本，每行一个 JSON 对象），**不再**返回 `annotations` 数组；依赖旧 JSON 结构的脚本需自行改为读取 JSONL。
+- **图片路径**：`image_path` 由 `JSONL_EXPORT_IMAGE_PATH_PREFIX`（云函数环境变量，默认云函数内为 `/data/geoannotate`）与相对路径拼接，或由 `image_meta_json.dataset_image_path` 覆盖（绝对路径则直接使用）。请在云上为导出函数配置与数据集一致的前缀。
+- **必填校验**：缺 `lat`/`lng` 或 `image_meta_json.width`/`height` 时整批导出失败（需通过 `create-question` 上传或管理端编辑补全宽高）。
+- **Role 4 其他函数**：需部署 `get-analytics-summary`、`get-analytics-timeseries`、`get-analytics-by-mode`（管理员看板）、`record-event`（埋点，需登录）。
+
+---
+
 ## 七、自检清单
 
 - [ ] 已在腾讯云开通云开发并创建环境  

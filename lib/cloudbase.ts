@@ -176,6 +176,7 @@ export async function createQuestion(params: {
   lng?: number;
   mode_tags?: string[];
   difficulty?: number;
+  original_filename?: string;
 }): Promise<{ question_id: number }> {
   return callFunction("create-question", params);
 }
@@ -451,41 +452,137 @@ export async function adminDeletePrize(params: {
   return callFunction("admin-delete-prize", params);
 }
 
-/** 管理员：导出标注数据 */
+/** 管理员：更新图片元数据 */
+export async function adminUpdateImage(params: {
+  image_id: number;
+  true_location?: string;
+  lat?: number | null;
+  lng?: number | null;
+  mode_tags?: string[];
+  difficulty?: number;
+  source_type?: string;
+  external_ref?: string;
+  country?: string;
+  region?: string;
+  city?: string;
+  is_active?: boolean;
+  clear_deleted?: boolean;
+  image_meta_json?: Record<string, unknown>;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ image: Record<string, unknown> }> {
+  return callFunction("admin-update-image", params);
+}
+
+export type AdminUserRow = {
+  id: number;
+  cloudbase_uid: string;
+  username: string;
+  email: string;
+  role: string;
+  status: string;
+  points_balance: number;
+  level: number;
+  last_login_at: string | null;
+  created_at: string;
+};
+
+/** 管理员：用户列表 */
+export async function adminListUsers(params?: {
+  limit?: number;
+  offset?: number;
+  q?: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ users: AdminUserRow[]; total: number }> {
+  return callFunction("admin-list-users", params || {});
+}
+
+/** 管理员：修改用户角色 */
+export async function adminUpdateUserRole(params: {
+  user_id: number;
+  role: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ user: Pick<AdminUserRow, "id" | "username" | "email" | "role"> }> {
+  return callFunction("admin-update-user-role", params);
+}
+
+/** 管理员：设置用户状态 */
+export async function adminSetUserStatus(params: {
+  user_id: number;
+  status: "active" | "suspended";
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ user: Pick<AdminUserRow, "id" | "username" | "email" | "status"> }> {
+  return callFunction("admin-set-user-status", params);
+}
+
+/** 管理员：调整积分（写入 points_ledger） */
+export async function adminAdjustUserPoints(params: {
+  user_id: number;
+  delta: number;
+  reason?: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ user_id: number; points_balance: number }> {
+  return callFunction("admin-adjust-user-points", params);
+}
+
+type ExportAnnotationsResult = { jsonl?: string; success?: boolean; errMsg?: string };
+
+/** 管理员/审核员：导出标注为 JSONL（每行一个 JSON） */
 export async function exportAnnotations(params?: {
   quality_status?: "approved" | "pending" | "rejected";
   limit?: number;
   cloudbase_uid?: string;
   email?: string;
+}): Promise<string> {
+  const res = await callFunction<ExportAnnotationsResult>("export-annotations", params || {});
+  if (typeof res.jsonl === "string") return res.jsonl;
+  throw new Error("导出失败：响应中无 JSONL 正文");
+}
+
+/** 行为埋点（需登录） */
+export async function recordEvent(params: {
+  event_type: string;
+  event_payload_json?: Record<string, unknown>;
+  session_id?: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ ok: boolean }> {
+  return callFunction("record-event", params);
+}
+
+/** 管理端：分析汇总 */
+export async function getAnalyticsSummary(params?: {
+  cloudbase_uid?: string;
+  email?: string;
 }): Promise<{
-  annotations: Array<{
-    record_id: number;
-    username: string;
-    image_id: number;
-    image_storage_url: string;
-    true_location: string;
-    lat: number | null;
-    lng: number | null;
-    mode_tags: string[];
-    mode_type: string;
-    thought_text: string;
-    final_answer: string;
-    confidence: number;
-    annotated_image_url: string | null;
-    quality_status: string;
-    created_at: string;
-    bboxes: Array<{
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      label_type: string;
-      explanation: string;
-    }>;
-  }>;
-  total: number;
+  total_users: number;
+  total_images: number;
+  total_annotations: number;
+  pending_reviews: number;
+  by_quality: { quality_status: string; count: number }[];
 }> {
-  return callFunction("export-annotations", params || {});
+  return callFunction("get-analytics-summary", params || {});
+}
+
+/** 管理端：按日标注量 */
+export async function getAnalyticsTimeseries(params?: {
+  days?: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ series: { day: string; count: number }[] }> {
+  return callFunction("get-analytics-timeseries", params || {});
+}
+
+/** 管理端：按模式统计 */
+export async function getAnalyticsByMode(params?: {
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ modes: { mode_type: string; count: number }[] }> {
+  return callFunction("get-analytics-by-mode", params || {});
 }
 
 /** 获取当前任务配置 */

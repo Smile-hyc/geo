@@ -35,11 +35,13 @@ exports.main = async (event) => {
     const query = useModePool
       ? `SELECT id, storage_url, mode_tags, difficulty, lat, lng, true_location
          FROM image_assets
-         WHERE $1 = ANY(mode_tags)
+         WHERE deleted_at IS NULL
+           AND $1 = ANY(mode_tags)
          ORDER BY RANDOM()
          LIMIT 1`
       : `SELECT id, storage_url, mode_tags, difficulty, lat, lng, true_location
          FROM image_assets
+         WHERE deleted_at IS NULL
          ORDER BY RANDOM()
          LIMIT 1`;
 

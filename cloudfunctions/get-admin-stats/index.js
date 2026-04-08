@@ -12,7 +12,7 @@ exports.main = async (event, context) => {
     const result = await client.query(`
       SELECT
         (SELECT COUNT(*) FROM users) AS total_users,
-        (SELECT COUNT(*) FROM image_assets) AS total_images,
+        (SELECT COUNT(*) FROM image_assets WHERE deleted_at IS NULL) AS total_images,
         (SELECT COUNT(*) FROM annotation_records) AS total_annotations,
         (SELECT COUNT(*) FROM annotation_records WHERE quality_status = 'pending') AS pending_reviews
     `);
