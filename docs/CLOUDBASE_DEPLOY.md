@@ -157,16 +157,22 @@ tcb fn deploy create-question
 
 ---
 
-## 五、前端配置环境 ID
+## 五、前端配置环境变量
 
-1. 在项目根目录复制环境变量示例：
-   - Windows: `copy .env.example .env.local`
-   - Mac/Linux: `cp .env.example .env.local`
-2. 用编辑器打开 `.env.local`，填写：
-   ```env
-   NEXT_PUBLIC_CLOUDBASE_ENV_ID=你的环境ID
-   ```
-3. 保存后重启前端（`npm run dev`），前端会连到该环境的云函数与数据库。
+### 5.1 本地（`.env.local`）
+
+1. 在项目根复制示例：`copy .env.example .env.local`（Windows）或 `cp .env.example .env.local`（Mac/Linux）。
+2. 编辑 `.env.local`：
+   - **必填**：`NEXT_PUBLIC_CLOUDBASE_ENV_ID` = 腾讯云云开发「环境 ID」（可与 [`cloudbaserc.json`](../cloudbaserc.json) 顶层 `envId` 一致）。
+   - **若使用 Prisma**（`prisma generate`、`migrate`、`npm run db:seed`）：同时配置 `DATABASE_URL`（可用 Supabase 池化 6543）与 `DIRECT_URL`（Supabase 直连 5432），与 [`prisma/schema.prisma`](../prisma/schema.prisma) 中 `url` / `directUrl` 对应；格式见 [`.env.example`](../.env.example)。
+3. `.env` 与 `.env.local` 均在 `.gitignore` 中，**勿提交仓库**。
+4. 保存后**重启** `npm run dev`（Next 仅在进程启动时读取环境变量）。
+
+### 5.2 线上（Vercel 等）
+
+1. 项目 **Settings → Environment Variables** 中添加 **`NEXT_PUBLIC_CLOUDBASE_ENV_ID`**（名称勿拼错），值为同一云开发环境 ID；作用域勾选 **Production**（及 **Preview** 若需要）。
+2. **推荐**：若构建或 CI 会执行 `npx prisma generate`，再添加 **`DATABASE_URL`**、**`DIRECT_URL`**（**不要**加 `NEXT_PUBLIC_` 前缀），与本地一致。
+3. **重新部署**（Redeploy）使变量生效。不要把数据库密码写入任何 `NEXT_PUBLIC_*` 变量。
 
 ---
 
@@ -196,6 +202,7 @@ tcb fn deploy create-question
 - [ ] 已创建集合 `Questions` 和 `Submissions`  
 - [ ] `cloudbaserc.json` 中列出的云函数均已部署（CLI 或控制台 ZIP）  
 - [ ] `.env.local` 中已配置 `NEXT_PUBLIC_CLOUDBASE_ENV_ID`  
+- [ ] 前端托管（如 Vercel）已配置 `NEXT_PUBLIC_CLOUDBASE_ENV_ID`（及构建需要时的 `DATABASE_URL`、`DIRECT_URL`）并已 Redeploy  
 - [ ] 在管理后台上传一道题目后，玩家端能随机拉题并提交  
 
 完成以上步骤后，GeoAnnotate 即可使用 CloudBase 正常运行。
