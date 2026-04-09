@@ -15,7 +15,6 @@ import {
   getBattleModeLabel,
 } from "@/features/battle/config";
 
-// 辅助函数：由于没有本地图片，生成高质感渐变色模拟图片卡片
 const getModeGradient = (index: number) => {
   const gradients = [
     "from-[#8FA4FF] to-[#6A8BFF]", // 综合模式
@@ -94,9 +93,9 @@ export default function BattleConfigPage() {
             </svg>
           </div>
           <h1 className="text-[36px] font-bold text-[#1D2129] leading-tight">配置 AI 对战</h1>
-          <p className="mt-3 text-[18px] text-[#4E5969] max-w-[670px] leading-relaxed">
+          {/* <p className="mt-3 text-[18px] text-[#4E5969] max-w-[670px] leading-relaxed">
             当前页面已经支持模式、限时、回合数和 AI 对手选择，更贴近需求文档里的对战框架。
-          </p>
+          </p> */}
         </div>
 
         {error && (

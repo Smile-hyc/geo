@@ -262,7 +262,7 @@ export default function BattlePlayPage() {
         />
       )}
 
-      {/* 🟢 核心交互区域：绑定 onMouseEnter 和 onMouseLeave */}
+      {/*核心交互区域：绑定 onMouseEnter 和 onMouseLeave */}
       <div 
         className={`z-40 flex flex-col gap-3 transition-all duration-300 origin-bottom-right ${
           isMapExpanded
@@ -299,7 +299,7 @@ export default function BattlePlayPage() {
           </div>
           
           <div className="rounded-lg overflow-hidden border border-[#E5E6EB] grow transition-all duration-300">
-            {/* 🟢 动态计算高度：全屏时撑满，Hover 时变高 (比如 300px)，默认 200px */}
+            {/* 动态计算高度：全屏时撑满，Hover 时变高 (比如 300px)，默认 200px */}
             <MapPicker 
               value={guessPos} 
               onChange={setGuessPos} 

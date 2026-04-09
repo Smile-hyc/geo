@@ -141,14 +141,13 @@ export default function AdminImagesPage() {
   };
 
   return (
-    // 采用 MasterGo 导出的背景渐变色，并设置了和设计稿一致的 32px 内边距
     <div className="min-h-screen bg-gradient-to-b from-[#F9FAFB] to-[#EFF6FF] p-8 font-sans">
       <div className="max-w-[1120px] mx-auto space-y-6">
         
         {/* 页面大标题 */}
         <h1 className="text-[24px] font-[700] text-[#111827] leading-[32px]">图片</h1>
 
-        {/* 上传新图片卡片：圆角 8px，轻微阴影，完美还原设计图 */}
+        {/* 上传新图片卡片：保留高颜值 UI */}
         <Card className="rounded-[8px] border border-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] bg-white/60 backdrop-blur-sm p-6">
           <CardHeader className="p-0 pb-6">
             <CardTitle className="text-[20px] font-[600] text-[#111827] flex items-center gap-2">
@@ -166,9 +165,7 @@ export default function AdminImagesPage() {
               </div>
             )}
 
-            {/* 左右分栏布局 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* 左侧：文件选择 */}
               <div className="space-y-3">
                 <Label className="text-[14px] font-[500] text-[#111827]">地理图片 (≤5MB)</Label>
                 <div className="border border-[#EBE5EA] rounded-[8px] p-3 bg-white hover:border-[#165DFF] transition-colors">
@@ -186,7 +183,6 @@ export default function AdminImagesPage() {
                 )}
               </div>
 
-              {/* 右侧：位置与坐标 */}
               <div className="space-y-5">
                 <div className="space-y-3">
                   <Label className="text-[14px] font-[500] text-[#111827]">真实地点 *</Label>
@@ -220,7 +216,6 @@ export default function AdminImagesPage() {
               </div>
             </div>
 
-            {/* 模式标签 */}
             <div className="space-y-3 pt-2">
               <Label className="text-[14px] font-[500] text-[#111827]">模式标签</Label>
               <div className="flex gap-3 flex-wrap">
@@ -231,9 +226,7 @@ export default function AdminImagesPage() {
                       key={m}
                       onClick={() => toggleMode(m)}
                       className={`h-[36px] px-4 rounded-[4px] text-[14px] transition-colors ${
-                        isActive 
-                          ? "bg-[#165DFF] text-white" // 选中态：主品牌色
-                          : "bg-[#F3F4F6] text-[#374151] hover:bg-[#E5E7EB]" // 未选中态：灰底灰字
+                        isActive ? "bg-[#165DFF] text-white" : "bg-[#F3F4F6] text-[#374151] hover:bg-[#E5E7EB]"
                       }`}
                     >
                       {ANNOTATION_MODES.find((x) => x.id === m)?.name ?? m}
@@ -243,7 +236,6 @@ export default function AdminImagesPage() {
               </div>
             </div>
 
-            {/* 难度选择 */}
             <div className="space-y-3 pt-2">
               <Label className="text-[14px] font-[500] text-[#111827]">难度 (1-5)</Label>
               <div className="flex gap-2">
@@ -254,9 +246,7 @@ export default function AdminImagesPage() {
                       key={d}
                       onClick={() => setDifficulty(d)}
                       className={`h-[48px] w-[48px] rounded-[4px] text-[14px] font-[500] transition-colors border ${
-                        isActive 
-                          ? "border-[#165DFF] text-[#165DFF] bg-blue-50/50" // 选中态：蓝色边框
-                          : "border-[#EBE5EA] text-[#4B5563] hover:bg-gray-50" // 未选中态：灰色边框
+                        isActive ? "border-[#165DFF] text-[#165DFF] bg-blue-50/50" : "border-[#EBE5EA] text-[#4B5563] hover:bg-gray-50"
                       }`}
                     >
                       {d}
@@ -266,7 +256,6 @@ export default function AdminImagesPage() {
               </div>
             </div>
 
-            {/* 提交按钮：精确还原品牌蓝与尺寸 */}
             <div className="pt-4">
               <Button 
                 onClick={handleUpload} 
@@ -279,7 +268,7 @@ export default function AdminImagesPage() {
           </CardContent>
         </Card>
 
-        {/* 已上传图片列表区域 */}
+        {/* 已上传图片列表区域：合并高颜值 UI 与 develop 的逻辑 */}
         <Card className="rounded-[8px] border border-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] bg-white/60 backdrop-blur-sm p-6">
           <CardHeader className="p-0 pb-6 flex flex-row items-center justify-between border-b border-[#E5E6EB] mb-6">
             <CardTitle className="text-[20px] font-[600] text-[#111827]">
@@ -303,23 +292,45 @@ export default function AdminImagesPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {images.map((img) => (
-                  <Card key={img.id} className="overflow-hidden border-[#EBE5EA] shadow-sm hover:shadow-md transition-shadow">
+                  <Card key={img.id} className="overflow-hidden border-[#EBE5EA] shadow-sm hover:shadow-md transition-shadow relative">
                     <div className="aspect-video bg-[#F2F3F5] overflow-hidden relative group">
                       {img.tempUrl ? (
                         <img src={img.tempUrl} alt={img.true_location} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[#86909C] text-xs">无法加载</div>
                       )}
-                      <button
-                        onClick={() => handleDelete(img.id)}
-                        className="absolute top-2 right-2 bg-black/60 hover:bg-[#F53F3F] text-white rounded p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="删除图片"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      
+                      {/* 完美融合的悬浮按钮：编辑 + 软删除 */}
+                      <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRestoreImage(!!img.deleted_at);
+                            setEditImg({ ...img, image_meta_json: { ...(img.image_meta_json || {}) } });
+                          }}
+                          className="bg-black/60 hover:bg-[#165DFF] text-white rounded px-2 py-1.5 text-[12px] font-medium transition-colors backdrop-blur-sm"
+                        >
+                          编辑
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(img.id)}
+                          className="bg-black/60 hover:bg-[#F53F3F] text-white rounded p-1.5 transition-colors backdrop-blur-sm"
+                          title="软删除"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
-                    <CardContent className="p-3 space-y-1 bg-white">
-                      <p className="text-[14px] font-[500] text-[#1D2129] truncate">{img.true_location}</p>
+
+                    <CardContent className="p-3 space-y-1 bg-white relative">
+                      {/* 软删提示 */}
+                      {img.deleted_at && (
+                        <div className="absolute top-0 right-0 bg-[#F53F3F]/10 text-[#F53F3F] text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
+                          已软删
+                        </div>
+                      )}
+                      <p className="text-[14px] font-[500] text-[#1D2129] truncate pr-8">{img.true_location}</p>
                       <p className="text-[12px] text-[#86909C]">
                         <span className="text-[#FF7D00]">{"★".repeat(img.difficulty)}</span> · {img.mode_tags.join(", ")}
                       </p>
@@ -330,62 +341,9 @@ export default function AdminImagesPage() {
             )}
           </CardContent>
         </Card>
+      </div> {/* 完美闭合的 max-w 容器 */}
 
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold">已上传图片（{images.length}）</h2>
-          <Button variant="outline" size="sm" onClick={loadImages} disabled={loadingImages}>
-            {loadingImages ? <Loader2 className="h-3 w-3 animate-spin" /> : "刷新"}
-          </Button>
-        </div>
-        {loadingImages ? (
-          <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {images.map((img) => (
-              <Card key={img.id} className="overflow-hidden">
-                <div className="aspect-video bg-accent/20 overflow-hidden relative group">
-                  {img.tempUrl ? (
-                    <img src={img.tempUrl} alt={img.true_location} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">无法加载</div>
-                  )}
-                  <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRestoreImage(!img.deleted_at);
-                        setEditImg({ ...img, image_meta_json: { ...(img.image_meta_json || {}) } });
-                      }}
-                      className="bg-black/60 hover:bg-primary text-white rounded p-1 text-[10px] px-1.5"
-                    >
-                      编辑
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(img.id)}
-                      className="bg-black/60 hover:bg-destructive text-white rounded p-1"
-                      title="软删除"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-                <CardContent className="p-2 space-y-1">
-                  {img.deleted_at && (
-                    <p className="text-[10px] text-red-400">已软删</p>
-                  )}
-                  <p className="text-xs font-medium truncate">{img.true_location}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {"★".repeat(img.difficulty)} · {img.mode_tags.join(", ")}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
+      {/* 原汁原味的 develop 复杂编辑弹窗，完全保留逻辑 */}
       {editImg && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog">
           <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">

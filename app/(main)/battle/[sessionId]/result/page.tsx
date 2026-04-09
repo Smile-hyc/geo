@@ -83,7 +83,7 @@ export default function BattleResultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🟢 新增：用于原生挂载大地图的 Ref
+  //新增：用于原生挂载大地图的 Ref
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("leaflet").Map | null>(null);
 
@@ -101,7 +101,7 @@ export default function BattleResultPage() {
     fetchResult();
   }, [sessionId]);
 
-  // 🟢 新增：渲染所有回合的十字准星和虚线
+  // 新增：渲染所有回合的十字准星和虚线
   useEffect(() => {
     if (typeof window === "undefined" || !mapContainerRef.current || !result) return;
 
@@ -263,7 +263,7 @@ export default function BattleResultPage() {
         {/* ================= 左侧：全景地图区 ================= */}
         <div className="flex-1 relative bg-[#F2F3F5]">
           <div className="absolute inset-0 z-0">
-             {/* 🟢 替换为 useRef 原生挂载 */}
+             {/* 替换为 useRef 原生挂载 */}
              <div ref={mapContainerRef} className="w-full h-full" />
           </div>
           <div className="absolute top-6 left-6 z-10 bg-white/90 backdrop-blur-md px-4 py-2 rounded-lg shadow-sm border border-white/50 pointer-events-none">
@@ -272,7 +272,7 @@ export default function BattleResultPage() {
           </div>
         </div>
 
-        {/* ================= 右侧：战报数据侧边栏 (原封不动) ================= */}
+        {/* ================= 右侧：战报数据侧边栏 ================= */}
         <div className="w-[460px] bg-white flex flex-col border-l border-[#E5E6EB] shadow-[-8px_0_24px_rgba(0,0,0,0.03)] z-10">
           
           <div className="p-8 pb-6 border-b border-[#E5E6EB]">

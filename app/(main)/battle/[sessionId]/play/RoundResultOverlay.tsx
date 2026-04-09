@@ -103,7 +103,7 @@ export default function RoundResultOverlay({
       mapRef.current = map;
 
       // ==========================================
-      // 🟢 1. 封装一个生成“目标十字准星”图标的函数
+      // 1. 封装一个生成“目标十字准星”图标的函数
       // ==========================================
       const createCrosshairIcon = (color: string, label: string) => {
         return L.divIcon({
@@ -190,7 +190,7 @@ export default function RoundResultOverlay({
     };
   }, [result, guessPos]);
 
-  // 你原本的模拟历史对战进度数据
+  // 模拟历史对战进度数据
   const mockHistory = Array.from({ length: Math.min(currentRound, 3) }).map((_, i) => ({
       round: currentRound - Math.min(currentRound, 3) + i + 1,
       time: Math.floor(Math.random() * 30 + 20),
@@ -198,9 +198,6 @@ export default function RoundResultOverlay({
       aiScore: Math.floor(Math.random() * 40 + 60),
   }));
 
-  // ==========================================
-  // 底部 UI 布局 (无需修改)
-  // ==========================================
   return (
     <div className="absolute inset-0 z-50 overflow-hidden bg-[#F2F3F5] animate-in fade-in duration-500">
       

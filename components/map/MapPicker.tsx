@@ -89,7 +89,7 @@ export default function MapPicker({ value, onChange, height = "200px" }: Props) 
     });
   }, [value]);
 
-  // 🟢 核心修复：监听 height 变化，强制重新渲染地图瓦片
+  // 核心修复：监听 height 变化，强制重新渲染地图瓦片
   useEffect(() => {
     if (mapRef.current) {
       // 因为我们的放大动画有大约 300ms 的过渡时间（transition-all）
