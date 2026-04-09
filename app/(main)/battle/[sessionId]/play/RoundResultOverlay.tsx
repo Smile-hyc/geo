@@ -242,7 +242,7 @@ export default function RoundResultOverlay({
             回合目标位置
           </h3>
           <p className="text-white/80 text-[12px] mt-1 leading-snug drop-shadow-sm">
-            真实坐标: {result.true_lat.toFixed(4)}, {result.true_lng.toFixed(4)}
+            真实坐标: {Math.abs(result.true_lat).toFixed(4)}°{result.true_lat >= 0 ? 'N' : 'S'}, {Math.abs(result.true_lng).toFixed(4)}°{result.true_lng >= 0 ? 'E' : 'W'}
           </p>
         </div>
       </div>

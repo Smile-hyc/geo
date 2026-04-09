@@ -123,9 +123,12 @@ export default function BattleResultPage() {
       }
 
       const map = L.map(mapContainerRef.current, {
-        zoomControl: true, // 总结算页保留缩放控件比较好
+        zoomControl: false, //  1. 先关闭默认的左上角缩放控件
         attributionControl: false,
       }).setView([30, 105], 3);
+
+      // 2. 手动将缩放控件添加到右上角
+      L.control.zoom({ position: 'topright' }).addTo(map);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18,

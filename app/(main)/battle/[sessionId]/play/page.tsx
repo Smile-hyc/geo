@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, Compass, Settings, ZoomIn, Maximize, ZoomOut, Minimize } from "lucide-react";
+import { Loader2, Compass, Settings, ZoomIn, Maximize, ZoomOut, Minimize, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CountdownTimer from "@/components/battle/CountdownTimer";
 import { getBattleResult, getTempFileURL, submitBattleRound } from "@/lib/cloudbase";
@@ -48,10 +48,13 @@ export default function BattlePlayPage() {
   const [timerKey, setTimerKey] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [bgZoom, setBgZoom] = useState(1);
+  const [bgOffset, setBgOffset] = useState({ x: 0, y: 0 }); // 记录图片的偏移量
+  const [isDragging, setIsDragging] = useState(false); // 记录鼠标是否按下
+  const dragStart = useRef({ x: 0, y: 0 }); // 记录鼠标按下的初始位置（用 useRef 防止不必要的重新渲染）
   // 原有的手动点击全屏状态
   const [isMapExpanded, setIsMapExpanded] = useState(false);
-  // 🟢 新增：鼠标悬浮状态
+  // 新增：鼠标悬浮状态
   const [isMapHovered, setIsMapHovered] = useState(false);
   
   const guessRef = useRef<{ lat: number; lng: number } | null>(null);
@@ -143,10 +146,11 @@ export default function BattlePlayPage() {
     setGuessPos(null);
     setTimerKey((value) => value + 1);
     setImageLoading(true);
-    // 重置地图状态
+    // 重置地图状态与背景缩放
     setIsMapExpanded(false);
     setIsMapHovered(false);
-
+    setBgZoom(1); //切换下一轮时重置缩放
+    setBgOffset({ x: 0, y: 0 });
     try {
       const result = await getBattleResult({ session_id: sessionId });
       await loadRoundImage(result.rounds[nextRound]?.image_storage_url);
@@ -165,6 +169,36 @@ export default function BattlePlayPage() {
     }
   };
 
+  // 鼠标滚轮缩放处理函数
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (e.deltaY < 0) {
+      // 向上滚动：放大 (最大 5 倍)
+      setBgZoom((prev) => Math.min(prev + 0.15, 5));
+    } else {
+      // 向下滚动：缩小 (最小 1 倍，防止比屏幕小)
+      setBgZoom((prev) => Math.max(prev - 0.15, 1));
+    }
+  };
+
+  // 鼠标拖动平移处理函数
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    // 记录鼠标按下时的坐标，并减去当前的偏移量，这样可以实现连续拖动
+    dragStart.current = { x: e.clientX - bgOffset.x, y: e.clientY - bgOffset.y };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    // 计算最新的偏移量
+    setBgOffset({
+      x: e.clientX - dragStart.current.x,
+      y: e.clientY - dragStart.current.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
   if (error) {
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-[#F2F3F5]">
@@ -201,14 +235,31 @@ export default function BattlePlayPage() {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#F2F3F5] font-sans">
       
-      {/* 1. 猜测态：全景背景层 */}
-      <div className="absolute inset-0 z-0">
+      {/* 1. 猜测态：全景背景层 (绑定滚轮和拖动事件) */}
+      <div 
+        className={`absolute inset-0 z-0 overflow-hidden ${isDragging ? "cursor-grabbing" : "cursor-grab"}`} 
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp} // 鼠标移出屏幕也当做松开处理
+      >
         {imageLoading ? (
           <div className="w-full h-full flex items-center justify-center bg-[#E5E6EB]/50">
             <Loader2 className="h-10 w-10 animate-spin text-[#165DFF]" />
           </div>
         ) : imageUrl ? (
-          <img src={imageUrl} alt="对战题目" className="w-full h-full object-cover" />
+          <img 
+            src={imageUrl} 
+            alt="对战题目" 
+            // 注意这里去掉了 transition-transform，因为拖动时需要实时跟随，加动画会有延迟感
+            className="w-full h-full object-cover origin-center" 
+            style={{ 
+              transform: `translate(${bgOffset.x}px, ${bgOffset.y}px) scale(${bgZoom})`,
+              // 在拖动时取消事件响应，防止鼠标拖动到了图片外产生 bug
+              pointerEvents: isDragging ? "none" : "auto" 
+            }} 
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-zinc-400">
             全景图片加载失败
@@ -235,21 +286,29 @@ export default function BattlePlayPage() {
           </div>
         </div>
 
+        {/*注释掉了悬浮方位条
         <div className="flex items-center gap-3 px-6 py-1.5 bg-black/50 backdrop-blur-sm rounded-full text-white text-[12px] font-black tracking-widest shadow-md">
           <span>N</span><div className="w-6 h-[2px] bg-[#E5E6EB]/60 rounded" />
           <span>E</span><div className="w-6 h-[2px] bg-[#E5E6EB]/60 rounded" />
           <span>S</span><div className="w-6 h-[2px] bg-[#E5E6EB]/60 rounded" />
           <span>W</span>
         </div>
+        */}
       </div>
 
       {/* 3. 左下角悬浮工具栏 */}
       <div className="absolute bottom-10 left-8 z-10 flex flex-col gap-4">
-        <button className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-[#F2F3F5] transition-colors text-[#1D2129]">
-          <Compass className="w-6 h-6" />
+        <button 
+          className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-[#F2F3F5] transition-colors text-[#1D2129]"
+          onClick={() => setBgZoom((prev) => Math.min(prev + 0.5, 5))} // 放大按钮
+        >
+          <Plus className="w-6 h-6" />
         </button>
-        <button className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-[#F2F3F5] transition-colors text-[#1D2129]">
-          <Settings className="w-6 h-6" />
+        <button 
+          className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-[#F2F3F5] transition-colors text-[#1D2129]"
+          onClick={() => setBgZoom((prev) => Math.max(prev - 0.5, 1))} // 缩小按钮
+        >
+          <Minus className="w-6 h-6" />
         </button>
       </div>
 
