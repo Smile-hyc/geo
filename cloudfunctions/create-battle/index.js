@@ -97,13 +97,23 @@ exports.main = async (event, context) => {
 
     const sessionId = sessionResult.rows[0].id;
 
+    // --- 修改后的循环部分 ---
     for (let index = 0; index < imagesResult.rows.length; index += 1) {
+      const img = imagesResult.rows[index];
       await client.query(
-        `INSERT INTO battle_rounds (session_id, round_index, image_id)
-         VALUES ($1, $2, $3)`,
-        [sessionId, index, imagesResult.rows[index].id]
+        `INSERT INTO battle_rounds 
+           (session_id, round_index, image_id, truth_lat, truth_lng)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          sessionId, 
+          index + 1, // 第几轮，从 1 开始
+          img.id, 
+          img.lat,   // 队长要求的真纬度快照
+          img.lng    // 队长要求的真经度快照
+        ]
       );
     }
+    // --- 修改结束 ---
 
     return { session_id: sessionId };
   } catch (err) {

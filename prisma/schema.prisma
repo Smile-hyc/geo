@@ -114,6 +114,11 @@ model BattleRound {
   session BattleSession @relation(fields: [session_id], references: [id])
   image   ImageAsset    @relation(fields: [image_id], references: [id])
 
+  truth_lat         Float?   
+  truth_lng         Float?   
+  round_winner_type String?  
+  elapsed_ms        Int?
+  
   @@map("battle_rounds")
 }
 
@@ -156,5 +161,7 @@ model PrizeRedemption {
   user  User  @relation(fields: [user_id], references: [id])
   prize Prize @relation(fields: [prize_id], references: [id])
 
+  status       String   @default("pending")
+  
   @@map("prize_redemptions")
 }
