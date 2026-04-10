@@ -215,14 +215,12 @@ function rowToJsonlObject(row, ctx) {
   const lat = row.lat != null ? parseFloat(row.lat) : null;
   const lng = row.lng != null ? parseFloat(row.lng) : null;
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    throw new Error(`记录 ${row.id}：缺少有效 gt_latitude/gt_longitude（图片 ${row.image_id}）`);
+    return { __skipped: true, record_id: row.id, image_id: row.image_id, reason: "缺少有效 lat/lng" };
   }
 
   const imageShape = buildImageShape(row);
   if (!imageShape) {
-    throw new Error(
-      `记录 ${row.id}：缺少 image_meta_json.width/height（图片 ${row.image_id}），请在上传或 admin 中补全`
-    );
+    return { __skipped: true, record_id: row.id, image_id: row.image_id, reason: "缺少 image_meta_json.width/height" };
   }
 
   let iso2 = pickCountryIso2(row);

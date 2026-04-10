@@ -1,10 +1,10 @@
 "use strict";
 
-const { withTransaction } = require("../_shared/db");
-const { requireRole } = require("../_shared/auth");
-const { ok, fail } = require("../_shared/response");
-const { parseNonNegativeInt } = require("../_shared/validation");
-const { getCurrentTaskConfig } = require("../_shared/config");
+const { withTransaction } = require("./_shared/db");
+const { requireRole } = require("./_shared/auth");
+const { ok, fail } = require("./_shared/response");
+const { parseNonNegativeInt } = require("./_shared/validation");
+const { getCurrentTaskConfig } = require("./_shared/config");
 
 function getData(event) {
   const raw = event && typeof event === "object" ? event : {};

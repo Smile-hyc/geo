@@ -1,4 +1,7 @@
 node_modules
+.cursor/
+# 由 `npm run cloudfunctions:sync-shared` 生成，勿提交
+cloudfunctions/*/_shared/
 .next/
 out/
 .env

@@ -35,6 +35,8 @@ interface ImageAsset {
 export default function AdminImagesPage() {
   const [images, setImages] = useState<ImageAsset[]>([]);
   const [loadingImages, setLoadingImages] = useState(true);
+  /** 为 true 时 list-images 传入 include_deleted，便于查看与恢复软删图片 */
+  const [includeDeleted, setIncludeDeleted] = useState(false);
   const [editImg, setEditImg] = useState<ImageAsset | null>(null);
   const [editSaving, setEditSaving] = useState(false);
   const [restoreImage, setRestoreImage] = useState(false);
@@ -53,7 +55,10 @@ export default function AdminImagesPage() {
   const loadImages = useCallback(async () => {
     setLoadingImages(true);
     try {
-      const res = await callFunction<{ images: ImageAsset[] }>("list-images", { limit: 30 });
+      const res = await callFunction<{ images: ImageAsset[] }>("list-images", {
+        limit: 30,
+        ...(includeDeleted ? { include_deleted: true } : {}),
+      });
       const list = res.images ?? [];
       const withUrls = await Promise.all(
         list.map(async (img) => {
@@ -74,7 +79,7 @@ export default function AdminImagesPage() {
     } finally {
       setLoadingImages(false);
     }
-  }, []);
+  }, [includeDeleted]);
 
   useEffect(() => { loadImages(); }, [loadImages]);
 
@@ -270,13 +275,23 @@ export default function AdminImagesPage() {
 
         {/* 已上传图片列表区域：合并高颜值 UI 与 develop 的逻辑 */}
         <Card className="rounded-[8px] border border-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] bg-white/60 backdrop-blur-sm p-6">
-          <CardHeader className="p-0 pb-6 flex flex-row items-center justify-between border-b border-[#E5E6EB] mb-6">
+          <CardHeader className="p-0 pb-6 flex flex-row flex-wrap items-center justify-between gap-2 border-b border-[#E5E6EB] mb-6">
             <CardTitle className="text-[20px] font-[600] text-[#111827]">
               已上传图片 ({images.length})
             </CardTitle>
+            <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeDeleted}
+                onChange={(e) => setIncludeDeleted(e.target.checked)}
+              />
+              显示已软删（可编辑恢复）
+            </label>
             <Button variant="outline" size="sm" onClick={loadImages} disabled={loadingImages} className="border-[#EBE5EA] text-[#4E5969]">
-              {loadingImages ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            </Button>
+                {loadingImages ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              </Button>
+          </div>
           </CardHeader>
           
           <CardContent className="p-0">
@@ -292,7 +307,10 @@ export default function AdminImagesPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {images.map((img) => (
-                  <Card key={img.id} className="overflow-hidden border-[#EBE5EA] shadow-sm hover:shadow-md transition-shadow relative">
+                  <Card
+                key={img.id}
+                className={`overflow-hidden border-[#EBE5EA] shadow-sm hover:shadow-md transition-shadow relative ${img.deleted_at ? "opacity-80 ring-1 ring-destructive/30" : ""}`}
+              >
                     <div className="aspect-video bg-[#F2F3F5] overflow-hidden relative group">
                       {img.tempUrl ? (
                         <img src={img.tempUrl} alt={img.true_location} className="w-full h-full object-cover" />

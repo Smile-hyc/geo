@@ -22,7 +22,7 @@ export default function AdminExportPage() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const jsonl = await exportAnnotations({
+      const { jsonl, skipped } = await exportAnnotations({
         quality_status: qualityFilter,
         limit: 5000,
         cloudbase_uid: user?.uid,
@@ -35,10 +35,16 @@ export default function AdminExportPage() {
       a.download = `geoannotate-export-${qualityFilter || "all"}-${new Date().toISOString().slice(0, 10)}.jsonl`;
       a.click();
       URL.revokeObjectURL(url);
+      if (skipped.length > 0) {
+        const details = skipped
+          .map((s) => `记录 ${s.record_id}（图片 ${s.image_id}）：${s.reason}`)
+          .join("\n");
+        alert(`导出完成，但跳过了 ${skipped.length} 条不完整记录：\n${details}`);
+      }
       try {
         await recordEvent({
           event_type: "admin_export_jsonl",
-          event_payload_json: { quality_filter: qualityFilter ?? "all", limit: 5000 },
+          event_payload_json: { quality_filter: qualityFilter ?? "all", limit: 5000, skipped_count: skipped.length },
           cloudbase_uid: user?.uid,
           email: user?.email,
         });
@@ -91,7 +97,7 @@ export default function AdminExportPage() {
             下载 JSONL
           </Button>
           <p className="text-xs text-muted-foreground">
-            每行一条完整记录；平台字段在 other 内。缺经纬度或图片宽高时会整批报错。图片绝对路径前缀可由环境变量 JSONL_EXPORT_IMAGE_PATH_PREFIX 配置。
+            每行一条完整记录；平台字段在 other 内。缺经纬度或图片宽高的记录将被跳过（不中断导出），可在上传或 admin 中补全。图片绝对路径前缀可由环境变量 JSONL_EXPORT_IMAGE_PATH_PREFIX 配置。
           </p>
         </CardContent>
       </Card>
