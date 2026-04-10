@@ -65,10 +65,10 @@ export default function AdminDashboard() {
             <div className="px-3 py-1.5 border border-[#E5E5E5] rounded-[6px] bg-white text-[14px] text-[#0A0A0A] shadow-sm">
               本月
             </div>
-            <Button className="bg-[#165DFF] hover:bg-[#0E42C9] text-white rounded-[4px] h-[36px] shadow-[0_1px_3px_rgba(0,0,0,0.1)] px-4">
+            {/* <Button className="bg-[#165DFF] hover:bg-[#0E42C9] text-white rounded-[4px] h-[36px] shadow-[0_1px_3px_rgba(0,0,0,0.1)] px-4">
               <Download className="w-4 h-4 mr-2" />
               生成报告
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* 图表区域 */}
+        {/* 图表区域
         <Card className="rounded-[12px] border-none shadow-[0_1px_2px_rgba(0,0,0,0.05)] overflow-hidden">
           <CardContent className="p-0 h-[400px] flex items-center justify-center bg-white relative">
              <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 opacity-50"></div>
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
                 <p className="text-[#86909C] font-medium">数据趋势图表区 (预留)</p>
              </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* 底部功能区 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
