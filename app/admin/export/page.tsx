@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { exportAnnotations, recordEvent } from "@/lib/cloudbase";
+import { exportAnnotations } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
 
 const QUALITY_OPTIONS = [
@@ -35,6 +35,7 @@ export default function AdminExportPage() {
       a.download = `geoannotate-export-${qualityFilter || "all"}-${new Date().toISOString().slice(0, 10)}.jsonl`;
       a.click();
       URL.revokeObjectURL(url);
+<<<<<<< feature/role4-admin
       if (skipped.length > 0) {
         const details = skipped
           .map((s) => `记录 ${s.record_id}（图片 ${s.image_id}）：${s.reason}`)
@@ -51,6 +52,8 @@ export default function AdminExportPage() {
       } catch {
         /* 埋点失败不影响导出 */
       }
+=======
+>>>>>>> develop
     } catch (e) {
       alert(e instanceof Error ? e.message : "导出失败");
     } finally {
@@ -62,7 +65,7 @@ export default function AdminExportPage() {
     <div className="p-8 space-y-6">
       <div>
         <h1 className="text-2xl font-bold">导出数据</h1>
-        <p className="text-muted-foreground text-sm mt-1">导出标注记录为 JSONL（每行一条 JSON，含 GeoBench 对齐字段）</p>
+        <p className="text-muted-foreground text-sm mt-1">导出标注记录为 JSON 文件</p>
       </div>
 
       <Card>
@@ -94,10 +97,14 @@ export default function AdminExportPage() {
             className="gap-2"
           >
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            下载 JSONL
+            导出 JSON
           </Button>
           <p className="text-xs text-muted-foreground">
+<<<<<<< feature/role4-admin
             每行一条完整记录；平台字段在 other 内。缺经纬度或图片宽高的记录将被跳过（不中断导出），可在上传或 admin 中补全。图片绝对路径前缀可由环境变量 JSONL_EXPORT_IMAGE_PATH_PREFIX 配置。
+=======
+            导出包含思维过程、BBox、答案等完整标注信息的 JSON 文件，最多 5000 条。
+>>>>>>> develop
           </p>
         </CardContent>
       </Card>

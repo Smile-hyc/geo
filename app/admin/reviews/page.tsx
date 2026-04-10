@@ -247,7 +247,7 @@ export default function AdminReviewsPage() {
           className="gap-1.5"
         >
           {exporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
-          导出 JSONL
+          导出 JSON
         </Button>
       </div>
 
