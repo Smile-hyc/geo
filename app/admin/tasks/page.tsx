@@ -181,7 +181,7 @@ export default function AdminTasksPage() {
           <Button
             onClick={handleSave}
             disabled={loading || saving}
-            className="mt-2"
+            className="mt-2 bg-[#165DFF] hover:bg-[#0E42C9] text-white transition-colors"
           >
             {saving ? (
               <>
