@@ -27,21 +27,25 @@ const pool = new Pool(
 
 exports.main = async (event) => {
   const { mode } = event || {};
+  /** 混合模式：与对战「综合」一致，使用全库图片池（不按 mode_tags 过滤） */
+  const useModePool = Boolean(mode) && mode !== "mixed";
 
   const client = await pool.connect();
   try {
-    const query = mode
+    const query = useModePool
       ? `SELECT id, storage_url, mode_tags, difficulty, lat, lng, true_location
          FROM image_assets
-         WHERE $1 = ANY(mode_tags)
+         WHERE deleted_at IS NULL
+           AND $1 = ANY(mode_tags)
          ORDER BY RANDOM()
          LIMIT 1`
       : `SELECT id, storage_url, mode_tags, difficulty, lat, lng, true_location
          FROM image_assets
+         WHERE deleted_at IS NULL
          ORDER BY RANDOM()
          LIMIT 1`;
 
-    const params = mode ? [mode] : [];
+    const params = useModePool ? [mode] : [];
     const result = await client.query(query, params);
 
     if (result.rows.length === 0) {

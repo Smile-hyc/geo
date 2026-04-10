@@ -77,7 +77,7 @@
 
 ## 四、部署云函数（两种方式任选其一）
 
-本项目有 4 个云函数：`getRandomQuestion`、`createQuestion`、`submitAnswer`、`listSubmissions`。
+云函数列表与运行时配置见项目根目录 **`cloudbaserc.json`**（`functions` 数组）。部署前请将其中 **`envId`** 改为你的环境 ID。
 
 ### 方式 A：使用 CloudBase CLI 一键部署（推荐）
 
@@ -105,44 +105,24 @@ tcb login
 
 会打开浏览器，用腾讯云账号扫码登录并授权 CLI。
 
-#### 3. 为每个云函数安装依赖
+#### 3. 为各云函数安装依赖（首次或依赖变更时）
 
-每个云函数目录下已有 `package.json`（含 `@cloudbase/node-sdk`），只需在各自目录执行一次 `npm install`，便于打包上传或 CLI 部署：
-
-```bash
-cd cloudfunctions/getRandomQuestion
-npm install
-cd ../createQuestion
-npm install
-cd ../submitAnswer
-npm install
-cd ../listSubmissions
-npm install
-cd ../..
-```
-
-（Windows 用户可在资源管理器中分别进入以上 4 个文件夹，在每个文件夹里打开终端执行 `npm install`。）
+`cloudfunctions/` 下每个子目录对应一个函数；若该目录有 `package.json`，进入后执行 `npm install`。CLI 部署时若 `installDependency` 为 `true`，也会在云端安装依赖，但本地先 `npm install` 可减少部署失败。
 
 #### 4. 配置并部署
 
-1. 在项目**根目录**用编辑器打开 `cloudbaserc.json`
-2. 将第一行的 `"请替换为你的环境ID"` 改为你的**环境 ID**（第二步复制的），例如：
-   ```json
-   "envId": "geoannotate-1a2b3c4d",
-   ```
-3. 在项目**根目录**打开终端，执行：
+1. 在项目**根目录**确认 `cloudbaserc.json` 中 **`envId`** 正确。
+2. 在项目**根目录**打开终端，执行：
 
 ```bash
 tcb fn deploy
 ```
 
-会按配置依次部署 4 个云函数。若只部署其中一个，可执行：
+若只部署其中一个，函数名须与 `cloudbaserc.json` 里 `name` 一致，例如：
 
 ```bash
-tcb fn deploy getRandomQuestion
-tcb fn deploy createQuestion
-tcb fn deploy submitAnswer
-tcb fn deploy listSubmissions
+tcb fn deploy get-next-task
+tcb fn deploy create-question
 ```
 
 部署成功会提示各函数部署完成。
@@ -159,29 +139,21 @@ tcb fn deploy listSubmissions
 
 #### 2. 为每个函数准备 ZIP 包（含依赖）
 
-以 `getRandomQuestion` 为例：
+任选一个目录，例如 `cloudfunctions/get-next-task`：
 
-1. 在本地进入该函数目录并安装依赖（目录内已有 `package.json`）：
-   ```bash
-   cd cloudfunctions/getRandomQuestion
-   npm install
-   ```
-2. 将该目录下**所有内容**（`index.js`、`package.json`、`node_modules` 等）打成 ZIP，且 **ZIP 解压后的根目录里就要有 `index.js`**（不要多包一层「getRandomQuestion」文件夹）。
-3. 对 `createQuestion`、`submitAnswer`、`listSubmissions` 重复同样步骤：进入目录 → `npm install` → 打包该目录内容为一个 ZIP。
+1. 进入该目录并执行 `npm install`（若有 `package.json`）。
+2. 将该目录下**所有内容**打成 ZIP，**解压后根目录须有 `index.js`**（不要多包一层文件夹）。
+3. 对其余 `cloudfunctions/` 子目录重复同样步骤。
 
 #### 3. 在控制台新建函数并上传
 
-1. 点击 **「新建云函数」**
-2. **函数名称** 填：`getRandomQuestion`（必须与上面 4 个名称完全一致）
-3. **运行环境** 选：Node.js 16 或 18
-4. 创建方式选 **「空白函数」** 或 **「本地上传」**
-5. 在函数详情页选择 **「上传 ZIP 包」**，上传刚打的 ZIP
-6. 点击 **「保存并安装依赖」**（若 ZIP 已含 node_modules 可只保存）
-7. 对 `createQuestion`、`submitAnswer`、`listSubmissions` 重复新建并上传对应 ZIP
+1. **函数名称** 必须与 `cloudbaserc.json` 中对应项的 `name` 一致（注意连字符，如 `get-next-task`）。
+2. **运行环境** 选：Node.js 16 或 18（与配置一致）。
+3. 上传 ZIP，保存；若 ZIP 不含 `node_modules`，使用控制台「安装依赖」。
 
 #### 4. 确认入口
 
-云函数入口为 `index.main`，即根目录的 `index.js` 中的 `exports.main`，无需在控制台改（除非你改了文件名或导出）。
+云函数入口为 `index.main`，即 `index.js` 中的 `exports.main`。
 
 ---
 
@@ -208,12 +180,21 @@ tcb fn deploy listSubmissions
 
 ---
 
+## 六（补充）、标注导出 JSONL 与环境变量
+
+- 管理端 **「导出数据」** 与审核页导出均调用 `export-annotations`，成功时返回 **`{ jsonl: string }`**（纯文本，每行一个 JSON 对象），**不再**返回 `annotations` 数组；依赖旧 JSON 结构的脚本需自行改为读取 JSONL。
+- **图片路径**：`image_path` 由 `JSONL_EXPORT_IMAGE_PATH_PREFIX`（云函数环境变量，默认云函数内为 `/data/geoannotate`）与相对路径拼接，或由 `image_meta_json.dataset_image_path` 覆盖（绝对路径则直接使用）。请在云上为导出函数配置与数据集一致的前缀。
+- **必填校验**：缺 `lat`/`lng` 或 `image_meta_json.width`/`height` 时整批导出失败（需通过 `create-question` 上传或管理端编辑补全宽高）。
+- **Role 4 其他函数**：需部署 `get-analytics-summary`、`get-analytics-timeseries`、`get-analytics-by-mode`（管理员看板）、`record-event`（埋点，需登录）。
+
+---
+
 ## 七、自检清单
 
 - [ ] 已在腾讯云开通云开发并创建环境  
 - [ ] 已复制并保存「环境 ID」  
 - [ ] 已创建集合 `Questions` 和 `Submissions`  
-- [ ] 4 个云函数均已部署（CLI 或控制台 ZIP）  
+- [ ] `cloudbaserc.json` 中列出的云函数均已部署（CLI 或控制台 ZIP）  
 - [ ] `.env.local` 中已配置 `NEXT_PUBLIC_CLOUDBASE_ENV_ID`  
 - [ ] 在管理后台上传一道题目后，玩家端能随机拉题并提交  
 
