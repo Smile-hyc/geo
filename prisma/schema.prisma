@@ -189,6 +189,10 @@ model BattleRound {
   session BattleSession @relation(fields: [session_id], references: [id])
   image   ImageAsset    @relation(fields: [image_id], references: [id])
 
+  truth_lat         Float?   
+  truth_lng         Float?   
+  elapsed_ms        Int?
+  
   @@index([session_id, round_index])
   @@map("battle_rounds")
 }
@@ -236,7 +240,7 @@ model PrizeRedemption {
 
   user  User  @relation(fields: [user_id], references: [id])
   prize Prize @relation(fields: [prize_id], references: [id])
-
+  
   @@index([user_id, created_at])
   @@map("prize_redemptions")
 }
