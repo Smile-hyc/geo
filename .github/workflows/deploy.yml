@@ -35,14 +35,8 @@ jobs:
       - name: Login to Tencent Cloud
         run: tcb login --apiKeyId ${{ secrets.SECRET_ID }} --apiKey ${{ secrets.SECRET_KEY }}
 
-      # 6. 机器人自动部署后端云函数
+      # 6. 机器人自动部署后端云函数（函数列表见 cloudbaserc.json）
       - name: Deploy Backend Functions
-        run: |
-          cd cloudfunctions/getRandomQuestion && npm install @cloudbase/node-sdk@latest
-          cd ../createQuestion && npm install @cloudbase/node-sdk@latest
-          cd ../submitAnswer && npm install @cloudbase/node-sdk@latest
-          cd ../listSubmissions && npm install @cloudbase/node-sdk@latest
-          cd ../..
-          tcb fn deploy -e ${{ secrets.ENV_ID }}
+        run: tcb fn deploy -e ${{ secrets.ENV_ID }}
 
       # 前端已通过 Vercel 部署，此处仅部署云函数

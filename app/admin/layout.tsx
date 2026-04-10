@@ -16,13 +16,23 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
+  const loading = useAuthStore((state) => state.loading);
   const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
-    if (user && user.role !== "admin") {
+    if (loading) {
+      return;
+    }
+
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+
+    if (user.role !== "admin") {
       router.replace("/app/home");
     }
-  }, [router, user]);
+  }, [loading, router, user]);
 
   const handleLogout = async () => {
     try {
@@ -44,19 +54,25 @@ export default function AdminLayout({
           <p className="font-semibold mt-0.5">管理后台</p>
         </div>
 
-        {ADMIN_NAV_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-              pathname === item.href
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent"
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
+        {ADMIN_NAV_ITEMS.map((item) => {
+          const active =
+            item.href === "/admin"
+              ? pathname === "/admin"
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                active
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
 
         <div className="mt-auto">
           <button
