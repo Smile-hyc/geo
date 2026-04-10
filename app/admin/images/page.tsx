@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createQuestion, deleteImage, getTempFileURL, callFunction } from "@/lib/cloudbase";
+import { createQuestion, deleteImage, getTempFileURL, callFunction, adminUpdateImage } from "@/lib/cloudbase";
 
 import { ANNOTATION_MODES } from "@/lib/modes";
 
@@ -17,9 +17,18 @@ interface ImageAsset {
   id: number;
   storage_url: string;
   true_location: string;
+  lat?: number | null;
+  lng?: number | null;
   mode_tags: string[];
   difficulty: number;
   created_at: string;
+  deleted_at?: string | null;
+  source_type?: string | null;
+  external_ref?: string | null;
+  country?: string | null;
+  region?: string | null;
+  city?: string | null;
+  image_meta_json?: Record<string, unknown>;
   tempUrl?: string;
 }
 
@@ -121,10 +130,10 @@ export default function AdminImagesPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("确认删除该图片？此操作不可撤销。")) return;
+    if (!confirm("确认将该图片标记为删除？（软删除，关联标注保留）")) return;
     try {
       await deleteImage(id);
-      setImages((prev) => prev.filter((img) => img.id !== id));
+      await loadImages();
     } catch (e) {
       alert(e instanceof Error ? e.message : "删除失败");
     }
@@ -252,15 +261,31 @@ export default function AdminImagesPage() {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">无法加载</div>
                   )}
-                  <button
-                    onClick={() => handleDelete(img.id)}
-                    className="absolute top-1 right-1 bg-black/60 hover:bg-destructive text-white rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="删除图片"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
+                  <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRestoreImage(!img.deleted_at);
+                        setEditImg({ ...img, image_meta_json: { ...(img.image_meta_json || {}) } });
+                      }}
+                      className="bg-black/60 hover:bg-primary text-white rounded p-1 text-[10px] px-1.5"
+                    >
+                      编辑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(img.id)}
+                      className="bg-black/60 hover:bg-destructive text-white rounded p-1"
+                      title="软删除"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
                 </div>
                 <CardContent className="p-2 space-y-1">
+                  {img.deleted_at && (
+                    <p className="text-[10px] text-red-400">已软删</p>
+                  )}
                   <p className="text-xs font-medium truncate">{img.true_location}</p>
                   <p className="text-xs text-muted-foreground">
                     {"★".repeat(img.difficulty)} · {img.mode_tags.join(", ")}
@@ -271,6 +296,183 @@ export default function AdminImagesPage() {
           </div>
         )}
       </div>
+
+      {editImg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle className="text-base">编辑图片 #{editImg.id}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="space-y-1">
+                <Label>真实地点</Label>
+                <Input value={editImg.true_location} onChange={(e) => setEditImg({ ...editImg, true_location: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label>纬度</Label>
+                  <Input
+                    value={editImg.lat ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setEditImg({
+                        ...editImg,
+                        lat: v === "" ? null : Number.isNaN(parseFloat(v)) ? editImg.lat : parseFloat(v),
+                      });
+                    }}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>经度</Label>
+                  <Input
+                    value={editImg.lng ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setEditImg({
+                        ...editImg,
+                        lng: v === "" ? null : Number.isNaN(parseFloat(v)) ? editImg.lng : parseFloat(v),
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label>source（数据集名）</Label>
+                  <Input
+                    value={editImg.source_type ?? ""}
+                    onChange={(e) => setEditImg({ ...editImg, source_type: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>source_id / external_ref</Label>
+                  <Input
+                    value={editImg.external_ref ?? ""}
+                    onChange={(e) => setEditImg({ ...editImg, external_ref: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label>国家 country</Label>
+                <Input
+                  value={editImg.country ?? ""}
+                  onChange={(e) => setEditImg({ ...editImg, country: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>主体名 name（进 image_meta_json）</Label>
+                <Input
+                  value={String((editImg.image_meta_json?.name as string) ?? "")}
+                  onChange={(e) =>
+                    setEditImg({
+                      ...editImg,
+                      image_meta_json: { ...editImg.image_meta_json, name: e.target.value },
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>dataset_image_path（JSONL）</Label>
+                <Input
+                  value={String((editImg.image_meta_json?.dataset_image_path as string) ?? "")}
+                  onChange={(e) =>
+                    setEditImg({
+                      ...editImg,
+                      image_meta_json: { ...editImg.image_meta_json, dataset_image_path: e.target.value },
+                    })
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label>gt lat range（度）</Label>
+                  <Input
+                    value={String((editImg.image_meta_json?.gt_latitude_range as string) ?? "")}
+                    onChange={(e) =>
+                      setEditImg({
+                        ...editImg,
+                        image_meta_json: {
+                          ...editImg.image_meta_json,
+                          gt_latitude_range: e.target.value === "" ? undefined : parseFloat(e.target.value),
+                        },
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>gt lng range（度）</Label>
+                  <Input
+                    value={String((editImg.image_meta_json?.gt_longitude_range as string) ?? "")}
+                    onChange={(e) =>
+                      setEditImg({
+                        ...editImg,
+                        image_meta_json: {
+                          ...editImg.image_meta_json,
+                          gt_longitude_range: e.target.value === "" ? undefined : parseFloat(e.target.value),
+                        },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              {editImg.deleted_at && (
+                <label className="flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={restoreImage}
+                    onChange={(e) => setRestoreImage(e.target.checked)}
+                  />
+                  恢复图片（清除 deleted_at）
+                </label>
+              )}
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditImg(null);
+                    setRestoreImage(false);
+                  }}
+                  disabled={editSaving}
+                >
+                  取消
+                </Button>
+                <Button
+                  onClick={async () => {
+                    try {
+                      setEditSaving(true);
+                      await adminUpdateImage({
+                        image_id: editImg.id,
+                        true_location: editImg.true_location,
+                        lat: editImg.lat ?? undefined,
+                        lng: editImg.lng ?? undefined,
+                        mode_tags: editImg.mode_tags,
+                        difficulty: editImg.difficulty,
+                        source_type: editImg.source_type ?? undefined,
+                        external_ref: editImg.external_ref ?? undefined,
+                        country: editImg.country ?? undefined,
+                        region: editImg.region ?? undefined,
+                        city: editImg.city ?? undefined,
+                        clear_deleted: restoreImage,
+                        image_meta_json: { ...(editImg.image_meta_json || {}) },
+                      });
+                      setEditImg(null);
+                      setRestoreImage(false);
+                      await loadImages();
+                    } catch (e) {
+                      alert(e instanceof Error ? e.message : "保存失败");
+                    } finally {
+                      setEditSaving(false);
+                    }
+                  }}
+                  disabled={editSaving}
+                >
+                  {editSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "保存"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
