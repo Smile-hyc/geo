@@ -1,9 +1,9 @@
 "use strict";
 
-const { getPool } = require("../_shared/db");
-const { requireRole } = require("../_shared/auth");
-const { ok, fail } = require("../_shared/response");
-const { rowToJsonlObject } = require("../_shared/jsonlExport");
+const { getPool } = require("./_shared/db");
+const { requireRole } = require("./_shared/auth");
+const { ok, fail } = require("./_shared/response");
+const { rowToJsonlObject } = require("./_shared/jsonlExport");
 
 function getData(event) {
   const raw = event && typeof event === "object" ? event : {};
@@ -25,21 +25,20 @@ exports.main = async (event, context) => {
              u.username,
              ia.storage_url, ia.true_location, ia.lat, ia.lng, ia.mode_tags,
              ia.source_type, ia.external_ref, ia.country, ia.region, ia.city, ia.image_meta_json,
-             lr.review_score AS last_review_score,
-             lr.comments AS last_review_comments,
+             lr.comment AS last_review_comments,
              lr.created_at AS last_reviewed_at,
              ru.username AS last_reviewer_username
       FROM annotation_records ar
       JOIN users u ON u.id = ar.user_id
       JOIN image_assets ia ON ia.id = ar.image_id AND ia.deleted_at IS NULL
       LEFT JOIN LATERAL (
-        SELECT rr.reviewer_id, rr.review_score, rr.comments, rr.created_at
+        SELECT rr.reviewer_uid, rr.comment, rr.created_at
         FROM review_records rr
-        WHERE rr.annotation_record_id = ar.id
+        WHERE rr.record_id = ar.id
         ORDER BY rr.created_at DESC
         LIMIT 1
       ) lr ON true
-      LEFT JOIN users ru ON ru.id = lr.reviewer_id
+      LEFT JOIN users ru ON ru.cloudbase_uid = lr.reviewer_uid
     `;
     const params = [];
 
@@ -53,6 +52,7 @@ exports.main = async (event, context) => {
 
     const recordsResult = await client.query(recordsQuery, params);
     const lines = [];
+    const skipped = [];
 
     for (const row of recordsResult.rows || []) {
       const bboxResult = await client.query(
@@ -79,17 +79,21 @@ exports.main = async (event, context) => {
 
       const obj = rowToJsonlObject(merged, {
         bboxes,
-        last_review_score: row.last_review_score != null ? parseInt(row.last_review_score, 10) : null,
         last_review_comments: row.last_review_comments || null,
         last_reviewed_at: row.last_reviewed_at ? new Date(row.last_reviewed_at).toISOString() : null,
         last_reviewer_username: row.last_reviewer_username || null,
       });
 
+      if (obj && obj.__skipped) {
+        skipped.push(obj);
+        continue;
+      }
+
       lines.push(JSON.stringify(obj));
     }
 
     const jsonl = lines.join("\n");
-    return ok({ jsonl });
+    return ok({ jsonl, skipped });
   } catch (error) {
     const msg = error && error.message ? error.message : String(error);
     return fail(msg);

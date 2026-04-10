@@ -1,13 +1,13 @@
 "use strict";
 
-const { getPool } = require("../_shared/db");
-const { requireRole } = require("../_shared/auth");
-const { ok, fail } = require("../_shared/response");
+const { getPool } = require("./_shared/db");
+const { requireRole } = require("./_shared/auth");
+const { ok, fail } = require("./_shared/response");
 const {
   parsePositiveInt,
   parseNonNegativeInt,
   assertEnum,
-} = require("../_shared/validation");
+} = require("./_shared/validation");
 
 function getData(event) {
   const raw = event && typeof event === "object" ? event : {};
