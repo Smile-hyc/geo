@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { exportAnnotations, recordEvent } from "@/lib/cloudbase";
+import { exportAnnotations } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
 
 const QUALITY_OPTIONS = [
@@ -22,29 +22,19 @@ export default function AdminExportPage() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const jsonl = await exportAnnotations({
+      const res = await exportAnnotations({
         quality_status: qualityFilter,
         limit: 5000,
         cloudbase_uid: user?.uid,
         email: user?.email,
       });
-      const blob = new Blob([jsonl], { type: "application/x-ndjson" });
+      const blob = new Blob([JSON.stringify(res.annotations, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `geoannotate-export-${qualityFilter || "all"}-${new Date().toISOString().slice(0, 10)}.jsonl`;
+      a.download = `geoannotate-export-${qualityFilter || "all"}-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      try {
-        await recordEvent({
-          event_type: "admin_export_jsonl",
-          event_payload_json: { quality_filter: qualityFilter ?? "all", limit: 5000 },
-          cloudbase_uid: user?.uid,
-          email: user?.email,
-        });
-      } catch {
-        /* 埋点失败不影响导出 */
-      }
     } catch (e) {
       alert(e instanceof Error ? e.message : "导出失败");
     } finally {
@@ -56,7 +46,7 @@ export default function AdminExportPage() {
     <div className="p-8 space-y-6">
       <div>
         <h1 className="text-2xl font-bold">导出数据</h1>
-        <p className="text-muted-foreground text-sm mt-1">导出标注记录为 JSONL（每行一条 JSON，含 GeoBench 对齐字段）</p>
+        <p className="text-muted-foreground text-sm mt-1">导出标注记录为 JSON 文件</p>
       </div>
 
       <Card>
@@ -88,10 +78,10 @@ export default function AdminExportPage() {
             className="gap-2"
           >
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            下载 JSONL
+            导出 JSON
           </Button>
           <p className="text-xs text-muted-foreground">
-            每行一条完整记录；平台字段在 other 内。缺经纬度或图片宽高时会整批报错。图片绝对路径前缀可由环境变量 JSONL_EXPORT_IMAGE_PATH_PREFIX 配置。
+            导出包含思维过程、BBox、答案等完整标注信息的 JSON 文件，最多 5000 条。
           </p>
         </CardContent>
       </Card>
