@@ -191,7 +191,6 @@ model BattleRound {
 
   truth_lat         Float?   
   truth_lng         Float?   
-  round_winner_type String?  
   elapsed_ms        Int?
   
   @@index([session_id, round_index])
@@ -241,8 +240,6 @@ model PrizeRedemption {
 
   user  User  @relation(fields: [user_id], references: [id])
   prize Prize @relation(fields: [prize_id], references: [id])
-
-  status       String   @default("pending")
   
   @@index([user_id, created_at])
   @@map("prize_redemptions")
