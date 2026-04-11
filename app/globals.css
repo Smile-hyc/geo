@@ -28,9 +28,7 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    background-image:
-      radial-gradient(circle at top, rgba(59, 130, 246, 0.08), transparent 30%),
-      linear-gradient(180deg, #f8fbff 0%, #f6f8fc 38%, #eef3f8 100%);
+    background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
   }
 }
 
