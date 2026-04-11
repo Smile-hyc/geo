@@ -151,8 +151,7 @@ export default function AdminImagesPage() {
         
         {/* 页面大标题 */}
         <h1 className="text-[24px] font-[700] text-[#111827] leading-[32px]">图片</h1>
-
-        {/* 上传新图片卡片：保留高颜值 UI */}
+        
         <Card className="rounded-[8px] border border-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] bg-white/60 backdrop-blur-sm p-6">
           <CardHeader className="p-0 pb-6">
             <CardTitle className="text-[20px] font-[600] text-[#111827] flex items-center gap-2">
@@ -273,7 +272,6 @@ export default function AdminImagesPage() {
           </CardContent>
         </Card>
 
-        {/* 已上传图片列表区域：合并高颜值 UI 与 develop 的逻辑 */}
         <Card className="rounded-[8px] border border-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] bg-white/60 backdrop-blur-sm p-6">
           <CardHeader className="p-0 pb-6 flex flex-row flex-wrap items-center justify-between gap-2 border-b border-[#E5E6EB] mb-6">
             <CardTitle className="text-[20px] font-[600] text-[#111827]">
@@ -318,7 +316,7 @@ export default function AdminImagesPage() {
                         <div className="w-full h-full flex items-center justify-center text-[#86909C] text-xs">无法加载</div>
                       )}
                       
-                      {/* 完美融合的悬浮按钮：编辑 + 软删除 */}
+                      
                       <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           type="button"
@@ -342,7 +340,7 @@ export default function AdminImagesPage() {
                     </div>
 
                     <CardContent className="p-3 space-y-1 bg-white relative">
-                      {/* 软删提示 */}
+                      
                       {img.deleted_at && (
                         <div className="absolute top-0 right-0 bg-[#F53F3F]/10 text-[#F53F3F] text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
                           已软删
@@ -359,9 +357,8 @@ export default function AdminImagesPage() {
             )}
           </CardContent>
         </Card>
-      </div> {/* 完美闭合的 max-w 容器 */}
+      </div> 
 
-      {/* 原汁原味的 develop 复杂编辑弹窗，完全保留逻辑 */}
       {editImg && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog">
           <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">

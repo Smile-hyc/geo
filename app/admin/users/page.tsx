@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-// 🟢 引入了 Search 图标
 import { Loader2, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,7 +127,7 @@ export default function AdminUsersPage() {
           <p className="text-[14px] text-[#86909C] mt-1">角色、状态与积分（管理员）</p>
         </div>
 
-        {/* 2. 🟢 改造后的大型横向搜索栏 */}
+        {/* 2. 大型横向搜索栏 */}
         <div className="bg-white rounded-[8px] border border-[#E5E6EB] shadow-sm p-4 flex flex-wrap items-center gap-4">
           <div className="relative flex-1 max-w-[400px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#86909C]" />
@@ -151,12 +150,11 @@ export default function AdminUsersPage() {
           </Button>
         </div>
 
-        {/* 错误提示保留 */}
+        {/* 错误提示 */}
         {error && (
           <p className="text-sm text-destructive bg-destructive/10 px-4 py-3 rounded-lg">{error}</p>
         )}
 
-        {/* 3. 🟢 表格卡片 UI 升级 */}
         {!authHydrated || loading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-[#165DFF]" />

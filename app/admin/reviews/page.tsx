@@ -242,7 +242,7 @@ export default function AdminReviewsPage() {
             </div>
           </div>
 
-          {/* 纯净版 Tab 栏 */}
+          {/* Tab 栏 */}
           <div className="flex items-center gap-2 border-b border-[#E5E6EB] pb-4 mb-6">
             {STATUS_FILTER.map((s) => {
               const isActive = filter === s;
@@ -298,7 +298,7 @@ export default function AdminReviewsPage() {
                   {/* Item 内容区域 */}
                   <div className="p-6 bg-white space-y-6">
                     
-                    {/* 图片预览展示 (保留功能) */}
+                    {/* 图片预览展示 */}
                     {(sub.tempImageUrl || sub.tempAnnotatedUrl) && (
                       <div className="flex gap-4">
                         {sub.tempImageUrl && (
@@ -371,7 +371,7 @@ export default function AdminReviewsPage() {
                       </div>
                     )}
 
-                    {/* 待审核操作区 (完美还原实心通过/拒绝按钮) */}
+                    {/* 待审核操作区 */}
                     {sub.quality_status === "pending" && (
                       <div className="mt-6 pt-6 border-t border-[#E5E6EB] space-y-4">
                         <div className="grid gap-4 sm:grid-cols-2">

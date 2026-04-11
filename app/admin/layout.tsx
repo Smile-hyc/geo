@@ -20,7 +20,7 @@ import { useAuthStore } from "@/lib/auth";
 import { signOut } from "@/lib/cloudbase";
 import { ADMIN_NAV_ITEMS } from "@/features/admin/navigation";
 
-// 🟢 智能图标匹配：根据菜单名称自动分配精美图标
+// 智能图标匹配：根据菜单名称自动分配精美图标
 const getIconForLabel = (label: string): LucideIcon => {
   switch (label) {
     case "仪表盘": return LayoutDashboard;
@@ -47,7 +47,7 @@ export default function AdminLayout({
   const loading = useAuthStore((state) => state.loading);
   const logout = useAuthStore((state) => state.logout);
 
-  // 完美保留原有鉴权逻辑
+  
   useEffect(() => {
     if (loading) {
       return;
@@ -75,7 +75,7 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen flex bg-[#F4F7FE]">
-      {/* 🟢 左侧侧边栏：宽度 256px，纯白背景，精致边框 */}
+      {/* 左侧侧边栏：宽度 256px，纯白背景，精致边框 */}
       <aside className="w-[256px] border-r border-[#E5E6EB] bg-white flex flex-col flex-shrink-0 z-10">
         
         {/* 1. 顶部 Logo 区域 */}
@@ -89,7 +89,6 @@ export default function AdminLayout({
         {/* 2. 中间导航菜单区域 */}
         <nav className="flex-1 overflow-y-auto py-4 flex flex-col">
           {ADMIN_NAV_ITEMS.map((item) => {
-            // 完美保留原有的高亮判断逻辑
             const active =
               item.href === "/admin"
                 ? pathname === "/admin"
@@ -104,8 +103,8 @@ export default function AdminLayout({
                 href={item.href}
                 className={`flex items-center h-[48px] px-6 text-[16px] transition-colors ${
                   active
-                    ? "bg-[#165DFF] text-white font-[500]" // 选中态：纯蓝底白字
-                    : "text-[#4E5969] hover:bg-[#F2F3F5]"  // 未选中态：深灰字，悬浮微灰底
+                    ? "bg-[#165DFF] text-white font-[500]" 
+                    : "text-[#4E5969] hover:bg-[#F2F3F5]"  
                 }`}
               >
                 <Icon className="w-5 h-5 mr-3 shrink-0" strokeWidth={active ? 2.5 : 2} />

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function AdminAiModelsPage() {
-  // 🟢 使用本地 State 来管理 UI 交互，等待后续接入真实后端
+  // 使用本地 State 来管理 UI 交互，等待后续接入真实后端
   const [isSaving, setIsSaving] = useState(false);
   const [modelConfig, setModelConfig] = useState({
     modelName: "GeoAnnotate AI v2.0",

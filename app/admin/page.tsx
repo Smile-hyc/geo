@@ -16,7 +16,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { callFunction, listSubmissions } from "@/lib/cloudbase";
-// 🟢 1. 引入了 Auth 状态
 import { useAuthStore } from "@/lib/auth";
 
 interface DashboardStats {
@@ -27,7 +26,6 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-  // 🟢 2. 获取当前登录的用户信息
   const user = useAuthStore((s) => s.user);
   
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -44,15 +42,14 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    // 🟢 3. 如果 user 还没加载出来，先不请求
     if (!user) return;
 
     // 获取最新标注任务，老老实实带上管理员身份凭证
     setLoadingTasks(true);
     listSubmissions({ 
       limit: 5,
-      cloudbase_uid: user.uid,   // 👈 就是缺了这两行！
-      email: user.email          // 👈 没这两行后端不给你数据
+      cloudbase_uid: user.uid,   
+      email: user.email          
     })
       .then((res: any) => {
         setRecentTasks(res.submissions || []);

@@ -21,7 +21,6 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // 纯 UI 交互的 Tab 状态
   const [activeTab, setActiveTab] = useState("总积分");
 
   useEffect(() => {
@@ -74,7 +73,7 @@ export default function LeaderboardPage() {
 
           {/* 列表内容区域 */}
           <div className="flex flex-col relative min-h-[300px]">
-            {/* 🟢 拦截判断：如果不是总积分榜，直接显示暂未接入 */}
+            {/* 拦截判断：如果不是总积分榜，直接显示暂未接入 */}
             {activeTab !== "总积分" ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-[#86909C] gap-2">
                 <span className="text-[16px] font-[500] text-[#4E5969]">该榜单后端暂未接入</span>
