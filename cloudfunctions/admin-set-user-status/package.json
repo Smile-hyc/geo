@@ -1,0 +1,7 @@
+{
+  "name": "admin-set-user-status",
+  "main": "index.js",
+  "dependencies": {
+    "pg": "^8.11.3"
+  }
+}

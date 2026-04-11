@@ -16,82 +16,98 @@ function getPool() {
 }
 
 /**
- * 用户兑换奖品
- * 入参：{ prize_id: number, cloudbase_uid?, email? }
+ * 用户兑换奖品 (终极融合版：包含队友的软删除校验 + 我们的 status 状态写入)
  */
 exports.main = async (event, context) => {
+  const raw = event && typeof event === "object" ? event : {};
+  const data = raw.body && typeof raw.body === "object" ? raw.body : raw;
+  const prize_id = parseInt(data.prize_id, 10);
+
+  const cloudbase_uid = context?.userInfo?.openId || context?.userInfo?.uid || (data.cloudbase_uid && String(data.cloudbase_uid).trim()) || "";
+  const email = data.email && String(data.email).trim();
+  
+  if (!cloudbase_uid && !email) return { errMsg: "未登录" };
+  if (!prize_id || isNaN(prize_id)) return { errMsg: "请选择奖品" };
+
+  const db = getPool();
+  const client = await db.connect();
+  
   try {
-    const raw = event && typeof event === "object" ? event : {};
-    const data = raw.body && typeof raw.body === "object" ? raw.body : raw;
-    const prize_id = parseInt(data.prize_id, 10);
+    const userResult = await client.query(
+      "SELECT id FROM users WHERE cloudbase_uid = $1 OR email = $2",
+      [cloudbase_uid, email || cloudbase_uid]
+    );
+    if (userResult.rows.length === 0) return { errMsg: "用户不存在" };
+    const user_id = userResult.rows[0].id;
 
-    const cloudbase_uid =
-      context?.userInfo?.openId ||
-      context?.userInfo?.uid ||
-      (data.cloudbase_uid && String(data.cloudbase_uid).trim()) ||
-      "";
-    const email = data.email && String(data.email).trim();
-    if (!cloudbase_uid && !email) return { errMsg: "未登录" };
-    if (!prize_id || isNaN(prize_id)) return { errMsg: "请选择奖品" };
-
-    const db = getPool();
-    const client = await db.connect();
+    // ============ 开启兑换事务 ============
+    await client.query("BEGIN");
     try {
-      const userResult = await client.query(
-        "SELECT id, points_balance FROM users WHERE cloudbase_uid = $1 OR email = $2",
-        [cloudbase_uid, email || cloudbase_uid]
-      );
-      if (userResult.rows.length === 0) return { errMsg: "用户不存在" };
-      const user = userResult.rows[0];
-      const user_id = user.id;
-      const user_balance = parseInt(user.points_balance, 10) || 0;
-
-      const prizeResult = await client.query(
-        "SELECT id, name, points_cost, stock FROM prizes WHERE id = $1 AND is_active = true",
+      // 1. 保留队友的逻辑：查库存、查是否被删除，并加上 FOR UPDATE 悲观锁
+      const prizeLock = await client.query(
+        `SELECT id, name, points_cost, stock
+         FROM prizes
+         WHERE id = $1 AND is_active = true AND deleted_at IS NULL
+         FOR UPDATE`,
         [prize_id]
       );
-      if (prizeResult.rows.length === 0) return { errMsg: "奖品不存在或已下架" };
-      const prize = prizeResult.rows[0];
+      if (prizeLock.rows.length === 0) throw new Error("奖品不存在或已下架");
+      
+      const prize = prizeLock.rows[0];
       const points_cost = parseInt(prize.points_cost, 10);
       const stock = parseInt(prize.stock, 10);
-      if (stock <= 0) return { errMsg: "奖品已兑完" };
-      if (user_balance < points_cost) return { errMsg: `积分不足，需要 ${points_cost} 积分` };
+      
+      if (Number.isNaN(points_cost) || points_cost < 0) throw new Error("奖品数据异常");
+      if (stock <= 0) throw new Error("奖品已兑完");
 
-      await client.query("BEGIN");
-      try {
-        const newBalance = user_balance - points_cost;
-        await client.query(
-          "UPDATE users SET points_balance = $1, updated_at = NOW() WHERE id = $2",
-          [newBalance, user_id]
-        );
-        await client.query(
-          "INSERT INTO points_ledger (user_id, change_amount, balance_after, reason_type) VALUES ($1, $2, $3, 'prize_redemption')",
-          [user_id, -points_cost, newBalance]
-        );
-        await client.query(
-          "UPDATE prizes SET stock = stock - 1, updated_at = NOW() WHERE id = $1",
-          [prize_id]
-        );
-        await client.query(
-          "INSERT INTO prize_redemptions (user_id, prize_id, points_spent) VALUES ($1, $2, $3)",
-          [user_id, prize_id, points_cost]
-        );
-        await client.query("COMMIT");
-      } catch (e) {
-        await client.query("ROLLBACK");
-        throw e;
-      }
+      // 2. 保留队友的逻辑：原子扣减余额 (非常安全)
+      const balUpd = await client.query(
+        `UPDATE users
+         SET points_balance = points_balance - $1, updated_at = NOW()
+         WHERE id = $2 AND points_balance >= $1
+         RETURNING points_balance`,
+        [points_cost, user_id]
+      );
+      if (balUpd.rows.length === 0) throw new Error(`积分不足，需要 ${points_cost} 积分`);
+      const newBalance = parseInt(balUpd.rows[0].points_balance, 10) || 0;
+
+      // 3. 写入积分账本
+      await client.query(
+        "INSERT INTO points_ledger (user_id, change_amount, balance_after, reason_type, created_at) VALUES ($1, $2, $3, 'prize_redemption', NOW())",
+        [user_id, -points_cost, newBalance]
+      );
+
+      // 4. 保留队友的逻辑：原子扣减库存
+      const stockUpd = await client.query(
+        `UPDATE prizes
+         SET stock = stock - 1, updated_at = NOW()
+         WHERE id = $1 AND stock > 0`,
+        [prize_id]
+      );
+      if (stockUpd.rowCount === 0) throw new Error("库存不足或奖品已下架");
+
+      // 5. 【关键！！！】保留你的核心任务：写入 status = 'pending' 字段！
+      await client.query(
+        "INSERT INTO prize_redemptions (user_id, prize_id, points_spent, status, created_at) VALUES ($1, $2, $3, 'pending', NOW())",
+        [user_id, prize_id, points_cost]
+      );
+
+      // ============ 事务成功结束 ============
+      await client.query("COMMIT");
 
       return {
         success: true,
         prize_name: prize.name,
         points_spent: points_cost,
-        balance_after: user_balance - points_cost,
+        balance_after: newBalance,
       };
-    } finally {
-      client.release();
+    } catch (e) {
+      await client.query("ROLLBACK");
+      throw e;
     }
   } catch (err) {
     return { errMsg: err && err.message ? String(err.message) : "兑换失败" };
+  } finally {
+    client.release();
   }
 };

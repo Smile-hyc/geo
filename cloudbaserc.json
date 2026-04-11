@@ -3,34 +3,6 @@
   "functionRoot": "./cloudfunctions",
   "functions": [
     {
-      "name": "getRandomQuestion",
-      "timeout": 10,
-      "runtime": "Nodejs16.13",
-      "installDependency": true,
-      "handler": "index.main"
-    },
-    {
-      "name": "createQuestion",
-      "timeout": 15,
-      "runtime": "Nodejs16.13",
-      "installDependency": true,
-      "handler": "index.main"
-    },
-    {
-      "name": "submitAnswer",
-      "timeout": 15,
-      "runtime": "Nodejs16.13",
-      "installDependency": true,
-      "handler": "index.main"
-    },
-    {
-      "name": "listSubmissions",
-      "timeout": 10,
-      "runtime": "Nodejs16.13",
-      "installDependency": true,
-      "handler": "index.main"
-    },
-    {
       "name": "auth-sync",
       "timeout": 10,
       "runtime": "Nodejs16.13",
@@ -192,7 +164,105 @@
       "handler": "index.main"
     },
     {
+      "name": "admin-list-redemptions",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-task-config",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "set-task-config",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-modes",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-update-mode",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
       "name": "update-username",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-list-users",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-update-user-role",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-set-user-status",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-adjust-user-points",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "admin-update-image",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-analytics-summary",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-analytics-timeseries",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "get-analytics-by-mode",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
+      "name": "record-event",
       "timeout": 10,
       "runtime": "Nodejs16.13",
       "installDependency": true,

@@ -2,6 +2,7 @@
 
 import cloudbase from "@cloudbase/js-sdk";
 import type { QuestionPublic, Submission } from "@/types/db";
+import { useAuthStore } from "@/lib/auth";
 
 const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID || "";
 
@@ -101,7 +102,19 @@ export async function callFunction<T = unknown>(
   name: string,
   data?: Record<string, unknown>
 ): Promise<T> {
-  const res = await getApp().callFunction({ name, data });
+  const payload = { ...(data || {}) };
+  const currentUser = useAuthStore.getState().user;
+
+  if (currentUser) {
+    if (payload.cloudbase_uid === undefined) {
+      payload.cloudbase_uid = currentUser.uid;
+    }
+    if (payload.email === undefined) {
+      payload.email = currentUser.email;
+    }
+  }
+
+  const res = await getApp().callFunction({ name, data: payload });
   const result = res.result as T & { errMsg?: string } | undefined;
   if (result?.errMsg) throw new Error(result.errMsg);
   if (result !== undefined && result !== null) return result as T;
@@ -163,6 +176,7 @@ export async function createQuestion(params: {
   lng?: number;
   mode_tags?: string[];
   difficulty?: number;
+  original_filename?: string;
 }): Promise<{ question_id: number }> {
   return callFunction("create-question", params);
 }
@@ -259,12 +273,32 @@ export async function listSubmissions(params?: {
   limit?: number;
   offset?: number;
   quality_status?: string;
+  cloudbase_uid?: string;
+  email?: string;
 }): Promise<{
   submissions: Array<{
-    id: number; username: string; mode_type: string;
-    thought_text: string; final_answer: string;
-    quality_status: string; created_at: string;
+    id: number;
+    username: string;
+    mode_type: string;
+    thought_text: string;
+    final_answer: string;
+    confidence: number;
+    quality_status: string;
+    created_at: string;
     image_storage_url: string;
+    annotated_image_url?: string | null;
+    last_review_score?: number | null;
+    last_review_comments?: string | null;
+    last_reviewed_at?: string | null;
+    last_reviewer_username?: string | null;
+    bboxes?: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      label_type: string;
+      explanation: string;
+    }>;
   }>;
   total: number;
 }> {
@@ -351,10 +385,34 @@ export async function adminListPrizes(params?: {
     stock: number;
     image_url: string | null;
     is_active: boolean;
+    deleted_at: string | null;
     created_at: string;
   }>;
 }> {
   return callFunction("admin-list-prizes", params || {});
+}
+
+/** 管理员：分页查询兑换记录 */
+export async function adminListRedemptions(params?: {
+  limit?: number;
+  offset?: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  redemptions: Array<{
+    id: number;
+    user_id: number;
+    prize_id: number;
+    points_spent: number;
+    username: string;
+    email: string;
+    prize_name: string;
+    prize_removed: boolean;
+    created_at: string;
+  }>;
+  total: number;
+}> {
+  return callFunction("admin-list-redemptions", params || {});
 }
 
 /** 管理员：添加奖品 */
@@ -394,39 +452,234 @@ export async function adminDeletePrize(params: {
   return callFunction("admin-delete-prize", params);
 }
 
-/** 管理员：导出标注数据 */
+/** 管理员：更新图片元数据 */
+export async function adminUpdateImage(params: {
+  image_id: number;
+  true_location?: string;
+  lat?: number | null;
+  lng?: number | null;
+  mode_tags?: string[];
+  difficulty?: number;
+  source_type?: string;
+  external_ref?: string;
+  country?: string;
+  region?: string;
+  city?: string;
+  is_active?: boolean;
+  clear_deleted?: boolean;
+  image_meta_json?: Record<string, unknown>;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ image: Record<string, unknown> }> {
+  return callFunction("admin-update-image", params);
+}
+
+export type AdminUserRow = {
+  id: number;
+  cloudbase_uid: string;
+  username: string;
+  email: string;
+  role: string;
+  status: string;
+  points_balance: number;
+  level: number;
+  last_login_at: string | null;
+  created_at: string;
+};
+
+/** 管理员：用户列表 */
+export async function adminListUsers(params?: {
+  limit?: number;
+  offset?: number;
+  q?: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ users: AdminUserRow[]; total: number }> {
+  return callFunction("admin-list-users", params || {});
+}
+
+/** 管理员：修改用户角色 */
+export async function adminUpdateUserRole(params: {
+  user_id: number;
+  role: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ user: Pick<AdminUserRow, "id" | "username" | "email" | "role"> }> {
+  return callFunction("admin-update-user-role", params);
+}
+
+/** 管理员：设置用户状态 */
+export async function adminSetUserStatus(params: {
+  user_id: number;
+  status: "active" | "suspended";
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ user: Pick<AdminUserRow, "id" | "username" | "email" | "status"> }> {
+  return callFunction("admin-set-user-status", params);
+}
+
+/** 管理员：调整积分（写入 points_ledger） */
+export async function adminAdjustUserPoints(params: {
+  user_id: number;
+  delta: number;
+  reason?: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ user_id: number; points_balance: number }> {
+  return callFunction("admin-adjust-user-points", params);
+}
+
+type SkippedRecord = { record_id: number; image_id: number; reason: string };
+type ExportAnnotationsResult = { jsonl?: string; skipped?: SkippedRecord[]; success?: boolean; errMsg?: string };
+
+/** 管理员/审核员：导出标注为 JSONL（每行一个 JSON） */
 export async function exportAnnotations(params?: {
   quality_status?: "approved" | "pending" | "rejected";
   limit?: number;
   cloudbase_uid?: string;
   email?: string;
+}): Promise<{ jsonl: string; skipped: SkippedRecord[] }> {
+  const res = await callFunction<ExportAnnotationsResult>("export-annotations", params || {});
+  if (typeof res.jsonl === "string") return { jsonl: res.jsonl, skipped: res.skipped || [] };
+  throw new Error("导出失败：响应中无 JSONL 正文");
+}
+
+/** 行为埋点（需登录） */
+export async function recordEvent(params: {
+  event_type: string;
+  event_payload_json?: Record<string, unknown>;
+  session_id?: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ ok: boolean }> {
+  return callFunction("record-event", params);
+}
+
+/** 管理端：分析汇总 */
+export async function getAnalyticsSummary(params?: {
+  cloudbase_uid?: string;
+  email?: string;
 }): Promise<{
-  annotations: Array<{
-    record_id: number;
-    username: string;
-    image_id: number;
-    image_storage_url: string;
-    true_location: string;
-    lat: number | null;
-    lng: number | null;
-    mode_tags: string[];
-    mode_type: string;
-    thought_text: string;
-    final_answer: string;
-    confidence: number;
-    annotated_image_url: string | null;
-    quality_status: string;
-    created_at: string;
-    bboxes: Array<{
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      label_type: string;
-      explanation: string;
-    }>;
-  }>;
-  total: number;
+  total_users: number;
+  total_images: number;
+  total_annotations: number;
+  pending_reviews: number;
+  by_quality: { quality_status: string; count: number }[];
 }> {
-  return callFunction("export-annotations", params || {});
+  return callFunction("get-analytics-summary", params || {});
+}
+
+/** 管理端：按日标注量 */
+export async function getAnalyticsTimeseries(params?: {
+  days?: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ series: { day: string; count: number }[] }> {
+  return callFunction("get-analytics-timeseries", params || {});
+}
+
+/** 管理端：按模式统计 */
+export async function getAnalyticsByMode(params?: {
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{ modes: { mode_type: string; count: number }[] }> {
+  return callFunction("get-analytics-by-mode", params || {});
+}
+
+/** 获取当前任务配置 */
+export async function getTaskConfig(params?: {
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  config: {
+    daily_task_limit: number;
+    min_thought_length: number;
+    base_reward_points: number;
+    bbox_bonus_per_box: number;
+    battle_win_bonus: number;
+    quality_bonus: number;
+  };
+}> {
+  return callFunction("get-task-config", params || {});
+}
+
+/** 更新当前任务配置 */
+export async function setTaskConfig(params: {
+  daily_task_limit: number;
+  min_thought_length: number;
+  base_reward_points: number;
+  bbox_bonus_per_box: number;
+  battle_win_bonus: number;
+  quality_bonus: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  success: boolean;
+  config: {
+    daily_task_limit: number;
+    min_thought_length: number;
+    base_reward_points: number;
+    bbox_bonus_per_box: number;
+    battle_win_bonus: number;
+    quality_bonus: number;
+  };
+}> {
+  return callFunction("set-task-config", params);
+}
+
+/** 获取已启用模式列表 */
+export async function getModes(params?: {
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  modes: Array<{
+    id: number;
+    code: string;
+    name: string;
+    description: string;
+    enabled: boolean;
+    allow_panorama: boolean;
+    allow_single_image: boolean;
+    show_true_location: boolean;
+    default_annotation_type: string;
+    default_reward_points: number;
+    created_at: string;
+    updated_at: string;
+  }>;
+}> {
+  return callFunction("get-modes", params || {});
+}
+
+/** 管理员更新模式配置 */
+export async function adminUpdateMode(params: {
+  id?: number;
+  code?: string;
+  name?: string;
+  description?: string;
+  enabled?: boolean;
+  allow_panorama?: boolean;
+  allow_single_image?: boolean;
+  show_true_location?: boolean;
+  default_annotation_type?: string;
+  default_reward_points?: number;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  success: boolean;
+  mode: {
+    id: number;
+    code: string;
+    name: string;
+    description: string;
+    enabled: boolean;
+    allow_panorama: boolean;
+    allow_single_image: boolean;
+    show_true_location: boolean;
+    default_annotation_type: string;
+    default_reward_points: number;
+    created_at: string;
+    updated_at: string;
+  };
+}> {
+  return callFunction("admin-update-mode", params);
 }
