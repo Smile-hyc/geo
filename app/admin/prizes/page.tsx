@@ -242,7 +242,10 @@ export default function AdminPrizesPage() {
           <Button variant="outline" asChild>
             <Link href="/admin/rewards/redemptions">兑换记录</Link>
           </Button>
-          <Button onClick={() => setShowForm(!showForm)} className="gap-2">
+          <Button 
+            onClick={() => setShowForm(!showForm)} 
+            className="gap-2 bg-[#165DFF] hover:bg-[#0E42C9] text-white transition-colors"
+          >
             <Plus className="h-4 w-4" />
             {showForm ? "取消" : "添加奖品"}
           </Button>
@@ -310,7 +313,11 @@ export default function AdminPrizesPage() {
                 />
               </div>
             </div>
-            <Button onClick={handleSubmit} disabled={submitting}>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={submitting}
+              className="bg-[#165DFF] hover:bg-[#0E42C9] text-white transition-colors"
+            >
               {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />添加中…</> : "添加奖品"}
             </Button>
           </CardContent>
@@ -321,7 +328,7 @@ export default function AdminPrizesPage() {
         <h2 className="font-semibold mb-3">已添加奖品（{prizes.length}）</h2>
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#165DFF]" />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -452,7 +459,12 @@ export default function AdminPrizesPage() {
                 <Button variant="outline" type="button" onClick={closeModal} disabled={modalBusy}>
                   取消
                 </Button>
-                <Button type="button" onClick={handleSaveEdit} disabled={modalBusy}>
+                <Button 
+                  type="button" 
+                  onClick={handleSaveEdit} 
+                  disabled={modalBusy}
+                  className="bg-[#165DFF] hover:bg-[#0E42C9] text-white transition-colors"
+                >
                   {modalBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "保存"}
                 </Button>
               </div>
@@ -488,7 +500,12 @@ export default function AdminPrizesPage() {
                 <Button variant="outline" type="button" onClick={closeModal} disabled={modalBusy}>
                   取消
                 </Button>
-                <Button type="button" onClick={handleSaveStock} disabled={modalBusy}>
+                <Button 
+                  type="button" 
+                  onClick={handleSaveStock} 
+                  disabled={modalBusy}
+                  className="bg-[#165DFF] hover:bg-[#0E42C9] text-white transition-colors"
+                >
                   {modalBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "保存"}
                 </Button>
               </div>
