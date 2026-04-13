@@ -45,7 +45,7 @@ export async function createBattle(userId: number, modeType: string) {
     },
     // include 的意思是：建好房间后，把里面的 5 个回合也查出来一起返回给我
     include: {
-      rounds: true 
+      rounds: true
     }
   });
 
@@ -101,7 +101,7 @@ export async function submitBattleRound(
   // 3. 找到当前正在答的这一轮
   const round = session.rounds.find(r => r.round_index === roundIndex);
   if (!round) throw new Error("找不到这一轮题目！");
-  
+
   // 4. 队长要求：校验当前 round 未提交（防重复提交）
   if (round.completed) throw new Error("这一轮已经交过卷了，不能重复提交！");
   // 必须要有 truth 才能算分
@@ -127,7 +127,7 @@ export async function submitBattleRound(
 
   // 9. 队长要求：事务更新 round 和 session (要么全成功，要么全报错)
   const result = await prisma.$transaction(async (tx) => {
-    
+
     // 操作A：把这一轮的成绩写进记录表，并标记 completed = true 防重复
     const updatedRound = await tx.battleRound.update({
       where: { id: round.id },
@@ -164,13 +164,26 @@ export async function submitBattleRound(
  * 任务 3：奖品兑换 (redeem-prize)
  */
 export async function redeemPrize(userId: number, prizeId: number) {
-  // 1. 创建兑换记录
-  // 这里的 status 我们之前在 schema 里加了默认值 "pending"
+  // 1. 先查奖品，拿到兑换所需积分
+  const prize = await prisma.prize.findUnique({
+    where: { id: prizeId },
+    select: {
+      id: true,
+      points_cost: true,
+    }
+  });
+
+  if (!prize) {
+    throw new Error("奖品不存在");
+  }
+
+  // 2. 创建兑换记录
   const redemption = await prisma.prizeRedemption.create({
     data: {
       user_id: userId,
       prize_id: prizeId,
-      status: "pending" 
+      points_spent: prize.points_cost,
+      status: "pending"
     }
   });
 
