@@ -1,8 +1,8 @@
 "use strict";
 
-const { getPool } = require("../_shared/db");
-const { requireRole } = require("../_shared/auth");
-const { ok, fail } = require("../_shared/response");
+const { getPool } = require("./_shared/db");
+const { requireRole } = require("./_shared/auth");
+const { ok, fail } = require("./_shared/response");
 
 function getData(event) {
   const raw = event && typeof event === "object" ? event : {};
@@ -24,21 +24,20 @@ exports.main = async (event, context) => {
              ar.thought_text, ar.final_answer, ar.confidence,
              ar.quality_status, ar.annotated_image_url,
              ar.created_at, ia.storage_url AS image_storage_url,
-             lr.review_score AS last_review_score,
-             lr.comments AS last_review_comments,
+             lr.comment AS last_review_comments,
              lr.created_at AS last_reviewed_at,
              ru.username AS last_reviewer_username
       FROM annotation_records ar
       JOIN users u ON u.id = ar.user_id
       JOIN image_assets ia ON ia.id = ar.image_id
       LEFT JOIN LATERAL (
-        SELECT rr.reviewer_id, rr.review_score, rr.comments, rr.created_at
+        SELECT rr.reviewer_uid, rr.comment, rr.created_at
         FROM review_records rr
-        WHERE rr.annotation_record_id = ar.id
+        WHERE rr.record_id = ar.id
         ORDER BY rr.created_at DESC
         LIMIT 1
       ) lr ON true
-      LEFT JOIN users ru ON ru.id = lr.reviewer_id
+      LEFT JOIN users ru ON ru.cloudbase_uid = lr.reviewer_uid
     `;
     const params = [];
 
@@ -91,7 +90,6 @@ exports.main = async (event, context) => {
       annotated_image_url: r.annotated_image_url || null,
       created_at: r.created_at ? new Date(r.created_at).toISOString() : "",
       image_storage_url: r.image_storage_url || "",
-      last_review_score: r.last_review_score != null ? parseInt(r.last_review_score, 10) : null,
       last_review_comments: r.last_review_comments || null,
       last_reviewed_at: r.last_reviewed_at ? new Date(r.last_reviewed_at).toISOString() : null,
       last_reviewer_username: r.last_reviewer_username || null,

@@ -2,125 +2,116 @@ import Link from "next/link";
 import {
   ArrowRight,
   BookOpen,
-  Brain,
-  ShieldCheck,
-  Swords,
+  UserPlus,
+  LogIn,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CORE_APP_ROUTES } from "@/features/platform/routes";
 
-export default function RootPage() {
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#eff6ff,#f7fafc_38%,#edf4fb_100%)] text-foreground">
-      <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
-        <div className="max-w-3xl text-slate-900">
-          <p className="text-sm uppercase tracking-[0.25em] text-sky-700">
-            GeoAnnotate 平台
-          </p>
-          <h1 className="mt-4 text-5xl font-semibold leading-tight">
-            把公开文档与地理标注应用明确分区。
-          </h1>
-          <p className="mt-6 text-lg text-slate-600">
-            首页现在按照需求文档完成拆分：公开的 Wiki 位于
-            <code className="mx-1 rounded bg-sky-100 px-1.5 py-0.5 text-sky-900">/wiki</code>
-            ，任务驱动的应用位于
-            <code className="mx-1 rounded bg-sky-100 px-1.5 py-0.5 text-sky-900">/app</code>
-            。
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link href="/app/home" className="inline-flex items-center gap-2">
-                进入平台
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="secondary" size="lg">
-              <Link href="/wiki">浏览 Wiki</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="bg-white/80 text-slate-900 border-slate-200 hover:bg-white hover:text-slate-900"
+    <div className="relative flex min-h-screen flex-col bg-[#f0f7ff] text-[#1f2328]">
+      
+      {/* 1. 顶部导航栏 */}
+      <nav className="sticky top-0 z-50 w-full border-b border-[#d0d7de]/50 bg-white/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-8 py-5">
+          {/* 左侧：Logo 和 App 名字 */}
+          <Link href="/" className="flex items-center gap-3">
+            {/* 这里的 div 现在包裹了你的 logo.png */}
+            <div 
+              className="h-9 w-9 rounded-xl shadow-sm border border-[#d0d7de]/30"
+              style={{
+                backgroundImage: `url('/images/home/logo.png')`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }}
+            />
+            <span className="text-xl font-bold tracking-tight text-[#1f2328]">
+              Geo<span className="text-[#0969da]">Annotate</span>
+            </span>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="flex items-center gap-2 rounded-lg border border-[#d0d7de] bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-[#0969da] hover:bg-[#f0f7ff] active:scale-95"
             >
-              <Link href="/auth/login">登录</Link>
-            </Button>
+              <LogIn className="h-4 w-4" />
+              登录
+            </Link>
+            <Link
+              href="/register"
+              className="flex items-center gap-2 rounded-lg bg-[#0969da] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#085bc4] active:scale-95"
+            >
+              <UserPlus className="h-4 w-4" />
+              注册
+            </Link>
           </div>
         </div>
-      </section>
+      </nav>
 
-      <section className="max-w-6xl mx-auto px-6 pb-20 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-slate-200 bg-white/90 shadow-xl shadow-sky-900/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-blue-600" />
-              核心应用
-            </CardTitle>
-            <CardDescription>
-              覆盖人工推理采集、AI 对战、积分奖励与管理流程。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
-            {CORE_APP_ROUTES.map((route) => (
+      {/* 2. 主体区域 */}
+      <main className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col justify-start px-10 pt-12 pb-20">
+        
+        <div className="flex flex-col items-center justify-between gap-4 lg:flex-row lg:items-start">
+          
+          {/* 左侧文字部分 */}
+          <div className="z-10 flex-1 py-12 text-left">
+            <header>
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#0969da] opacity-80">
+                Next-Gen Geographic Intelligence
+              </p>
+              <h1 className="mb-8 text-6xl font-black tracking-tight leading-[1.1] md:text-7xl">
+                为地理大模型 <br />
+                注入 <span className="text-[#0969da]">人类认知。</span>
+              </h1>
+              <p className="mb-10 max-w-lg text-xl leading-relaxed text-[#57606a]">
+                GeoAnnotate 是一个专业的地理推理标注与 AI 对战平台。我们通过游戏化竞技与高质量思维链标注，构建更懂真实世界的地理多模态智能。
+              </p>
+            </header>
+
+            {/* 入口按钮 */}
+            <div className="flex flex-wrap items-center gap-5">
               <Link
-                key={route.href}
-                href={route.href}
-                className="rounded-2xl border border-border bg-accent/20 p-4 transition hover:border-primary/50 hover:bg-accent/40"
+                href="/app/home"
+                className="group flex items-center gap-3 rounded-xl bg-[#0969da] px-10 py-5 text-lg font-bold text-white shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 hover:bg-[#085bc4] active:scale-95"
               >
-                <p className="font-medium">{route.label}</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {route.description}
-                </p>
+                进入平台 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
-            ))}
-          </CardContent>
-        </Card>
+              <Link
+                href="/wiki"
+                className="flex items-center gap-3 rounded-xl border-2 border-[#d0d7de] bg-white/40 px-10 py-5 text-lg font-bold backdrop-blur-sm transition-all hover:-translate-y-1 hover:border-[#0969da] active:scale-95"
+              >
+                浏览 Wiki <BookOpen className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
 
-        <div className="grid gap-6">
-          <Card className="border-slate-200 bg-white/90 shadow-xl shadow-sky-900/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-sky-600" />
-                公开 Wiki
-              </CardTitle>
-              <CardDescription>
-                面向入门、阅读路径、数据集、工具和实验笔记的公开文档区。
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild variant="outline">
-                <Link href="/wiki">打开 /wiki</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          {/* 右侧图片部分 */}
+          <div className="relative flex-[1.2] w-full min-h-[600px] lg:mt-10">
+            <div 
+              className="absolute inset-0 w-full h-full"
+              style={{
+                backgroundImage: `url('/images/home/background.png')`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'right top',
+                backgroundRepeat: 'no-repeat',
+                maskImage: 'linear-gradient(to left, black 75%, transparent 100%), linear-gradient(to top, transparent 5%, black 25%)',
+                WebkitMaskImage: 'linear-gradient(to left, black 75%, transparent 100%), linear-gradient(to top, transparent 5%, black 25%)',
+                maskComposite: 'intersect',
+                WebkitMaskComposite: 'source-in'
+              }}
+            />
+          </div>
 
-          <Card className="border-slate-200 bg-white/90 shadow-xl shadow-sky-900/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Swords className="h-5 w-5 text-rose-600" />
-                按需求文档搭建的 MVP
-              </CardTitle>
-              <CardDescription>
-                当前仓库已经把需求文档要求的路由分区和预留页面搭起来了。
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p>新增了与文档一致的 `/app` 与 `/auth` 路由分区。</p>
-              <p>保留了公开且独立视觉风格的 `/wiki`。</p>
-              <p>为用户、AI 模型、分析与奖励后台预留了页面位置。</p>
-              <div className="pt-2">
-                <Button asChild variant="ghost" className="px-0">
-                  <Link href="/admin" className="inline-flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4" />
-                    打开管理后台
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
-      </section>
+      </main>
+
+      {/* 3. 页脚 */}
+      <footer className="border-t border-[#d0d7de]/30 bg-white/20 py-10 text-center backdrop-blur-sm">
+        <p className="text-xs font-bold uppercase tracking-widest text-[#8c959f]">
+          © 2026 GeoAnnotate Platform · Research Infrastructure
+        </p>
+      </footer>
     </div>
   );
 }

@@ -2,17 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  BookOpen,
-  Clock,
-  Coins,
-  Gift,
-  LogOut,
-  MapPin,
-  Trophy,
-  User,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { LogOut, MapPin } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { signOut } from "@/lib/cloudbase";
 
@@ -32,84 +22,54 @@ export default function Navbar() {
     }
   };
 
+  const username = user?.username ?? "Smile";
+  const initials = username.trim().slice(0, 2).toUpperCase();
+
   return (
-    <nav className="border-b border-border bg-background/90 backdrop-blur sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto h-14 px-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-6 min-w-0">
+    <nav className="shrink-0 border-b border-gray-200/80">
+      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-6 px-6 py-6 md:px-12">
+        <div className="flex min-w-0 items-center gap-8 lg:gap-10">
           <Link
             href="/app/home"
-            className="flex items-center gap-2 font-semibold text-primary whitespace-nowrap"
+            className="flex items-center gap-2 whitespace-nowrap text-xl font-bold text-blue-600"
           >
-            <MapPin className="h-5 w-5" />
-            <span>GeoAnnotate</span>
+            <MapPin className="h-7 w-7" />
+            <span className="tracking-tight text-2xl text-[#1e40af]">GeoAnnotate</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1 min-w-0">
-            <NavLink
-              href="/app/annotate/mode"
-              icon={<MapPin className="h-4 w-4" />}
-              label="标注"
-            />
-            <NavLink
-              href="/app/battle"
-              icon={<Trophy className="h-4 w-4" />}
-              label="对战"
-            />
-            <NavLink
-              href="/app/rewards"
-              icon={<Gift className="h-4 w-4" />}
-              label="奖励"
-            />
-            <NavLink
-              href="/app/leaderboard"
-              icon={<Trophy className="h-4 w-4" />}
-              label="排行榜"
-            />
-            <NavLink
-              href="/app/history"
-              icon={<Clock className="h-4 w-4" />}
-              label="历史"
-            />
-            <NavLink
-              href="/wiki"
-              icon={<BookOpen className="h-4 w-4" />}
-              label="文档"
-            />
-            {user?.role === "admin" ? (
-              <NavLink
-                href="/admin"
-                icon={<User className="h-4 w-4" />}
-                label="管理"
-              />
-            ) : null}
+          <div className="hidden min-w-0 items-center gap-8 text-sm font-medium text-gray-500 lg:flex">
+            <NavLink href="/app/annotate/mode" icon="📍" label="标注" />
+            <NavLink href="/app/battle" icon="⚔️" label="对战" />
+            <NavLink href="/app/rewards" icon="🎁" label="奖励" />
+            <NavLink href="/app/leaderboard" icon="🏆" label="排行榜" />
+            <NavLink href="/app/history" icon="🕒" label="历史" />
+            <NavLink href="/wiki" icon="📖" label="文档" />
+            {user?.role === "admin" ? <NavLink href="/admin" icon="🛠️" label="管理" /> : null}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {user ? (
-            <div className="hidden sm:flex items-center gap-2 text-sm">
-              <Coins className="h-4 w-4 text-yellow-500" />
-              <span className="font-medium">{user.points_balance}</span>
-              <span className="text-muted-foreground">积分</span>
-            </div>
-          ) : null}
+        <div className="flex items-center gap-6 text-sm">
+          <div className="hidden items-center gap-1.5 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 font-bold text-orange-400 sm:flex">
+            <span>🪙</span>
+            <span>{user?.points_balance ?? 0} 积分</span>
+          </div>
 
           <Link href="/app/profile">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">{user?.username ?? "个人中心"}</span>
-            </Button>
+            <div className="flex items-center gap-2 text-gray-700">
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-blue-100 text-xs font-bold text-blue-600 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.04),0_8px_15px_-6px_rgba(0,0,0,0.04)]">
+                {initials}
+              </div>
+              <span className="font-semibold">{username}</span>
+            </div>
           </Link>
 
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={handleLogout}
-            className="gap-2 text-muted-foreground"
+            className="flex items-center gap-1 text-xs font-medium text-gray-400 transition hover:text-red-500"
           >
             <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">退出登录</span>
-          </Button>
+            <span>退出登录</span>
+          </button>
         </div>
       </div>
     </nav>
@@ -122,16 +82,13 @@ function NavLink({
   label,
 }: {
   href: string;
-  icon: React.ReactNode;
+  icon: string;
   label: string;
 }) {
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors whitespace-nowrap"
-    >
-      {icon}
-      {label}
+    <Link href={href} className="group flex items-center gap-1.5 whitespace-nowrap transition hover:text-blue-600">
+      <span className="text-lg leading-none">{icon}</span>
+      <span className="transition-transform group-hover:translate-x-0.5">{label}</span>
     </Link>
   );
 }

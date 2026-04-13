@@ -1,8 +1,8 @@
 "use strict";
 
-const { getPool } = require("../_shared/db");
-const { requireRole } = require("../_shared/auth");
-const { ok, fail } = require("../_shared/response");
+const { getPool } = require("./_shared/db");
+const { requireRole } = require("./_shared/auth");
+const { ok, fail } = require("./_shared/response");
 
 function getData(event) {
   const raw = event && typeof event === "object" ? event : {};
