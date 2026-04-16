@@ -14,5 +14,10 @@ export default function MainRouteShell({
     return <>{children}</>;
   }
 
-  return <AppShell>{children}</AppShell>;
+  const fullBleed =
+    pathname.includes("/battle/") ||
+    pathname.startsWith("/app/annotate") ||
+    pathname.startsWith("/app/play");
+
+  return <AppShell fullBleed={fullBleed}>{children}</AppShell>;
 }

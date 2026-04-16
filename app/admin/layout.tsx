@@ -3,37 +3,34 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { 
-  LogOut, 
-  LayoutDashboard, 
-  Users, 
-  Image as ImageIcon, 
-  ListTodo, 
-  ClipboardCheck, 
-  Gift, 
-  Cpu, 
-  BarChart2, 
+import {
+  BarChart2,
+  ClipboardCheck,
+  Cpu,
   Download,
-  type LucideIcon
+  Gift,
+  Image as ImageIcon,
+  LayoutDashboard,
+  ListTodo,
+  LogOut,
+  type LucideIcon,
+  Users,
 } from "lucide-react";
+
 import { useAuthStore } from "@/lib/auth";
 import { signOut } from "@/lib/cloudbase";
 import { ADMIN_NAV_ITEMS } from "@/features/admin/navigation";
 
-// 智能图标匹配：根据菜单名称自动分配精美图标
-const getIconForLabel = (label: string): LucideIcon => {
-  switch (label) {
-    case "仪表盘": return LayoutDashboard;
-    case "用户": return Users;
-    case "图片": return ImageIcon;
-    case "任务配置": return ListTodo;
-    case "审核": return ClipboardCheck;
-    case "奖励": return Gift;
-    case "AI 模型": return Cpu;
-    case "分析": return BarChart2;
-    case "导出": return Download;
-    default: return LayoutDashboard;
-  }
+const ICON_BY_PATH: Record<string, LucideIcon> = {
+  "/admin": LayoutDashboard,
+  "/admin/users": Users,
+  "/admin/images": ImageIcon,
+  "/admin/tasks": ListTodo,
+  "/admin/reviews": ClipboardCheck,
+  "/admin/rewards": Gift,
+  "/admin/ai-models": Cpu,
+  "/admin/analytics": BarChart2,
+  "/admin/export": Download,
 };
 
 export default function AdminLayout({
@@ -47,17 +44,12 @@ export default function AdminLayout({
   const loading = useAuthStore((state) => state.loading);
   const logout = useAuthStore((state) => state.logout);
 
-  
   useEffect(() => {
-    if (loading) {
-      return;
-    }
-
+    if (loading) return;
     if (!user) {
       router.replace("/auth/login");
       return;
     }
-
     if (user.role !== "admin") {
       router.replace("/app/home");
     }
@@ -67,69 +59,72 @@ export default function AdminLayout({
     try {
       await signOut();
     } catch {
-      // ignore and still clear local state
+      // allow local logout fallback
     }
     logout();
     router.push("/auth/login");
   };
 
   return (
-    <div className="min-h-screen flex bg-[#F4F7FE]">
-      {/* 左侧侧边栏：宽度 256px，纯白背景，精致边框 */}
-      <aside className="w-[256px] border-r border-[#E5E6EB] bg-white flex flex-col flex-shrink-0 z-10">
-        
-        {/* 1. 顶部 Logo 区域 */}
-        <div className="h-[105px] flex flex-col justify-center px-6 border-b border-[#E5E6EB]">
-          <h1 className="text-[18px] font-[500] leading-[28px] text-[#4E5969]">
-            GEOANNOTATE <br />
-            管理后台
-          </h1>
-        </div>
+    <div className="wg-shell">
+      <div className="relative z-10 flex min-h-screen">
+        <aside className="hidden w-[260px] shrink-0 border-r border-[#2b4635] bg-[rgba(8,17,11,0.95)] lg:flex lg:flex-col">
+          <div className="border-b border-[#2b4635] px-6 py-6">
+            <p className="text-xs uppercase tracking-[0.2em] text-[#b6d3c0]">
+              GeoAnnotate
+            </p>
+            <h1 className="mt-2 text-xl font-semibold text-[#ecfff0]">
+              Admin Console
+            </h1>
+          </div>
 
-        {/* 2. 中间导航菜单区域 */}
-        <nav className="flex-1 overflow-y-auto py-4 flex flex-col">
-          {ADMIN_NAV_ITEMS.map((item) => {
-            const active =
-              item.href === "/admin"
-                ? pathname === "/admin"
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
-            
-            // 如果你的 ADMIN_NAV_ITEMS 里自带了 icon，就用你的；如果没有，就用我上面写的智能匹配
-            const Icon = (item as any).icon || getIconForLabel(item.label);
+          <nav className="flex-1 overflow-y-auto p-3">
+            {ADMIN_NAV_ITEMS.map((item) => {
+              const active =
+                item.href === "/admin"
+                  ? pathname === "/admin"
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center h-[48px] px-6 text-[16px] transition-colors ${
-                  active
-                    ? "bg-[#165DFF] text-white font-[500]" 
-                    : "text-[#4E5969] hover:bg-[#F2F3F5]"  
-                }`}
-              >
-                <Icon className="w-5 h-5 mr-3 shrink-0" strokeWidth={active ? 2.5 : 2} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+              const Icon =
+                (item as { icon?: LucideIcon }).icon ||
+                ICON_BY_PATH[item.href] ||
+                LayoutDashboard;
 
-        {/* 3. 底部退出登录区域 */}
-        <div className="h-[81px] border-t border-[#E5E6EB] flex items-center px-4 shrink-0">
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full h-[48px] px-4 rounded-[8px] text-[16px] text-[#4E5969] hover:bg-[#F2F3F5] hover:text-[#1D2129] transition-colors"
-          >
-            <LogOut className="w-5 h-5 mr-3 shrink-0" />
-            <span>退出登录</span>
-          </button>
-        </div>
-      </aside>
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={[
+                    "mb-1 flex h-10 items-center gap-2 rounded-md border px-3 text-sm transition",
+                    active
+                      ? "border-[#5b8a6f] bg-[rgba(36,74,49,0.88)] text-[#effff2]"
+                      : "border-transparent text-[#c4dacb] hover:border-[#3f634d] hover:bg-[rgba(25,46,33,0.85)]",
+                  ].join(" ")}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-      {/* 右侧主内容区域 */}
-      <main className="flex-1 overflow-auto h-screen relative">
-        {children}
-      </main>
+          <div className="border-t border-[#2b4635] p-3">
+            <button
+              onClick={handleLogout}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[#664545] bg-[rgba(70,29,29,0.72)] text-sm text-[#ffe4e4]"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          </div>
+        </aside>
+
+        <main className="min-h-screen flex-1 overflow-auto">
+          <div className="mx-auto w-full max-w-[1800px] px-4 py-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
