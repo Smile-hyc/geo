@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "GeoAnnotate",
-  description: "GeoAnnotate 标注与对战工作台",
+  title: "GeoAnnotate | 地理推理标注",
+  description: "地理图片推理与标注数据收集",
 };
 
 export default function RootLayout({

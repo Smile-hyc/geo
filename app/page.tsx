@@ -1,81 +1,117 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, LogIn, UserPlus } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  UserPlus,
+  LogIn,
+} from "lucide-react";
 
 export default function LandingPage() {
   return (
-    <main className="wg-shell">
-      <div className="relative z-10 flex min-h-screen flex-col px-4 py-5 sm:px-6 lg:px-8">
-        <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between border-b border-[#2e4a39] pb-4">
+    <div className="relative flex min-h-screen flex-col bg-[#f0f7ff] text-[#1f2328]">
+      
+      {/* 1. 顶部导航栏 */}
+      <nav className="sticky top-0 z-50 w-full border-b border-[#d0d7de]/50 bg-white/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-8 py-5">
+          {/* 左侧：Logo 和 App 名字 */}
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md border border-[#3d654d] bg-[rgba(37,77,51,0.78)]">
-              <span className="text-sm font-semibold text-[#f4fff7]">GA</span>
-            </div>
-            <span className="text-lg font-semibold text-[#ecfff1]">GeoAnnotate</span>
+            {/* 这里的 div 现在包裹了你的 logo.png */}
+            <div 
+              className="h-9 w-9 rounded-xl shadow-sm border border-[#d0d7de]/30"
+              style={{
+                backgroundImage: `url('/images/home/logo.png')`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }}
+            />
+            <span className="text-xl font-bold tracking-tight text-[#1f2328]">
+              Geo<span className="text-[#0969da]">Annotate</span>
+            </span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link
-              href="/auth/login"
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-[#3e644c] bg-[rgba(21,38,27,0.86)] px-4 text-sm text-[#d5e9dd]"
+              href="/login"
+              className="flex items-center gap-2 rounded-lg border border-[#d0d7de] bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-[#0969da] hover:bg-[#f0f7ff] active:scale-95"
             >
               <LogIn className="h-4 w-4" />
-              {"\u767b\u5f55"}
+              登录
             </Link>
             <Link
-              href="/auth/register"
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-[#497359] bg-[rgba(36,87,52,0.9)] px-4 text-sm text-white"
+              href="/register"
+              className="flex items-center gap-2 rounded-lg bg-[#0969da] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#085bc4] active:scale-95"
             >
               <UserPlus className="h-4 w-4" />
-              {"\u6ce8\u518c"}
+              注册
             </Link>
           </div>
-        </header>
+        </div>
+      </nav>
 
-        <section className="mx-auto grid w-full max-w-[1440px] flex-1 items-center gap-8 py-10 lg:grid-cols-[1.2fr_0.8fr]">
-          <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-[#afccb9]">
-              {"\u5730\u7406\u667a\u80fd\u5e73\u53f0"}
-            </p>
-            <h1 className="mt-4 font-['Jockey_One'] text-[clamp(3.6rem,10vw,7.2rem)] leading-[0.84] text-[#f2fff5]">
-              {"\u6807\u6ce8\u4e0e\u5bf9\u6218"}
-              <br />
-              {"\u4e00\u7ad9\u5f0f\u5165\u53e3"}
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-[#c2d8c9]">
-              {"\u5728\u540c\u4e00\u4e2a\u5de5\u4f5c\u7a7a\u95f4\u4e2d\u5b8c\u6210\u6807\u6ce8\u4efb\u52a1\u3001AI \u5bf9\u6218\u3001\u79ef\u5206\u7ba1\u7406\u548c\u77e5\u8bc6\u5e93\u67e5\u9605\u3002"}
-            </p>
+      {/* 2. 主体区域 */}
+      <main className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col justify-start px-10 pt-12 pb-20">
+        
+        <div className="flex flex-col items-center justify-between gap-4 lg:flex-row lg:items-start">
+          
+          {/* 左侧文字部分 */}
+          <div className="z-10 flex-1 py-12 text-left">
+            <header>
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#0969da] opacity-80">
+                Next-Gen Geographic Intelligence
+              </p>
+              <h1 className="mb-8 text-6xl font-black tracking-tight leading-[1.1] md:text-7xl">
+                为地理大模型 <br />
+                注入 <span className="text-[#0969da]">人类认知。</span>
+              </h1>
+              <p className="mb-10 max-w-lg text-xl leading-relaxed text-[#57606a]">
+                GeoAnnotate 是一个专业的地理推理标注与 AI 对战平台。我们通过游戏化竞技与高质量思维链标注，构建更懂真实世界的地理多模态智能。
+              </p>
+            </header>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            {/* 入口按钮 */}
+            <div className="flex flex-wrap items-center gap-5">
               <Link
                 href="/app/home"
-                className="inline-flex h-11 items-center gap-2 rounded-md border border-[#4a775c] bg-[rgba(36,87,52,0.9)] px-5 text-sm font-semibold text-white"
+                className="group flex items-center gap-3 rounded-xl bg-[#0969da] px-10 py-5 text-lg font-bold text-white shadow-xl shadow-blue-200 transition-all hover:-translate-y-1 hover:bg-[#085bc4] active:scale-95"
               >
-                {"\u8fdb\u5165\u5e94\u7528"}
-                <ArrowRight className="h-4 w-4" />
+                进入平台 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 href="/wiki"
-                className="inline-flex h-11 items-center gap-2 rounded-md border border-[#3f644c] bg-[rgba(20,37,27,0.82)] px-5 text-sm font-semibold text-[#deefe4]"
+                className="flex items-center gap-3 rounded-xl border-2 border-[#d0d7de] bg-white/40 px-10 py-5 text-lg font-bold backdrop-blur-sm transition-all hover:-translate-y-1 hover:border-[#0969da] active:scale-95"
               >
-                {"\u6253\u5f00\u77e5\u8bc6\u5e93"}
-                <BookOpen className="h-4 w-4" />
+                浏览 Wiki <BookOpen className="h-5 w-5" />
               </Link>
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-md border border-[#355843] bg-[rgba(14,27,19,0.78)] p-5">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#a8c4b2]">
-              {"\u529f\u80fd\u6982\u89c8"}
-            </p>
-            <ul className="mt-5 space-y-3 text-sm text-[#d6eadc]">
-              <li>{"\u4efb\u52a1\u5206\u914d\u4e0e\u6807\u6ce8\u5ba1\u6838\u6d41\u7a0b"}</li>
-              <li>{"\u591a\u56de\u5408 AI \u5bf9\u6218\u4e0e\u5b9e\u65f6\u8ba1\u5206"}</li>
-              <li>{"\u79ef\u5206\u8bb0\u5f55\u4e0e\u5956\u52b1\u5151\u6362"}</li>
-              <li>{"\u5b9e\u9a8c\u6587\u6863\u4e0e\u64cd\u4f5c\u6307\u5357"}</li>
-            </ul>
+          {/* 右侧图片部分 */}
+          <div className="relative flex-[1.2] w-full min-h-[600px] lg:mt-10">
+            <div 
+              className="absolute inset-0 w-full h-full"
+              style={{
+                backgroundImage: `url('/images/home/background.png')`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'right top',
+                backgroundRepeat: 'no-repeat',
+                maskImage: 'linear-gradient(to left, black 75%, transparent 100%), linear-gradient(to top, transparent 5%, black 25%)',
+                WebkitMaskImage: 'linear-gradient(to left, black 75%, transparent 100%), linear-gradient(to top, transparent 5%, black 25%)',
+                maskComposite: 'intersect',
+                WebkitMaskComposite: 'source-in'
+              }}
+            />
           </div>
-        </section>
-      </div>
-    </main>
+
+        </div>
+      </main>
+
+      {/* 3. 页脚 */}
+      <footer className="border-t border-[#d0d7de]/30 bg-white/20 py-10 text-center backdrop-blur-sm">
+        <p className="text-xs font-bold uppercase tracking-widest text-[#8c959f]">
+          © 2026 GeoAnnotate Platform · Research Infrastructure
+        </p>
+      </footer>
+    </div>
   );
 }

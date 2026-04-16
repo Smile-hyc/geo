@@ -7,7 +7,7 @@ export default function ResearchWorkflowPage() {
   return (
     <>
       <h1>科研流程</h1>
-      <p>本节介绍实验室常用的科研工作流程。</p>
+      <p>本节介绍实验室常用的科研工作流程。内容由管理员后续填充。</p>
       <h2>选题与开题</h2>
       <p>（待补充）</p>
       <h2>实验与迭代</h2>

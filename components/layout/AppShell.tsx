@@ -3,23 +3,15 @@ import AuthGuard from "@/components/layout/AuthGuard";
 
 export default function AppShell({
   children,
-  fullBleed = false,
 }: {
   children: React.ReactNode;
-  fullBleed?: boolean;
 }) {
   return (
     <AuthGuard>
-      <div className="wg-shell">
+      <div className="min-h-screen bg-transparent text-foreground">
         <div className="mx-auto flex min-h-screen w-full flex-col">
           <Navbar />
-          <main className={fullBleed ? "wg-content" : "wg-content px-4 py-4 sm:px-6 lg:px-8"}>
-            {fullBleed ? (
-              children
-            ) : (
-              <div className="mx-auto w-full max-w-[1700px]">{children}</div>
-            )}
-          </main>
+          <main className="flex-1 bg-transparent text-foreground">{children}</main>
         </div>
       </div>
     </AuthGuard>

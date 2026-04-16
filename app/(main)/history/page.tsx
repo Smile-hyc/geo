@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock, Loader2, MapPin, Swords } from "lucide-react";
-
+import { MapPin, Swords, Clock, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { callFunction } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
@@ -17,19 +16,14 @@ interface HistoryEntry {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: "待审核",
-  approved: "已通过",
-  rejected: "已驳回",
+  pending: "待审核", approved: "已通过", rejected: "已拒绝",
 };
-
 const STATUS_COLORS: Record<string, string> = {
-  pending: "text-yellow-200",
-  approved: "text-green-200",
-  rejected: "text-red-200",
+  pending: "text-yellow-400", approved: "text-green-400", rejected: "text-red-400",
 };
 
 export default function HistoryPage() {
-  const user = useAuthStore((state) => state.user);
+  const user = useAuthStore((s) => s.user);
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,91 +34,90 @@ export default function HistoryPage() {
       email: user?.email,
     })
       .then((res) => setEntries(res.entries ?? []))
-      .catch((reason) => {
-        setError(reason instanceof Error ? reason.message : "加载历史记录失败。");
+      .catch((e) => {
+        setError(e instanceof Error ? e.message : "加载历史记录失败");
         setEntries([]);
       })
       .finally(() => setLoading(false));
   }, [user?.uid, user?.email]);
 
   return (
-    <div className="space-y-4">
-      <section className="wg-panel p-5">
-        <div className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-[#b2cfbb]" />
-          <h1 className="text-xl font-semibold text-[#f2fff5]">历史记录</h1>
-        </div>
-        <p className="mt-1 text-sm text-[#c1d6c8]">查看最近的标注与对战记录</p>
-      </section>
+    <div className="max-w-2xl mx-auto px-4 py-8 space-y-4">
+      <div className="flex items-center gap-3 mb-2">
+        <Clock className="h-6 w-6 text-purple-400" />
+        <h1 className="text-xl font-bold">历史记录</h1>
+      </div>
 
-      {loading ? (
+      {loading && (
         <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-[#d9eddf]" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : null}
+      )}
 
-      {error ? <p className="text-center text-sm text-red-200">{error}</p> : null}
+      {error && (
+        <p className="text-sm text-muted-foreground text-center">{error}</p>
+      )}
 
-      {!loading && entries.length === 0 && !error ? (
+      {!loading && entries.length === 0 && !error && (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-[#bfd4c6]">
-            {"\u6682\u65e0\u5386\u53f2\u8bb0\u5f55\u3002"}
+          <CardContent className="py-12 text-center text-muted-foreground">
+            暂无记录
           </CardContent>
         </Card>
-      ) : null}
+      )}
 
       {entries.map((entry) => (
         <Card key={`${entry.type}-${entry.id}`}>
-          <CardContent className="px-4 py-4">
+          <CardContent className="py-4 px-4">
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 rounded-md bg-[rgba(45,84,57,0.8)] p-2">
+              <div className="mt-0.5">
                 {entry.type === "annotation" ? (
-                  <MapPin className="h-4 w-4 text-[#def5e6]" />
+                  <MapPin className="h-5 w-5 text-blue-400" />
                 ) : (
-                  <Swords className="h-4 w-4 text-[#def5e6]" />
+                  <Swords className="h-5 w-5 text-red-400" />
                 )}
               </div>
-
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-[#f3fff6]">
-                    {entry.type === "annotation" ? "标注" : "对战"}
-                    <span className="ml-2 text-xs font-normal text-[#a8c4b2]">{entry.mode_type}</span>
+                  <p className="text-sm font-medium">
+                    {entry.type === "annotation" ? "标注任务" : "AI 对战"}
+                    <span className="text-muted-foreground ml-2 font-normal text-xs">
+                      {entry.mode_type}
+                    </span>
                   </p>
-                  <p className="text-xs text-[#a8c4b2]">
+                  <p className="text-xs text-muted-foreground flex-shrink-0">
                     {new Date(entry.created_at).toLocaleDateString("zh-CN")}
                   </p>
                 </div>
 
-                {entry.annotation ? (
-                  <div className="mt-2 space-y-1">
-                    <p className="line-clamp-2 text-xs text-[#bfd4c6]">
-                      {entry.annotation.thought_text || "无推理文本。"}
+                {entry.annotation && (
+                  <div className="mt-1 space-y-0.5">
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {entry.annotation.thought_text || "（无思维链）"}
                     </p>
-                    <p className="text-xs text-[#d9ece0]">
-                      最终答案：{entry.annotation.final_answer || "-"}
-                      <span className={`ml-2 ${STATUS_COLORS[entry.annotation.quality_status] ?? "text-[#bfd4c6]"}`}>
+                    <p className="text-xs">
+                      答案：{entry.annotation.final_answer || "—"}
+                      <span className={`ml-2 ${STATUS_COLORS[entry.annotation.quality_status] ?? ""}`}>
                         {STATUS_LABELS[entry.annotation.quality_status] ?? entry.annotation.quality_status}
                       </span>
                     </p>
                   </div>
-                ) : null}
+                )}
 
-                {entry.battle ? (
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#d9ece0]">
-                    <span>我方 {entry.battle.user_total_score}</span>
-                    <span className="text-[#9fb9aa]">对</span>
+                {entry.battle && (
+                  <div className="mt-1 flex items-center gap-3 text-xs">
+                    <span>你 {entry.battle.user_total_score}</span>
+                    <span className="text-muted-foreground">vs</span>
                     <span>AI {entry.battle.ai_total_score}</span>
-                    <span>
-                      {entry.battle.winner === "user"
-                        ? "胜"
-                        : entry.battle.winner === "draw"
-                          ? "平"
-                          : "负"}
+                    <span className={
+                      entry.battle.winner === "user" ? "text-green-400" :
+                      entry.battle.winner === "draw" ? "text-muted-foreground" : "text-red-400"
+                    }>
+                      {entry.battle.winner === "user" ? "胜" : entry.battle.winner === "draw" ? "平" : "负"}
                     </span>
-                    <span className="text-[#9fb9aa]">{entry.battle.round_count} 回合</span>
+                    <span className="text-muted-foreground">{entry.battle.round_count} 轮</span>
                   </div>
-                ) : null}
+                )}
               </div>
             </div>
           </CardContent>

@@ -1,96 +1,185 @@
 "use client";
 
 import Link from "next/link";
-import { Crosshair, Gift, Swords, Trophy } from "lucide-react";
+import { useAuthStore } from "@/lib/auth";
 
-type Action = {
+type EntryCard = {
+  id: string;
   href: string;
   title: string;
-  subtitle: string;
-  icon: React.ElementType;
+  description: string;
+  iconBg: string;
+  iconText: string;
+  hoverBg: string;
+  icon: React.ReactNode;
+  bgImage?: string; 
 };
 
-const MAIN_ACTIONS: Action[] = [
+const ENTRY_CARDS: EntryCard[] = [
   {
+    id: "annotate",
     href: "/app/annotate/mode",
-    title: "\u5f00\u59cb\u6807\u6ce8",
-    subtitle: "\u5355\u5f20\u4efb\u52a1\u6807\u6ce8\u6d41\u7a0b",
-    icon: Crosshair,
+    title: "标注任务",
+    description: "选择数据采集模式，并决定采集思维链、地理元素框，或两者同时采集。",
+    iconBg: "bg-blue-50",
+    iconText: "text-blue-600",
+    hoverBg: "group-hover:bg-blue-600",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+      </svg>
+    ),
+    bgImage: "/images/home/annotation_task.png",
   },
   {
+    id: "battle",
     href: "/app/battle",
-    title: "\u5f00\u59cb\u5bf9\u6218",
-    subtitle: "\u4e0e AI \u591a\u8f6e\u5bf9\u6218",
-    icon: Swords,
+    title: "AI 对战",
+    description: "配置限时回合、选择 AI 对手，并逐轮比较得分表现。",
+    iconBg: "bg-rose-50",
+    iconText: "text-rose-500",
+    hoverBg: "group-hover:bg-rose-500",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18.5 5.5L5.5 18.5" /><path d="M4.5 15.5l4 4" /><path d="M3.5 20.5l2-2" /><path d="M5.5 5.5l13 13" /><path d="M15.5 19.5l4-4" /><path d="M18.5 18.5l2 2" />
+      </svg>
+    ),
+    bgImage: "/images/home/ai_match.png",
   },
   {
+    id: "rewards",
     href: "/app/rewards",
-    title: "\u79ef\u5206\u5956\u52b1",
-    subtitle: "\u4f7f\u7528\u79ef\u5206\u5151\u6362\u5956\u52b1",
-    icon: Gift,
+    title: "奖励中心",
+    description: "使用积分兑换奖品，并查看当前可用的奖励库存。",
+    iconBg: "bg-amber-50",
+    iconText: "text-amber-500",
+    hoverBg: "group-hover:bg-amber-600",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="8" width="18" height="14" rx="2" ry="2" /><path d="M12 8V22" /><path d="M3 12h18" /><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5H12z" />
+      </svg>
+    ),
+    bgImage: "/images/home/award.png",
   },
   {
+    id: "leaderboard",
     href: "/app/leaderboard",
-    title: "\u6392\u884c\u699c",
-    subtitle: "\u67e5\u770b\u5168\u7ad9\u79ef\u5206\u6392\u884c",
-    icon: Trophy,
+    title: "排行榜",
+    description: "查看当前高分用户，并为后续更丰富的统计入口预留位置。",
+    iconBg: "bg-emerald-50",
+    iconText: "text-emerald-500",
+    hoverBg: "group-hover:bg-emerald-600",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+      </svg>
+    ),
+    bgImage: "/images/home/rank.png",
+  },
+  {
+    id: "history",
+    href: "/app/history",
+    title: "历史记录",
+    description: "回顾你的历史标注、对战记录和当前采集状态。",
+    iconBg: "bg-violet-50",
+    iconText: "text-violet-500",
+    hoverBg: "group-hover:bg-violet-600",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+    bgImage: "/images/home/record.png",
+  },
+  {
+    id: "wiki",
+    href: "/wiki",
+    title: "公开 Wiki",
+    description: "查看入门与科研文档，而不混入主应用操作壳层。",
+    iconBg: "bg-sky-50",
+    iconText: "text-sky-500",
+    hoverBg: "group-hover:bg-sky-600",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 6s3-1 10-1 10 1 10 1v12s-3-1-10-1-10 1-10 1V6z" /><line x1="12" y1="5" x2="12" y2="18" />
+      </svg>
+    ),
+    bgImage: "/images/home/wiki_document.png",
   },
 ];
 
 export default function HomePage() {
-  return (
-    <div className="min-h-[calc(100vh-78px)] py-6">
-      <section className="mx-auto w-full max-w-[980px]">
-        <p className="text-xs uppercase tracking-[0.2em] text-[#b3cfbd]">
-          {"\u4e3b\u83dc\u5355"}
-        </p>
-        <h1 className="mt-3 font-['Jockey_One'] text-[clamp(3.2rem,10vw,6.2rem)] leading-[0.88] text-[#f2fff5]">
-          GeoAnnotate
-        </h1>
-        <p className="mt-3 text-base text-[#bfd6c7]">
-          {"\u9009\u62e9\u4e00\u4e2a\u6a21\u5f0f\u7ee7\u7eed\u4f7f\u7528\u5e73\u53f0\u3002"}
-        </p>
+  const user = useAuthStore((state) => state.user);
+  const buttonStyle = "rounded-2xl border-2 border-gray-300 bg-white px-10 py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-all hover:-translate-y-1 hover:bg-blue-600 hover:border-blue-600 hover:text-white hover:shadow-blue-200 active:scale-95";
 
-        <div className="mt-7 overflow-hidden rounded-md border border-[#335642] bg-[rgba(12,24,16,0.6)]">
-          {MAIN_ACTIONS.map((action, index) => (
-            <ActionRow
-              key={action.href}
-              action={action}
-              bordered={index !== MAIN_ACTIONS.length - 1}
-            />
+  return (
+    <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-hidden px-6 py-4 md:px-16 lg:px-24">
+      <main className="flex flex-1 flex-col justify-center overflow-hidden">
+        {/* 核心修改：去掉了外层 section 的所有容器样式（border, bg, shadow, backdrop-blur） */}
+        <section className="relative mb-12 px-2">
+          <div className="relative z-10">
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-blue-500 opacity-80">CORE APPLICATION</p>
+            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-800 md:text-5xl">欢迎回来，{user?.username ?? "Smile"}。</h1>
+            <p className="mb-8 max-w-3xl text-base leading-relaxed text-gray-500">
+              平台现在按照需求文档重组，围绕数据采集、AI 对战、用户成长和研究管理流程展开。
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <span className="text-sm font-bold text-gray-700">等级 {user?.level ?? 1}</span>
+              <span className="text-sm font-bold text-gray-700">{user?.points_balance ?? 0} 积分</span>
+              <span className="text-sm font-bold text-gray-700">角色：{user?.role === "admin" ? "管理员" : "用户"}</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-8 grid shrink-0 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {ENTRY_CARDS.map((card) => (
+            <Link
+              key={card.id}
+              href={card.href}
+              className="group relative overflow-hidden rounded-[32px] border border-gray-300 bg-gradient-to-br from-white to-slate-50 p-8 shadow-sm transition-all duration-300 hover:-translate-y-1"
+            >
+              {card.bgImage && (
+                <div
+                  className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center"
+                  style={{ opacity: 0.62 }}
+                >
+                  <img
+                    src={card.bgImage}
+                    alt=""
+                    className="h-full w-full object-cover contrast-140 brightness-90 saturate-120"
+                  />
+                </div>
+              )}
+
+              <div className="relative z-10">
+                <div className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${card.iconBg} ${card.hoverBg}`}>
+                  <span className={`transition-colors group-hover:text-white ${card.iconText}`}>{card.icon}</span>
+                </div>
+                <h3 className="mb-3 text-xl font-bold text-gray-800">{card.title}</h3>
+                <p className="text-sm leading-relaxed text-gray-600">{card.description}</p>
+              </div>
+            </Link>
           ))}
-        </div>
-      </section>
+        </section>
+
+        <section className="mt-2 flex shrink-0 flex-col items-center justify-between space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
+          <div className="flex space-x-4">
+            <Link href="/app/annotate/mode" className={buttonStyle}>开始标注</Link>
+            <Link href="/app/battle" className={buttonStyle}>开始对战</Link>
+          </div>
+          <Link
+            href="/app/profile"
+            className="group flex items-center gap-2 px-6 py-3 text-sm font-semibold text-gray-400 transition-colors hover:text-blue-600"
+          >
+            <span>打开个人中心</span>
+            <span className="transition-transform group-hover:translate-x-1">→</span>
+          </Link>
+        </section>
+      </main>
+
+      <footer className="shrink-0 px-12 py-4 text-center text-[10px] tracking-wide text-gray-400">
+        &copy; 2024 <span className="font-semibold text-gray-500">GeoAnnotate Platform</span>. All rights reserved.
+      </footer>
     </div>
-  );
-}
-
-function ActionRow({
-  action,
-  bordered,
-}: {
-  action: Action;
-  bordered: boolean;
-}) {
-  const Icon = action.icon;
-
-  return (
-    <Link
-      href={action.href}
-      className={[
-        "group flex items-center gap-4 px-5 py-5 transition hover:bg-[rgba(28,49,36,0.75)]",
-        bordered ? "border-b border-[#2f4f3d]" : "",
-      ].join(" ")}
-    >
-      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[rgba(45,84,57,0.75)] text-[#dff4e7]">
-        <Icon className="h-5 w-5" />
-      </div>
-      <div>
-        <p className="text-xl font-semibold tracking-tight text-[#eafcf0]">
-          {action.title}
-        </p>
-        <p className="mt-1 text-sm text-[#b4cdbd]">{action.subtitle}</p>
-      </div>
-    </Link>
   );
 }
