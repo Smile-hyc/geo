@@ -95,7 +95,7 @@ export default function RegisterPage() {
     const loginState = await getLoginState();
     if (!loginState) throw new Error("登录状态获取失败，请重新登录");
     const uid = loginState.user.uid ?? email;
-    const dbUser = await syncUserToDb({ username, email });
+    const dbUser = await syncUserToDb({ username, email, cloudbase_uid: uid });
     setUser({
       uid,
       email,
