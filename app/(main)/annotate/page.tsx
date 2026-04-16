@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { 
   AlertCircle, 
@@ -48,6 +48,7 @@ const INIT_THOUGHT: ThoughtData = {
 };
 
 function AnnotateContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
   const annotationType = searchParams.get("annotationType") ?? "hybrid";
