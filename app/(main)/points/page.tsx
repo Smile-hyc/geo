@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Coins, Loader2, TrendingDown, TrendingUp } from "lucide-react";
+import { Coins, Loader2, TrendingDown, TrendingUp, History, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { callFunction } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 interface LedgerEntry {
   id: number;
@@ -43,70 +45,95 @@ export default function PointsPage() {
   }, [user?.uid, user?.email]);
 
   return (
-    <div className="space-y-4">
-      <section className="wg-panel p-5">
-        <div className="flex items-center gap-2">
-          <Coins className="h-5 w-5 text-[#b2cfbb]" />
-          <h1 className="text-xl font-semibold text-[#f2fff5]">积分流水</h1>
+    <div className="py-8 max-w-4xl mx-auto space-y-8">
+      <section>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-[10px] font-black uppercase tracking-widest mb-4">
+          <History size={14} />
+          交易明细
         </div>
-        <p className="mt-1 text-sm text-[#c1d6c8]">追踪标注与对战带来的每一次积分变动</p>
+        <h1 className="text-4xl font-black text-slate-900 tracking-tight">积分流水</h1>
+        <p className="mt-2 text-slate-500 max-w-2xl leading-relaxed">
+          追踪标注与对战带来的每一次积分变动。公平透明的奖励机制，见证您的每一份贡献。
+        </p>
       </section>
 
       {loading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-[#d9eddf]" />
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+          <p className="text-sm font-bold">正在提取历史记录...</p>
         </div>
       ) : null}
 
-      {error ? <p className="text-center text-sm text-red-200">{error}</p> : null}
+      {error ? (
+        <div className="p-8 rounded-3xl bg-red-50 border border-red-100 text-red-600 text-center font-bold">
+          {error}
+        </div>
+      ) : null}
 
       {!loading && entries.length === 0 && !error ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-[#bfd4c6]">
-            {"\u6682\u65e0\u79ef\u5206\u6d41\u6c34\u3002"}
+        <Card className="border-dashed border-2 border-slate-200 shadow-none bg-transparent">
+          <CardContent className="py-20 text-center text-slate-400">
+            <Coins size={40} className="mx-auto mb-4 opacity-20" />
+            <p className="text-sm font-bold">暂无积分变动记录</p>
           </CardContent>
         </Card>
       ) : null}
 
-      <div className="space-y-2">
-        {entries.map((entry) => (
-          <Card key={entry.id}>
-            <CardContent className="px-4 py-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="rounded-md bg-[rgba(45,84,57,0.8)] p-2">
-                    {entry.change_amount >= 0 ? (
-                      <TrendingUp className="h-4 w-4 text-green-200" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-red-200" />
-                    )}
+      <div className="grid gap-3">
+        {entries.map((entry, index) => (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            key={entry.id}
+          >
+            <Card className="border-none shadow-md hover:shadow-lg transition-all overflow-hidden group">
+              <CardContent className="px-6 py-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-5">
+                    <div className={cn(
+                      "w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm",
+                      entry.change_amount >= 0 
+                        ? "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white" 
+                        : "bg-rose-50 text-rose-600 group-hover:bg-rose-500 group-hover:text-white"
+                    )}>
+                      {entry.change_amount >= 0 ? (
+                        <TrendingUp size={22} />
+                      ) : (
+                        <TrendingDown size={22} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800">
+                        {REASON_LABELS[entry.reason_type] ?? entry.reason_type}
+                      </p>
+                      <p className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5 mt-1">
+                        <Calendar size={12} />
+                        {new Date(entry.created_at).toLocaleString("zh-CN", {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-[#f3fff6]">
-                      {REASON_LABELS[entry.reason_type] ?? entry.reason_type}
-                    </p>
-                    <p className="text-xs text-[#9fb9aa]">
-                      {new Date(entry.created_at).toLocaleString("zh-CN")}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="text-right">
-                  <p
-                    className={
-                      entry.change_amount >= 0
-                        ? "text-sm font-semibold text-green-200"
-                        : "text-sm font-semibold text-red-200"
-                    }
-                  >
-                    {entry.change_amount >= 0 ? "+" : ""}
-                    {entry.change_amount}
-                  </p>
-                  <p className="text-xs text-[#9fb9aa]">余额 {entry.balance_after}</p>
+                  <div className="text-right">
+                    <p className={cn(
+                      "text-xl font-black tabular-nums",
+                      entry.change_amount >= 0 ? "text-emerald-500" : "text-rose-500"
+                    )}>
+                      {entry.change_amount >= 0 ? "+" : ""}
+                      {entry.change_amount}
+                    </p>
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mt-1">余额 {entry.balance_after}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
     </div>

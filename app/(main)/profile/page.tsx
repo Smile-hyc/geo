@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
-  History,
+  History as HistoryIcon,
   Loader2,
   Pencil,
   ShieldCheck,
@@ -12,12 +12,18 @@ import {
   Trophy,
   User,
   Wallet,
+  Settings,
+  Mail,
+  BadgeCheck,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuthStore } from "@/lib/auth";
 import { getUserProfile, updateUsername } from "@/lib/cloudbase";
+import { cn } from "@/lib/utils";
 
 interface ProfileData {
   id: number;
@@ -89,78 +95,105 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="space-y-4">
-      <section className="wg-panel p-5">
-        <p className="text-xs uppercase tracking-[0.18em] text-[#afccb9]">账户</p>
-        <div className="mt-3 flex flex-wrap items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-md bg-[rgba(49,91,62,0.85)]">
-            <User className="h-7 w-7 text-[#f0fff4]" />
+    <div className="py-8 max-w-5xl mx-auto space-y-10">
+      <section>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
+          <div className="relative group">
+            <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-2xl shadow-primary/30 border-4 border-white">
+              {data.username.slice(0, 1).toUpperCase()}
+            </div>
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-white shadow-lg border border-slate-100 flex items-center justify-center text-primary">
+              <BadgeCheck size={20} fill="currentColor" className="text-white fill-primary" />
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            {editing ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <Input
-                  value={editUsername}
-                  onChange={(e) => setEditUsername(e.target.value)}
-                  className="max-w-[220px]"
-                  autoFocus
-                />
-                <Button size="sm" onClick={handleSaveUsername} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "保存"}
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
-                  取消
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <h1 className="truncate text-2xl font-semibold text-[#f2fff5]">{data.username}</h1>
-                <button
-                  onClick={() => {
-                    setEditUsername(data.username);
-                    setEditing(true);
-                  }}
-                  className="rounded-md border border-[#3f644c] bg-[rgba(20,37,27,0.82)] p-2 text-[#d4e8db]"
-                  aria-label="编辑用户名"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
-              </div>
+
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-4 flex-wrap">
+              {editing ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={editUsername}
+                    onChange={(e) => setEditUsername(e.target.value)}
+                    className="w-48 h-10 rounded-xl"
+                    autoFocus
+                  />
+                  <Button size="sm" onClick={handleSaveUsername} disabled={saving} className="rounded-xl">
+                    {saving ? <Loader2 size={16} className="animate-spin" /> : "保存"}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditing(false)} className="rounded-xl">
+                    取消
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-4xl font-black text-slate-900 tracking-tight">{data.username}</h1>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="w-8 h-8 rounded-xl border-slate-200"
+                    onClick={() => {
+                      setEditUsername(data.username);
+                      setEditing(true);
+                    }}
+                  >
+                    <Pencil size={14} className="text-slate-400" />
+                  </Button>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-4 text-slate-500 text-sm font-medium">
+               <span className="flex items-center gap-1.5"><Mail size={14} /> {data.email}</span>
+               <span className="w-1 h-1 rounded-full bg-slate-300" />
+               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest">
+                  {data.role === "admin" ? "管理员" : "研究员"}
+               </span>
+            </div>
+            {saveError && <p className="text-xs font-bold text-red-500">{saveError}</p>}
+          </div>
+
+          <div className="flex gap-2">
+             <Button variant="outline" className="rounded-full px-6">
+                <Settings size={18} className="mr-2" />
+                设置
+             </Button>
+          </div>
+        </div>
+      </section>
+
+      {loading && (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold">
+          {error}
+        </div>
+      )}
+
+      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric title="当前等级" value={data.level} icon={<Star size={20} />} color="text-amber-500" bgColor="bg-amber-50" />
+        <Metric title="账户积分" value={data.points_balance} icon={<Wallet size={20} />} color="text-sky-500" bgColor="bg-sky-50" />
+        <Metric title="累计标注" value={data.annotation_count} icon={<ShieldCheck size={20} />} color="text-emerald-500" bgColor="bg-emerald-50" />
+        <Metric title="对战局数" value={data.battle_count} icon={<Trophy size={20} />} color="text-indigo-500" bgColor="bg-indigo-50" />
+      </section>
+
+      <section>
+        <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="px-8 pt-8">
+             <CardTitle className="text-xl font-black text-slate-800">快速导航</CardTitle>
+             <CardDescription>直达您的核心任务与历史记录</CardDescription>
+          </CardHeader>
+          <CardContent className="p-8 pt-6 grid gap-4 sm:grid-cols-2">
+            <QuickLink href="/app/points" title="积分流水明细" icon={<Wallet size={18} />} />
+            <QuickLink href="/app/history" title="标注历史记录" icon={<HistoryIcon size={18} />} />
+            <QuickLink href="/app/leaderboard" title="全球实时排行" icon={<Trophy size={18} />} />
+            {data.role === "admin" && (
+              <QuickLink href="/admin" title="管理后台入口" icon={<ShieldCheck size={18} />} />
             )}
-            <p className="mt-1 text-sm text-[#bdd4c5]">{data.email}</p>
-            <p className="mt-1 text-xs text-[#9db8a7]">
-              {data.role === "admin" ? "管理员账号" : "研究账号"}
-            </p>
-            {saveError ? <p className="mt-2 text-xs text-red-200">{saveError}</p> : null}
-          </div>
-        </div>
-      </section>
-
-      {loading ? (
-        <div className="flex justify-center py-4">
-          <Loader2 className="h-6 w-6 animate-spin text-[#d9eddf]" />
-        </div>
-      ) : null}
-
-      {error ? <p className="text-sm text-red-200">{error}</p> : null}
-
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric title="等级" value={data.level} icon={<Star className="h-4 w-4 text-[#f8e08e]" />} />
-        <Metric title="积分" value={data.points_balance} icon={<Wallet className="h-4 w-4 text-[#c2e4cf]" />} />
-        <Metric title="标注数" value={data.annotation_count} icon={<ShieldCheck className="h-4 w-4 text-[#c2e4cf]" />} />
-        <Metric title="对战数" value={data.battle_count} icon={<Trophy className="h-4 w-4 text-[#c2e4cf]" />} />
-      </section>
-
-      <section className="wg-panel p-5">
-        <p className="text-xs uppercase tracking-[0.18em] text-[#afccb9]">快捷入口</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <QuickLink href="/app/points" title="打开积分流水" icon={<Wallet className="h-4 w-4" />} />
-          <QuickLink href="/app/history" title="打开历史记录" icon={<History className="h-4 w-4" />} />
-          <QuickLink href="/app/leaderboard" title="打开排行榜" icon={<Trophy className="h-4 w-4" />} />
-          {data.role === "admin" ? (
-            <QuickLink href="/admin" title="打开管理后台" icon={<ShieldCheck className="h-4 w-4" />} />
-          ) : null}
-        </div>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
@@ -170,19 +203,27 @@ function Metric({
   title,
   value,
   icon,
+  color,
+  bgColor
 }: {
   title: string;
   value: string | number;
   icon: React.ReactNode;
+  color: string;
+  bgColor: string;
 }) {
   return (
-    <div className="wg-panel p-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-[0.14em] text-[#a8c4b2]">{title}</p>
-        {icon}
-      </div>
-      <p className="mt-2 text-xl font-semibold text-[#f2fff5]">{value}</p>
-    </div>
+    <Card className="border-none shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{title}</p>
+          <div className={cn("w-10 h-10 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 group-hover:rotate-6", bgColor, color)}>
+            {icon}
+          </div>
+        </div>
+        <p className="text-3xl font-black text-slate-900 tabular-nums">{value}</p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -198,13 +239,15 @@ function QuickLink({
   return (
     <Link
       href={href}
-      className="flex h-11 items-center justify-between rounded-md border border-[#385d46] bg-[rgba(18,35,25,0.82)] px-4 text-sm text-[#e7f7ec] transition hover:border-[#5a896c]"
+      className="group flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-primary hover:shadow-lg transition-all"
     >
-      <span className="flex items-center gap-2">
-        {icon}
-        {title}
-      </span>
-      <ArrowRight className="h-4 w-4" />
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
+          {icon}
+        </div>
+        <span className="font-bold text-slate-700 group-hover:text-slate-900">{title}</span>
+      </div>
+      <ArrowRight size={18} className="text-slate-300 group-hover:text-primary transition-all group-hover:translate-x-1" />
     </Link>
   );
 }

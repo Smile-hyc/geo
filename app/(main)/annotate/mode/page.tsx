@@ -1,83 +1,129 @@
 "use client";
 
 import Link from "next/link";
-import { Layers, Map, MapPin, Mountain, Satellite } from "lucide-react";
+import { motion } from "framer-motion";
+import { Layers, Map, MapPin, Mountain, Satellite, ChevronRight, Zap } from "lucide-react";
 import { useState } from "react";
 
 import { ANNOTATION_MODES, ANNOTATION_TYPES, type AnnotationTypeId } from "@/lib/modes";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const MODE_ICONS: Record<string, React.ReactNode> = {
-  street_view: <MapPin className="h-4 w-4 text-[#d7f2df]" />,
-  remote_sensing: <Satellite className="h-4 w-4 text-[#d7f2df]" />,
-  map_mode: <Map className="h-4 w-4 text-[#d7f2df]" />,
-  terrain: <Mountain className="h-4 w-4 text-[#d7f2df]" />,
-  mixed: <Layers className="h-4 w-4 text-[#d7f2df]" />,
+  street_view: <MapPin size={20} />,
+  remote_sensing: <Satellite size={20} />,
+  map_mode: <Map size={20} />,
+  terrain: <Mountain size={20} />,
+  mixed: <Layers size={20} />,
+};
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const item = {
+  hidden: { y: 10, opacity: 0 },
+  show: { y: 0, opacity: 1 }
 };
 
 export default function AnnotateModeSelectPage() {
   const [annotationType, setAnnotationType] = useState<AnnotationTypeId>("hybrid");
 
   return (
-    <div className="min-h-[calc(100vh-78px)] py-4">
-      <div className="grid gap-4 xl:grid-cols-[420px_1fr]">
-        <section className="wg-panel p-5">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#afccb9]">标注设置</p>
-          <h1 className="mt-3 font-['Jockey_One'] text-5xl leading-[0.9] text-[#f2fff5]">
-            选择模式
-          </h1>
-          <p className="mt-4 text-sm leading-7 text-[#c2d8c9]">
-            选择标注类型与任务场景。
-          </p>
+    <div className="py-8">
+      <div className="mb-10 text-center max-w-2xl mx-auto">
+        <h1 className="text-4xl font-black text-slate-900 mb-4">选择标注模式</h1>
+        <p className="text-slate-500">
+          根据您的专长选择合适的标注类型与任务场景，精准的数据标注是构建 AI 的核心。
+        </p>
+      </div>
 
-          <h2 className="mt-6 text-sm font-semibold uppercase tracking-[0.15em] text-[#d8eee0]">
-            标注类型
-          </h2>
-          <div className="mt-2 grid gap-2">
-            {ANNOTATION_TYPES.map((type) => (
-              <button
-                key={type.id}
-                type="button"
-                onClick={() => setAnnotationType(type.id)}
-                className={[
-                  "rounded-md border p-3 text-left transition",
-                  annotationType === type.id
-                    ? "border-[#5a8c6f] bg-[rgba(35,71,48,0.86)]"
-                    : "border-[#335643] bg-[rgba(17,33,24,0.78)] hover:border-[#4b765d]",
-                ].join(" ")}
-              >
-                <p className="text-sm font-semibold text-[#f4fff8]">{type.name}</p>
-                <p className="mt-1 text-xs text-[#bfd5c7]">{type.description}</p>
-              </button>
-            ))}
-          </div>
-        </section>
+      <div className="grid gap-8 lg:grid-cols-12">
+        {/* Left: Settings */}
+        <div className="lg:col-span-4 space-y-6">
+          <Card className="border-none shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="text-sky-500 fill-sky-500" size={20} />
+                标注类型
+              </CardTitle>
+              <CardDescription>
+                决定您将如何与地图元素交互
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              {ANNOTATION_TYPES.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => setAnnotationType(type.id)}
+                  className={cn(
+                    "flex flex-col items-start p-4 rounded-2xl transition-all border-2 text-left",
+                    annotationType === type.id
+                      ? "bg-sky-50 border-sky-500 shadow-md shadow-sky-100"
+                      : "bg-white border-slate-50 hover:border-slate-200"
+                  )}
+                >
+                  <span className={cn(
+                    "font-bold text-sm mb-1",
+                    annotationType === type.id ? "text-sky-700" : "text-slate-700"
+                  )}>
+                    {type.name}
+                  </span>
+                  <span className="text-xs text-slate-500 leading-relaxed">
+                    {type.description}
+                  </span>
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
 
-        <section className="wg-panel p-5">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#afccb9]">可用模式</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {/* Right: Available Modes */}
+        <div className="lg:col-span-8">
+          <motion.div 
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="grid gap-4 sm:grid-cols-2"
+          >
             {ANNOTATION_MODES.map((mode) => (
-              <Link
-                key={mode.id}
-                href={`/app/annotate?mode=${encodeURIComponent(mode.id)}&annotationType=${encodeURIComponent(annotationType)}`}
-                className="group rounded-md border border-[#355843] bg-[rgba(21,39,28,0.8)] p-4 transition hover:border-[#58866b] hover:bg-[rgba(29,53,38,0.88)]"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-md bg-[rgba(45,84,57,0.8)] p-2">
-                      {MODE_ICONS[mode.id] ?? <MapPin className="h-4 w-4 text-[#d7f2df]" />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[#f4fff8]">{mode.name}</p>
-                      <p className="text-xs text-[#b7d0c0]">{mode.defaultReward} 积分</p>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="mt-3 text-xs leading-6 text-[#bfd5c7]">{mode.description}</p>
-              </Link>
+              <motion.div key={mode.id} variants={item}>
+                <Link
+                  href={`/app/annotate?mode=${encodeURIComponent(mode.id)}&annotationType=${encodeURIComponent(annotationType)}`}
+                  className="group block h-full"
+                >
+                  <Card className="h-full border-none shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group-hover:bg-gradient-to-br from-white to-sky-50">
+                    <CardHeader className="flex flex-row items-center gap-4 pb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center transition-transform group-hover:rotate-6 group-hover:scale-110">
+                        {MODE_ICONS[mode.id] ?? <MapPin size={20} />}
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{mode.name}</CardTitle>
+                        <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase">
+                          +{mode.defaultReward} PTS
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-slate-500 leading-relaxed">
+                        {mode.description}
+                      </p>
+                      <div className="mt-6 flex items-center gap-2 text-xs font-bold text-sky-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        立即进入任务
+                        <ChevronRight size={14} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
             ))}
-          </div>
-        </section>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

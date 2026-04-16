@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
@@ -16,10 +17,12 @@ import {
   Trophy,
   UserCircle2,
   X,
+  Home,
 } from "lucide-react";
 
 import { useAuthStore } from "@/lib/auth";
 import { signOut } from "@/lib/cloudbase";
+import { cn } from "@/lib/utils";
 
 type NavItem = {
   href: string;
@@ -28,21 +31,29 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/app/annotate/mode", label: "\u6807\u6ce8", icon: Crosshair },
-  { href: "/app/battle", label: "\u5bf9\u6218", icon: Swords },
-  { href: "/app/rewards", label: "\u5956\u52b1", icon: Gift },
-  { href: "/app/leaderboard", label: "\u6392\u884c", icon: Trophy },
-  { href: "/app/history", label: "\u5386\u53f2", icon: History },
-  { href: "/wiki", label: "\u77e5\u8bc6\u5e93", icon: BookOpen },
+  { href: "/app/home", label: "首页", icon: Home },
+  { href: "/app/annotate/mode", label: "标注", icon: Crosshair },
+  { href: "/app/battle", label: "对战", icon: Swords },
+  { href: "/app/rewards", label: "奖励", icon: Gift },
+  { href: "/app/leaderboard", label: "排行", icon: Trophy },
+  { href: "/app/history", label: "历史", icon: History },
+  { href: "/wiki", label: "库", icon: BookOpen },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -52,128 +63,129 @@ export default function Navbar() {
     try {
       await signOut();
     } catch {
-      // Keep local logout behavior even if remote signout fails.
     } finally {
       logout();
       router.push("/auth/login");
     }
   };
 
-  const username = user?.username ?? "\u7528\u6237";
-  const level = user?.level ?? 1;
+  const username = user?.username ?? "用户";
   const points = user?.points_balance ?? 0;
-  const initials = username.trim().slice(0, 2).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#2f4b39] bg-[rgba(6,13,8,0.92)] backdrop-blur-md">
-      <div className="mx-auto flex h-[78px] w-full max-w-[1700px] items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex min-w-0 items-center gap-4">
-          <Link href="/app/home" className="inline-flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-md border border-[#3a6248] bg-[rgba(30,64,41,0.6)]">
-              <Image
-                src="/images/home/logo.png"
-                alt="GeoAnnotate 标志"
-                width={32}
-                height={32}
-                className="h-8 w-8 object-contain"
-              />
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b8d6c2]">
-                {"\u5730\u7406\u5e73\u53f0"}
-              </p>
-              <p className="font-semibold tracking-tight text-[#f2fff5]">
-                GeoAnnotate
-              </p>
-            </div>
-          </Link>
+    <header className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4">
+      <motion.nav
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className={cn(
+          "flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-300",
+          "bg-white/70 backdrop-blur-xl border border-white/40 shadow-lg",
+          scrolled ? "scale-95 shadow-xl" : "scale-100"
+        )}
+      >
+        <Link href="/app/home" className="flex items-center gap-2 px-3 py-1 mr-2">
+          <div className="relative h-8 w-8 overflow-hidden rounded-full bg-primary/10 p-1">
+            <Image
+              src="/images/home/logo.png"
+              alt="Logo"
+              fill
+              className="object-contain p-1"
+            />
+          </div>
+          <span className="hidden font-bold tracking-tight text-slate-800 lg:block">
+            GeoAnnotate
+          </span>
+        </Link>
 
-          <nav className="hidden items-center gap-1 xl:flex">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                icon={item.icon}
-                active={
-                  pathname === item.href ||
-                  (item.href !== "/wiki" && pathname.startsWith(item.href))
-                }
-              />
-            ))}
-          </nav>
+        <div className="hidden items-center gap-1 md:flex">
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              active={
+                pathname === item.href ||
+                (item.href !== "/wiki" && pathname.startsWith(item.href))
+              }
+            />
+          ))}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden items-center gap-2 lg:flex">
-            <span className="rounded-md border border-[#31503d] bg-[rgba(20,39,27,0.85)] px-3 py-1.5 text-xs text-[#d9efe0]">
-              {"\u7b49\u7ea7"} {level}
-            </span>
-            <span className="rounded-md border border-[#31503d] bg-[rgba(20,39,27,0.85)] px-3 py-1.5 text-xs text-[#d9efe0]">
-              {points} {"\u5206"}
-            </span>
+        <div className="h-6 w-px bg-slate-200 mx-2 hidden md:block" />
+
+        <div className="flex items-center gap-2">
+          <div className="hidden items-center px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold md:flex">
+            {points} pts
           </div>
 
           <Link
             href="/app/profile"
-            className="inline-flex items-center gap-2 rounded-md border border-[#395b46] bg-[rgba(25,46,32,0.88)] px-2.5 py-2 text-[#ebf9ef] transition hover:border-[#4a775c] hover:bg-[rgba(35,61,42,0.88)]"
+            className="flex items-center gap-2 p-1 pl-2 rounded-full hover:bg-slate-100 transition-colors"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[rgba(49,91,62,0.85)] text-xs font-bold">
-              {initials}
+            <div className="hidden text-right lg:block">
+              <p className="text-[10px] font-bold text-slate-400 uppercase leading-none">Profile</p>
+              <p className="text-xs font-semibold text-slate-700 leading-tight">{username}</p>
             </div>
-            <div className="hidden text-left sm:block">
-              <p className="max-w-[140px] truncate text-xs font-semibold">
-                {username}
-              </p>
-              <p className="text-[10px] text-[#b6d1bf]">{"\u4e2a\u4eba\u4e2d\u5fc3"}</p>
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-sm">
+              {username.slice(0, 1).toUpperCase()}
             </div>
-            <UserCircle2 className="hidden h-4 w-4 text-[#b6d1bf] sm:block" />
           </Link>
 
           <button
-            onClick={handleLogout}
-            className="hidden h-10 items-center gap-2 rounded-md border border-[#5c3a3a] bg-[rgba(58,22,22,0.7)] px-3 text-sm font-medium text-[#ffd9d9] transition hover:bg-[rgba(82,31,31,0.76)] md:inline-flex"
+            type="button"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="flex md:hidden p-2 rounded-full hover:bg-slate-100"
           >
-            <LogOut className="h-4 w-4" />
-            {"\u9000\u51fa"}
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
           <button
-            type="button"
-            onClick={() => setMobileOpen((state) => !state)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#355741] bg-[rgba(21,39,28,0.84)] text-[#d8ecdf] transition hover:bg-[rgba(31,55,40,0.88)] xl:hidden"
-            aria-label="\u6253\u5f00\u83dc\u5355"
+            onClick={handleLogout}
+            className="hidden p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all md:flex"
+            title="退出登录"
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <LogOut size={18} />
           </button>
         </div>
-      </div>
+      </motion.nav>
 
-      {mobileOpen ? (
-        <div className="border-t border-[#2a4433] bg-[rgba(8,18,12,0.96)] xl:hidden">
-          <nav className="mx-auto flex w-full max-w-[1700px] flex-col gap-1 px-4 py-3 sm:px-6 lg:px-8">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={`mobile-${item.href}`}
-                href={item.href}
-                label={item.label}
-                icon={item.icon}
-                active={
-                  pathname === item.href ||
-                  (item.href !== "/wiki" && pathname.startsWith(item.href))
-                }
-              />
-            ))}
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-20 left-4 right-4 bg-white/90 backdrop-blur-2xl rounded-3xl border border-white/50 shadow-2xl p-4 md:hidden"
+          >
+            <div className="grid grid-cols-3 gap-2">
+              {NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-2 p-4 rounded-2xl transition-all",
+                    pathname.startsWith(item.href)
+                      ? "bg-primary text-white shadow-lg"
+                      : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                  )}
+                >
+                  <item.icon size={20} />
+                  <span className="text-xs font-medium">{item.label}</span>
+                </Link>
+              ))}
+            </div>
             <button
               onClick={handleLogout}
-              className="mt-2 inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#664545] bg-[rgba(70,29,29,0.75)] px-3 text-sm font-medium text-[#ffe3e3]"
+              className="w-full mt-4 flex items-center justify-center gap-2 p-4 rounded-2xl bg-red-50 text-red-600 font-bold"
             >
-              <LogOut className="h-4 w-4" />
-              {"\u9000\u51fa"}
+              <LogOut size={20} />
+              退出登录
             </button>
-          </nav>
-        </div>
-      ) : null}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
@@ -192,15 +204,22 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={[
-        "inline-flex h-10 items-center gap-2 rounded-md border px-3 text-sm transition",
+      className={cn(
+        "relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300",
         active
-          ? "border-[#5d8a6f] bg-[rgba(41,78,53,0.86)] text-[#f2fff6]"
-          : "border-transparent text-[#c3d8c9] hover:border-[#40634d] hover:bg-[rgba(27,49,35,0.82)] hover:text-white",
-      ].join(" ")}
+          ? "text-primary bg-primary/10 shadow-sm"
+          : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50"
+      )}
     >
-      <Icon className={active ? "h-4 w-4 text-[#e6ffe8]" : "h-4 w-4"} />
+      <Icon size={16} className={cn(active ? "text-primary" : "text-slate-400")} />
       <span>{label}</span>
+      {active && (
+        <motion.div
+          layoutId="nav-pill"
+          className="absolute inset-0 rounded-full border border-primary/20"
+          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+        />
+      )}
     </Link>
   );
 }

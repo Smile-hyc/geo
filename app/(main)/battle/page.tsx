@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Rocket, Shield, Timer, Trophy } from "lucide-react";
+import { Loader2, Rocket, Shield, Timer, Trophy, Zap, Swords, Target, Cpu, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { createBattle } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 import {
   AI_OPPONENTS,
   BATTLE_MODES,
@@ -55,119 +58,176 @@ export default function BattleConfigPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-78px)] py-4">
-      <div className="grid gap-4 xl:grid-cols-[420px_1fr]">
-        <section className="wg-panel p-5">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#afccb9]">对战设置</p>
-          <h1 className="mt-3 font-['Jockey_One'] text-5xl leading-[0.9] text-[#f2fff5]">
-            AI 竞技场
-          </h1>
-          <p className="mt-4 text-sm leading-7 text-[#c2d8c9]">
-            选择模式后发起完整对战。
+    <div className="py-8 max-w-6xl mx-auto space-y-10">
+      <section className="text-center mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest mb-4">
+            <Swords size={14} />
+            实时对抗演练
+          </div>
+          <h1 className="text-5xl font-black text-slate-900 tracking-tight mb-4">AI 竞技场</h1>
+          <p className="text-slate-500 max-w-2xl mx-auto leading-relaxed">
+            在快节奏的多轮竞技中挑战先进的 AI 模型。通过不断的博弈，提升您的地理标注精度与速度。
           </p>
+        </motion.div>
+      </section>
 
-          <h2 className="mt-6 text-sm font-semibold uppercase tracking-[0.15em] text-[#d8eee0]">
-            模式
-          </h2>
-          <div className="mt-2 grid gap-2">
-            {BATTLE_MODES.map((battleMode) => (
-              <button
-                key={battleMode.id}
-                onClick={() => setMode(battleMode.id)}
-                className={[
-                  "rounded-md border p-3 text-left transition",
-                  mode === battleMode.id
-                    ? "border-[#5a8c6f] bg-[rgba(35,71,48,0.86)]"
-                    : "border-[#335643] bg-[rgba(17,33,24,0.78)] hover:border-[#4b765d]",
-                ].join(" ")}
-              >
-                <p className="text-sm font-semibold text-[#f4fff8]">{battleMode.label}</p>
-                <p className="mt-1 text-xs text-[#bfd5c7]">{battleMode.description}</p>
-              </button>
-            ))}
-          </div>
+      <div className="grid gap-8 lg:grid-cols-12">
+        {/* Left: Configuration */}
+        <div className="lg:col-span-4 space-y-6">
+          <Card className="border-none shadow-xl rounded-[2.5rem]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Target className="text-primary" size={20} />
+                选择对战模式
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              {BATTLE_MODES.map((battleMode) => (
+                <button
+                  key={battleMode.id}
+                  onClick={() => setMode(battleMode.id)}
+                  className={cn(
+                    "flex flex-col items-start p-4 rounded-2xl transition-all border-2 text-left",
+                    mode === battleMode.id
+                      ? "bg-primary/5 border-primary shadow-md shadow-primary/5"
+                      : "bg-white border-slate-50 hover:border-slate-200"
+                  )}
+                >
+                  <span className={cn(
+                    "font-bold text-sm mb-1",
+                    mode === battleMode.id ? "text-primary" : "text-slate-700"
+                  )}>
+                    {battleMode.label}
+                  </span>
+                  <span className="text-xs text-slate-500 leading-relaxed">
+                    {battleMode.description}
+                  </span>
+                </button>
+              ))}
+            </CardContent>
+          </Card>
 
-          <h2 className="mt-6 text-sm font-semibold uppercase tracking-[0.15em] text-[#d8eee0]">
-            AI 对手
-          </h2>
-          <div className="mt-2 grid gap-2">
-            {AI_OPPONENTS.map((opponent) => (
-              <button
-                key={opponent.id}
-                onClick={() => setAiOpponent(opponent.id)}
-                className={[
-                  "rounded-md border p-3 text-left transition",
-                  aiOpponent === opponent.id
-                    ? "border-[#5a8c6f] bg-[rgba(35,71,48,0.86)]"
-                    : "border-[#335643] bg-[rgba(17,33,24,0.78)] hover:border-[#4b765d]",
-                ].join(" ")}
-              >
-                <p className="text-sm font-semibold text-[#f4fff8]">{opponent.label}</p>
-                <p className="mt-1 text-xs text-[#bfd5c7]">{opponent.description}</p>
-              </button>
-            ))}
-          </div>
-        </section>
+          <Card className="border-none shadow-xl rounded-[2.5rem]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Cpu className="text-indigo-500" size={20} />
+                选择 AI 对手
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              {AI_OPPONENTS.map((opponent) => (
+                <button
+                  key={opponent.id}
+                  onClick={() => setAiOpponent(opponent.id)}
+                  className={cn(
+                    "flex flex-col items-start p-4 rounded-2xl transition-all border-2 text-left",
+                    aiOpponent === opponent.id
+                      ? "bg-indigo-50 border-indigo-500 shadow-md shadow-indigo-100"
+                      : "bg-white border-slate-50 hover:border-slate-200"
+                  )}
+                >
+                  <span className={cn(
+                    "font-bold text-sm mb-1",
+                    aiOpponent === opponent.id ? "text-indigo-700" : "text-slate-700"
+                  )}>
+                    {opponent.label}
+                  </span>
+                  <span className="text-xs text-slate-500 leading-relaxed">
+                    {opponent.description}
+                  </span>
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
 
-        <section className="wg-panel p-5">
-          <p className="text-xs uppercase tracking-[0.18em] text-[#afccb9]">对战参数</p>
-
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <SettingRow
-              title="限时"
-              icon={<Timer className="h-4 w-4 text-[#a9ceb8]" />}
+        {/* Right: Parameters & Summary */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <SettingCard
+              title="每轮时限"
+              icon={<Timer className="text-sky-500" size={20} />}
               options={TIME_OPTIONS}
               value={timeLimit}
               onSelect={(value) => setTimeLimit(value as (typeof TIME_OPTIONS)[number])}
-              renderValue={(value) => `${value}秒`}
+              renderValue={(value) => `${value}s`}
             />
-            <SettingRow
-              title="回合数"
-              icon={<Trophy className="h-4 w-4 text-[#a9ceb8]" />}
+            <SettingCard
+              title="总回合数"
+              icon={<Trophy className="text-amber-500" size={20} />}
               options={ROUND_OPTIONS}
               value={rounds}
               onSelect={(value) => setRounds(value as (typeof ROUND_OPTIONS)[number])}
-              renderValue={(value) => `${value}`}
+              renderValue={(value) => `${value} Rnds`}
             />
           </div>
 
-          <div className="mt-5 rounded-md border border-[#355842] bg-[rgba(16,32,23,0.86)] p-4">
-            <p className="text-xs uppercase tracking-[0.15em] text-[#a9c6b3]">摘要</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <SummaryItem label="模式" value={getBattleModeLabel(mode)} />
-              <SummaryItem label="AI 对手" value={getAiOpponentLabel(aiOpponent)} />
-              <SummaryItem label="限时" value={`${timeLimit} 秒`} />
-              <SummaryItem label="回合" value={`${rounds}`} />
-            </div>
-          </div>
+          <Card className="border-none shadow-2xl bg-slate-900 text-white rounded-[3rem] p-10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] rounded-full -mr-32 -mt-32" />
+            
+            <div className="relative z-10">
+               <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                     <Rocket className="text-primary" size={24} />
+                  </div>
+                  <div>
+                     <h3 className="text-xl font-bold">对战摘要</h3>
+                     <p className="text-slate-400 text-sm">即将开启竞技征程</p>
+                  </div>
+               </div>
 
-          {error ? (
-            <div className="mt-4 rounded-md border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-100">
-              {error}
-            </div>
-          ) : null}
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+                  <SummaryStat label="竞技模式" value={getBattleModeLabel(mode)} />
+                  <SummaryStat label="对抗级别" value={getAiOpponentLabel(aiOpponent)} />
+                  <SummaryStat label="每轮时限" value={`${timeLimit} 秒`} />
+                  <SummaryStat label="战斗回合" value={`${rounds} 回合`} />
+               </div>
 
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button
-              className="h-11 min-w-[160px] gap-2"
-              onClick={handleStart}
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
-              开始对战
-            </Button>
-            <Button variant="outline" className="h-11 gap-2" onClick={() => router.push("/app/home")}>
-              <Shield className="h-4 w-4" />
-              返回首页
-            </Button>
-          </div>
-        </section>
+               {error && (
+                 <div className="mb-6 p-4 rounded-2xl bg-rose-500/20 border border-rose-500/30 text-rose-200 text-sm font-bold flex items-center gap-2">
+                    <Zap size={18} />
+                    {error}
+                 </div>
+               )}
+
+               <div className="flex flex-col sm:flex-row gap-4">
+                  <Button
+                    size="lg"
+                    className="flex-1 h-16 rounded-[2rem] text-lg font-black shadow-xl shadow-primary/20 group"
+                    onClick={handleStart}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <Loader2 className="animate-spin" size={24} />
+                    ) : (
+                      <>
+                        发起挑战
+                        <ChevronRight className="ml-2 transition-transform group-hover:translate-x-1" size={20} />
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex-1 h-16 rounded-[2rem] text-lg font-bold bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white"
+                    onClick={() => router.push("/app/home")}
+                  >
+                    取消并返回
+                  </Button>
+               </div>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
 }
 
-function SettingRow<T extends number>({
+function SettingCard<T extends number>({
   title,
   icon,
   options,
@@ -183,36 +243,40 @@ function SettingRow<T extends number>({
   renderValue: (value: T) => string;
 }) {
   return (
-    <div className="rounded-md border border-[#355842] bg-[rgba(16,32,23,0.86)] p-4">
-      <p className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-[#b6d3c0]">
-        {icon}
-        {title}
-      </p>
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        {options.map((option) => (
-          <button
-            key={option}
-            onClick={() => onSelect(option)}
-            className={[
-              "h-9 rounded-md border text-sm transition",
-              value === option
-                ? "border-[#5b8b6f] bg-[rgba(37,74,50,0.9)] text-white"
-                : "border-[#2f4f3d] bg-[rgba(13,25,18,0.84)] text-[#cce0d2] hover:border-[#4b775f]",
-            ].join(" ")}
-          >
-            {renderValue(option)}
-          </button>
-        ))}
-      </div>
-    </div>
+    <Card className="border-none shadow-lg rounded-[2.5rem]">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
+          {icon}
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-2">
+          {options.map((option) => (
+            <button
+              key={option}
+              onClick={() => onSelect(option)}
+              className={cn(
+                "h-12 rounded-xl text-sm font-bold transition-all",
+                value === option
+                  ? "bg-slate-900 text-white shadow-lg"
+                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+              )}
+            >
+              {renderValue(option)}
+            </button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-function SummaryItem({ label, value }: { label: string; value: string }) {
+function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-[#2f4f3d] bg-[rgba(12,23,17,0.84)] px-3 py-2">
-      <p className="text-[10px] uppercase tracking-[0.14em] text-[#9db8a8]">{label}</p>
-      <p className="mt-1 text-sm text-[#e6f6eb]">{value}</p>
+    <div className="space-y-1">
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="text-lg font-bold text-white tracking-tight">{value}</p>
     </div>
   );
 }

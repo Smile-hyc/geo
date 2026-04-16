@@ -1,14 +1,17 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  BookOpen,
   Database,
   FlaskConical,
   GitBranch,
   LibraryBig,
   Rocket,
   Wrench,
+  BookOpen,
+  HelpCircle,
 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type WikiItem = {
   href: string;
@@ -73,57 +76,68 @@ const RESOURCE_ITEMS: WikiItem[] = [
 
 export default function WikiPage() {
   return (
-    <div className="space-y-8 text-[#e6f7eb]">
-      <section className="wg-panel p-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-[#b8d6c2]">知识库</p>
-        <div className="mt-3 flex items-start justify-between gap-4">
+    <div className="space-y-12">
+      <section>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
           <div>
-            <h1 className="flex items-center gap-2 text-3xl font-semibold">
-              <LibraryBig className="h-7 w-7 text-[#9bd0ad]" />
-              GeoAnnotate 知识库
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-[10px] font-black uppercase tracking-widest mb-4">
+              <LibraryBig size={14} />
+              知识库中心
+            </div>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+              GeoAnnotate Wiki
             </h1>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-[#c5dacd]">
-              用于入门、数据处理、标注流程与运营规范的结构化文档。
+            <p className="mt-2 text-slate-500 max-w-2xl leading-relaxed">
+              用于入门、数据处理、标注流程与运营规范的结构化文档。在这里您可以找到关于平台的一切技术细节。
             </p>
           </div>
-          <Link
-            href="/wiki/faq"
-            className="inline-flex h-10 items-center gap-2 rounded-md border border-[#4a765b] bg-[rgba(31,66,44,0.85)] px-4 text-sm font-medium text-white"
-          >
-            常见问题
-            <ArrowRight className="h-4 w-4" />
+          <Link href="/wiki/faq">
+            <Button className="rounded-full shadow-lg shadow-sky-100 px-6">
+              常见问题
+              <HelpCircle size={18} className="ml-2" />
+            </Button>
           </Link>
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-12 lg:grid-cols-2">
         <WikiGroup title="入门指南" items={START_ITEMS} />
         <WikiGroup title="资源中心" items={RESOURCE_ITEMS} />
-      </section>
+      </div>
     </div>
   );
 }
 
 function WikiGroup({ title, items }: { title: string; items: WikiItem[] }) {
   return (
-    <div className="wg-panel p-5">
-      <h2 className="mb-4 text-lg font-semibold text-[#effff4]">{title}</h2>
-      <div className="grid gap-3">
+    <div className="space-y-6">
+      <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+        <span className="w-8 h-1 bg-primary rounded-full" />
+        {title}
+      </h2>
+      <div className="grid gap-4">
         {items.map((item) => {
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="group rounded-md border border-[#355843] bg-[rgba(21,39,28,0.8)] p-4 transition hover:border-[#58866b] hover:bg-[rgba(29,53,38,0.88)]"
+              className="group block"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-[#f4fff7]">{item.title}</p>
-                  <p className="mt-1 text-xs leading-6 text-[#bad3c2]">{item.desc}</p>
-                </div>
-                <Icon className="h-4 w-4 text-[#9bcdb0] transition group-hover:text-white" />
-              </div>
+              <Card className="border-none shadow-md hover:shadow-xl transition-all duration-300 group-hover:translate-x-1 group-hover:bg-sky-50/30">
+                <CardContent className="p-6 flex items-start justify-between gap-4">
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-primary transition-colors">
+                      <Icon size={20} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800 group-hover:text-primary transition-colors">{item.title}</h3>
+                      <p className="mt-1 text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                  <ArrowRight size={18} className="text-slate-300 group-hover:text-primary transition-colors mt-1" />
+                </CardContent>
+              </Card>
             </Link>
           );
         })}

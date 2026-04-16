@@ -11,20 +11,24 @@ import {
   RefreshCw, 
   Settings2, 
   SendHorizontal,
-  Target
+  Target,
+  ChevronRight,
+  ShieldCheck,
+  Zap,
+  Layers,
+  Sparkles
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import BBoxCanvas, { type BBox } from "@/components/annotation/BBoxCanvas";
 import ThoughtInput, { type ThoughtData } from "@/components/annotation/ThoughtInput";
 import LocationMap from "@/components/map/LocationMap";
 import { getNextTask, getTempFileURL, submitAnnotation } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
 import { getAnnotationTypeName, getModeName } from "@/lib/modes";
-
-const primaryButtonStyle =
-  "rounded-md border border-[#4c775c] bg-[rgba(36,87,52,0.9)] px-8 py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.99] inline-flex items-center gap-2 disabled:opacity-50";
-const secondaryButtonStyle =
-  "rounded-md border border-[#3d624b] bg-[rgba(18,36,26,0.86)] px-8 py-3 text-sm font-semibold text-[#deefe4] transition hover:border-[#5a886c] active:scale-[0.99] inline-flex items-center gap-2";
+import { cn } from "@/lib/utils";
 
 interface Task {
   id: number;
@@ -55,7 +59,7 @@ function AnnotateContent() {
   const [bboxes, setBboxes] = useState<BBox[]>([]);
   const [thought, setThought] = useState<ThoughtData>(INIT_THOUGHT);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(true);
+  const [submitted, setSubmitted] = useState(false);
 
   const needsReasoning = annotationType === "reasoning" || annotationType === "hybrid";
   const needsBoxes = annotationType === "bbox" || annotationType === "hybrid";
@@ -131,191 +135,216 @@ function AnnotateContent() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-transparent">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-        <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">正在检索地理数据...</p>
+      <div className="flex flex-col items-center justify-center min-h-[600px]">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          className="w-16 h-16 rounded-[2rem] border-4 border-sky-100 border-t-primary mb-6"
+        />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">正在检索全球地理数据节点...</p>
       </div>
     );
   }
 
   if (submitted) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-transparent px-6 text-center">
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-md border border-[#4b7c60] bg-[rgba(28,61,40,0.86)] text-green-300">
-          <CheckCircle className="h-10 w-10" />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center justify-center min-h-[600px] text-center px-6"
+      >
+        <div className="mb-8 w-24 h-24 rounded-[2.5rem] bg-emerald-50 text-emerald-500 flex items-center justify-center shadow-2xl shadow-emerald-100 border-4 border-white">
+          <CheckCircle size={48} />
         </div>
-        <h2 className="mb-2 text-3xl font-extrabold text-slate-900">标注提交成功</h2>
-        <p className="mb-10 max-w-md text-slate-500 font-medium">您的贡献已记录。标注结果已同步至云端，相应积分将在审核完成后发放。</p>
+        <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">标注提交成功</h2>
+        <p className="max-w-md text-slate-500 font-medium leading-relaxed mb-10">
+          您的贡献已记录。标注结果已同步至云端，相应积分将在专家审核完成后发放。
+        </p>
         <div className="flex gap-4">
-          <button onClick={loadTask} className={primaryButtonStyle}>
-            继续下一题 <RefreshCw className="h-4 w-4" />
-          </button>
-          <Link href="/app/home" className={secondaryButtonStyle}>返回首页</Link>
+          <Button onClick={loadTask} size="lg" className="rounded-full px-8 h-14 text-base">
+            继续下一题 <RefreshCw className="ml-2 h-5 w-5" />
+          </Button>
+          <Link href="/app/home">
+            <Button variant="outline" size="lg" className="rounded-full px-8 h-14 text-base">
+              返回首页
+            </Button>
+          </Link>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (!task || !mode) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center px-6 text-center">
-        <AlertCircle className="mb-4 h-12 w-12 text-rose-500 opacity-50" />
-        <p className="mb-6 font-bold text-slate-700">{error ?? "未识别到有效的标注配置。"}</p>
-        <Link href="/app/annotate/mode" className={primaryButtonStyle}>重新配置模式</Link>
+      <div className="flex flex-col items-center justify-center min-h-[600px] text-center px-6">
+        <div className="w-20 h-20 rounded-[2rem] bg-rose-50 text-rose-500 flex items-center justify-center mb-6">
+          <AlertCircle size={40} />
+        </div>
+        <p className="text-xl font-bold text-slate-700 mb-8">{error ?? "未识别到有效的标注配置。"}</p>
+        <Link href="/app/annotate/mode">
+          <Button className="rounded-full px-10 h-14">重新配置模式</Button>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-transparent flex flex-col">
-      <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-6 py-6 md:px-12 lg:px-16 overflow-hidden">
-        
-        {/* Header */}
-        <header className="mb-6 flex items-end justify-between shrink-0">
-          <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.3em] text-blue-500 opacity-80">
-              Active Task / ID: {task.id}
-            </p>
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 md:text-3xl">
-              {getModeName(mode)} <span className="text-blue-600 ml-1">· {getAnnotationTypeName(annotationType)}</span>
-            </h1>
-            <div className="mt-2 flex items-center gap-3">
-              <span className="rounded-lg bg-white px-2.5 py-1 text-[10px] font-bold text-slate-600 shadow-sm border border-slate-100 uppercase">
-                难度系数 {task.difficulty}
-              </span>
-              <div className="h-1 w-1 rounded-full bg-slate-300" />
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                Tags: {task.mode_tags.join(", ") || "General"}
-              </span>
-            </div>
+    <div className="pb-12">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-[10px] font-black uppercase tracking-widest mb-4">
+            <Layers size={14} />
+            任务编号: {task.id}
           </div>
-          
-          <div className="flex gap-3">
-            <Link href="/app/annotate/mode" className={secondaryButtonStyle + " px-4 py-2 text-[11px]"}>
-              <Settings2 className="h-3.5 w-3.5 text-blue-500" /> 修改配置
-            </Link>
-            <button onClick={loadTask} className={secondaryButtonStyle + " px-4 py-2 text-[11px]"}>
-              <RefreshCw className="h-3.5 w-3.5 text-slate-400" /> 换一题
-            </button>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+            {getModeName(mode)} <span className="text-primary">· {getAnnotationTypeName(annotationType)}</span>
+          </h1>
+          <div className="mt-4 flex items-center gap-4">
+             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-100 shadow-sm">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">难度</span>
+                <span className="text-xs font-black text-slate-700">{task.difficulty}</span>
+             </div>
+             <div className="flex flex-wrap gap-2">
+                {task.mode_tags.map(tag => (
+                   <span key={tag} className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md uppercase">#{tag}</span>
+                ))}
+             </div>
           </div>
-        </header>
-
-        {/* 主工作区 */}
-        <div className="grid flex-1 grid-cols-1 gap-6 overflow-hidden lg:grid-cols-12 pb-4">
-          
-          {/* 左侧：画布区 - 修正了高度扩展逻辑 */}
-          <section className="lg:col-span-7 overflow-y-auto pr-1 custom-scrollbar">
-            <div className="wg-panel flex min-h-0 flex-col">
-              <div className="flex items-center justify-between border-b border-slate-50 px-6 py-4 shrink-0">
-                <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
-                  <Target className="h-4 w-4 text-blue-600" />
-                  地理元素识别
-                </h3>
-                <span className="text-[9px] font-mono text-slate-300 tracking-tighter">画布渲染引擎 V2</span>
-              </div>
-              
-              {/* 这里去掉 flex-1，使用默认高度，让它随内容撑开 */}
-              <div className="relative bg-[rgba(12,22,16,0.72)] p-4 shrink-0 overflow-hidden">
-                {task.imageUrl && (
-                  <BBoxCanvas 
-                    imageUrl={task.imageUrl} 
-                    bboxes={bboxes} 
-                    onChange={setBboxes} 
-                  />
-                )}
-              </div>
-
-              {/* 标注列表展示区：确保这部分内容也在白色容器内，且能撑开容器 */}
-              <div className="flex-1 bg-white rounded-b-[32px]">
-                {/* 这里的 BBoxCanvas 内部逻辑会自动渲染标注列表 */}
-                {/* 确保 BBoxCanvas 内部的标注列表没有设置绝对定位，否则会脱离文档流导致背景不跟随 */}
-              </div>
-            </div>
-          </section>
-
-          {/* 右侧：推理与信息区 */}
-          <section className="lg:col-span-5 overflow-y-auto pr-1 custom-scrollbar">
-            <div className="flex flex-col gap-4">
-              {needsReasoning && (
-                <div className="wg-panel p-6">
-                  <h3 className="mb-4 text-xs font-bold text-slate-800 flex items-center gap-2 uppercase tracking-widest">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                    思维链记录
-                  </h3>
-                  <ThoughtInput value={thought} onChange={setThought} />
-                </div>
-              )}
-
-              {task.lat != null && (
-                <div className="wg-panel p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2 uppercase tracking-widest">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      元数据参考
-                    </h3>
-                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                      真实坐标
-                    </span>
-                  </div>
-                  <LocationMap
-                    lat={task.lat}
-                    lng={task.lng!}
-                    description={task.true_location ?? "当前任务的位置元数据。"}
-                  />
-                </div>
-              )}
-
-              {/* 提交区域 */}
-              <div className="wg-panel border-[#3e694f] p-8">
-                <div className="mb-6">
-                  <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">准备就绪？</h3>
-                  <p className="text-xs font-medium text-slate-500 mt-1">
-                    请确保标注框与推理说明逻辑严密。完成后点击下方按钮同步。
-                  </p>
-                </div>
-                
-                {error && (
-                  <div className="mb-4 flex items-center gap-2 rounded-2xl bg-rose-50 p-4 text-xs font-bold text-rose-500 border border-rose-100">
-                    <AlertCircle className="h-4 w-4 shrink-0" /> {error}
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-4">
-                  <button 
-                    onClick={handleSubmit} 
-                    disabled={submitting} 
-                    className={primaryButtonStyle + " w-full justify-center py-4 text-base"}
-                  >
-                    {submitting ? "正在同步云端..." : "提交标注任务"}
-                    <SendHorizontal className={`h-5 w-5 ml-1 ${submitting ? 'animate-pulse' : ''}`} />
-                  </button>
-                  
-                  <div className="flex items-center justify-between px-2">
-                    <Link 
-                      href="/app/home" 
-                      className="text-[11px] font-bold text-slate-400 hover:text-rose-500 transition-colors"
-                    >
-                      放弃当前任务
-                    </Link>
-                    <span className="text-[9px] font-mono text-slate-300 uppercase tracking-widest">平台版本 1.0</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
         </div>
 
-        {/* Footer */}
-        <footer className="mt-auto flex items-center justify-between border-t border-slate-100 py-4 shrink-0">
-          <Link href="/app/annotate/mode" className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-blue-600 transition-colors">
-            <ArrowLeft className="h-3.5 w-3.5" /> 返回配置页
-          </Link>
-          <div className="h-px flex-1 mx-8 bg-[#2c4a39]" />
-          <p className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em]">
-            精准数据采集
-          </p>
-        </footer>
-      </main>
+        <div className="flex gap-3">
+           <Link href="/app/annotate/mode">
+              <Button variant="outline" size="sm" className="rounded-full px-4 h-10 border-slate-200">
+                <Settings2 size={16} className="mr-2 text-slate-400" /> 修改配置
+              </Button>
+           </Link>
+           <Button variant="outline" size="sm" onClick={loadTask} className="rounded-full px-4 h-10 border-slate-200">
+              <RefreshCw size={16} className="mr-2 text-slate-400" /> 换一题
+           </Button>
+        </div>
+      </header>
+
+      <div className="grid gap-10 lg:grid-cols-12">
+        {/* Main Canvas Area */}
+        <div className="lg:col-span-7 space-y-6">
+           <Card className="border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-slate-900">
+              <div className="flex items-center justify-between px-8 py-4 border-b border-white/5">
+                 <h3 className="text-xs font-black text-white/40 flex items-center gap-2 uppercase tracking-[0.2em]">
+                    <Target className="text-primary" size={16} />
+                    地理元素识别引擎
+                 </h3>
+                 <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Live Engine</span>
+                 </div>
+              </div>
+              <div className="p-4 bg-slate-800/50">
+                 {task.imageUrl && (
+                   <BBoxCanvas 
+                     imageUrl={task.imageUrl} 
+                     bboxes={bboxes} 
+                     onChange={setBboxes} 
+                   />
+                 )}
+              </div>
+           </Card>
+
+           <div className="grid gap-6 sm:grid-cols-2">
+              <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-indigo-600 text-white relative overflow-hidden group">
+                 <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+                 <ShieldCheck size={40} className="mb-4 text-indigo-200" />
+                 <h3 className="text-xl font-black mb-2 tracking-tight">品质保障</h3>
+                 <p className="text-xs text-indigo-100 leading-relaxed font-medium">
+                    您的标注将进入多重校验流程。保持高精度的标注记录将获得额外的“卓越贡献者”勋章与积分加成。
+                 </p>
+              </Card>
+              <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-sky-600 text-white relative overflow-hidden group">
+                 <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+                 <Sparkles size={40} className="mb-4 text-sky-200" />
+                 <h3 className="text-xl font-black mb-2 tracking-tight">积分回馈</h3>
+                 <p className="text-xs text-sky-100 leading-relaxed font-medium">
+                    当前任务成功提交后，系统将即时锁定预支积分。每日完成 20 组有效标注可激活“连胜奖励”。
+                 </p>
+              </Card>
+           </div>
+        </div>
+
+        {/* Info & Inputs Area */}
+        <div className="lg:col-span-5 space-y-8">
+           {needsReasoning && (
+             <Card className="border-none shadow-xl rounded-[2.5rem] p-8">
+                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                   <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                   思维链推理
+                </h3>
+                <ThoughtInput value={thought} onChange={setThought} />
+             </Card>
+           )}
+
+           {task.lat != null && (
+             <Card className="border-none shadow-xl rounded-[2.5rem] p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                     坐标元数据
+                  </h3>
+                  <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase tracking-tighter">
+                     已加密验证
+                  </span>
+                </div>
+                <LocationMap
+                  lat={task.lat}
+                  lng={task.lng!}
+                  description={task.true_location ?? "当前地理任务的绝对位置参考。"}
+                />
+             </Card>
+           )}
+
+           <Card className="border-none shadow-2xl rounded-[3rem] p-10 bg-slate-900 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full -mr-32 -mt-32" />
+              
+              <div className="relative z-10">
+                 <h3 className="text-2xl font-black tracking-tight mb-2">准备好同步了吗？</h3>
+                 <p className="text-xs font-medium text-slate-400 mb-8 leading-relaxed">
+                    请在提交前仔细检查标注框的完整性与思维链的逻辑严密性。
+                 </p>
+
+                 {error && (
+                   <div className="mb-6 p-4 rounded-2xl bg-rose-500/20 border border-rose-500/30 text-rose-200 text-sm font-bold flex items-center gap-2">
+                      <Zap size={18} />
+                      {error}
+                   </div>
+                 )}
+
+                 <Button 
+                    size="lg" 
+                    className="w-full h-16 rounded-[2rem] text-lg font-black shadow-xl shadow-primary/30 group"
+                    onClick={handleSubmit} 
+                    disabled={submitting} 
+                 >
+                    {submitting ? (
+                       <Loader2 size={24} className="animate-spin" />
+                    ) : (
+                       <>
+                          同步标注结果
+                          <SendHorizontal size={20} className="ml-2 transition-transform group-hover:translate-x-1" />
+                       </>
+                    )}
+                 </Button>
+
+                 <div className="flex items-center justify-between mt-6 px-4">
+                    <button 
+                       onClick={() => router.push("/app/home")}
+                       className="text-xs font-bold text-slate-500 hover:text-white transition-colors"
+                    >
+                       放弃任务
+                    </button>
+                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Protocol 4.0</span>
+                 </div>
+              </div>
+           </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -323,8 +352,8 @@ function AnnotateContent() {
 export default function AnnotatePage() {
   return (
     <Suspense fallback={
-      <div className="flex h-screen items-center justify-center bg-transparent">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="flex flex-col items-center justify-center min-h-[600px]">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     }>
       <AnnotateContent />

@@ -12,12 +12,14 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  Mail,
   UserPlus,
+  ArrowLeft,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { getLoginState, signUpWithEmail, syncUserToDb } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
 
@@ -108,123 +110,129 @@ export default function RegisterPage() {
 
   if (step === "verify") {
     return (
-      <div className="wg-panel p-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-[#abc8b6]">邮箱验证</p>
-        <h1 className="mt-2 text-2xl font-semibold text-[#f2fff5]">验证账号</h1>
-        <p className="mt-1 text-sm text-[#bed5c5]">请输入发送到 {pendingEmail} 的验证码。</p>
-
-        <div className="mt-6 space-y-4">
+      <Card className="border-none shadow-2xl">
+        <CardHeader>
+          <CardTitle className="text-3xl font-black">验证邮箱</CardTitle>
+          <CardDescription>
+            请输入发送到 {pendingEmail} 的验证码。
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
           {error ? (
-            <div className="flex items-center gap-2 rounded-md border border-red-400/40 bg-red-500/10 px-3 py-2 text-xs text-red-100">
-              <AlertCircle className="h-4 w-4" />
+            <div className="flex items-center gap-2 rounded-2xl bg-red-50 p-4 text-sm text-red-600 border border-red-100">
+              <AlertCircle size={18} />
               {error}
             </div>
           ) : null}
 
-          <div className="space-y-1.5">
-            <Label htmlFor="otp" className="text-xs uppercase tracking-[0.14em] text-[#aac6b4]">
-              验证码
-            </Label>
+          <div className="space-y-2">
+            <Label htmlFor="otp">验证码</Label>
             <Input
               id="otp"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               maxLength={10}
-              className="text-center tracking-[0.2em]"
+              className="text-center tracking-[0.5em] text-2xl font-bold rounded-2xl h-16"
               autoFocus
             />
           </div>
 
-          <button
-            type="button"
-            onClick={onVerify}
-            disabled={verifying}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-[#4b795d] bg-[rgba(36,87,52,0.9)] text-sm font-semibold text-white"
-          >
-            {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            验证
-          </button>
+          <Button onClick={onVerify} className="w-full h-12" disabled={verifying}>
+            {verifying ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
+            完成验证
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={() => {
               setStep("form");
               setOtp("");
               setError(null);
             }}
-            className="inline-flex h-11 w-full items-center justify-center rounded-md border border-[#3f644c] bg-[rgba(20,37,27,0.82)] text-sm font-semibold text-[#deefe4]"
+            className="w-full h-12"
           >
-            返回
-          </button>
-        </div>
-      </div>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回修改信息
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="wg-panel p-6">
-      <p className="text-xs uppercase tracking-[0.18em] text-[#abc8b6]">身份验证</p>
-      <h1 className="mt-2 text-2xl font-semibold text-[#f2fff5]">注册</h1>
-      <p className="mt-1 text-sm text-[#bed5c5]">创建账号后即可开始标注任务。</p>
+    <Card className="border-none shadow-2xl">
+      <CardHeader>
+        <CardTitle className="text-3xl font-black">注册</CardTitle>
+        <CardDescription>
+          开启您的地理标注竞技之旅。
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {error ? (
+            <div className="flex items-center gap-2 rounded-2xl bg-red-50 p-4 text-sm text-red-600 border border-red-100">
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          ) : null}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
-        {error ? (
-          <div className="flex items-center gap-2 rounded-md border border-red-400/40 bg-red-500/10 px-3 py-2 text-xs text-red-100">
-            <AlertCircle className="h-4 w-4" />
-            {error}
-          </div>
-        ) : null}
+          <Field label="用户名" error={errors.username?.message}>
+            <Input placeholder="您的称呼" className="rounded-2xl h-12" {...register("username")} />
+          </Field>
+          
+          <Field label="邮箱" error={errors.email?.message}>
+            <Input type="email" placeholder="name@example.com" className="rounded-2xl h-12" {...register("email")} />
+          </Field>
 
-        <Field label="用户名" error={errors.username?.message}>
-          <Input {...register("username")} />
-        </Field>
-        <Field label="邮箱" error={errors.email?.message}>
-          <Input type="email" {...register("email")} />
-        </Field>
-        <Field label="密码" error={errors.password?.message}>
-          <div className="relative">
-            <Input type={showPassword ? "text" : "password"} className="pr-10" {...register("password")} />
-            <button
-              type="button"
-              onClick={() => setShowPassword((state) => !state)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#b6cdbf]"
-              aria-label="切换密码可见性"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </Field>
-        <Field label="确认密码" error={errors.confirmPassword?.message}>
-          <div className="relative">
-            <Input type={showConfirmPassword ? "text" : "password"} className="pr-10" {...register("confirmPassword")} />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword((state) => !state)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#b6cdbf]"
-              aria-label="切换确认密码可见性"
-            >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </Field>
+          <Field label="密码" error={errors.password?.message}>
+            <div className="relative">
+              <Input 
+                type={showPassword ? "text" : "password"} 
+                className="pr-12 rounded-2xl h-12" 
+                {...register("password")} 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </Field>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-[#4b795d] bg-[rgba(36,87,52,0.9)] text-sm font-semibold text-white"
-        >
-          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-          注册
-        </button>
-      </form>
+          <Field label="确认密码" error={errors.confirmPassword?.message}>
+            <div className="relative">
+              <Input 
+                type={showConfirmPassword ? "text" : "password"} 
+                className="pr-12 rounded-2xl h-12" 
+                {...register("confirmPassword")} 
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </Field>
 
-      <p className="mt-5 text-center text-xs text-[#bfd5c7]">
-        已有账号？{" "}
-        <Link href="/auth/login" className="font-semibold text-[#f2fff5]">
-          登录
-        </Link>
-      </p>
-    </div>
+          <Button type="submit" className="w-full h-12 text-base" disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <UserPlus className="mr-2 h-5 w-5" />}
+            立即注册
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-center border-t border-slate-50 pt-6">
+        <p className="text-sm text-slate-500">
+          已有账号？{" "}
+          <Link href="/auth/login" className="font-bold text-primary hover:underline">
+            返回登录
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -238,10 +246,10 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-xs uppercase tracking-[0.14em] text-[#aac6b4]">{label}</Label>
+    <div className="space-y-2">
+      <Label className="ml-1">{label}</Label>
       {children}
-      {error ? <p className="text-xs text-red-200">{error}</p> : null}
+      {error ? <p className="text-xs font-bold text-red-500 ml-1">{error}</p> : null}
     </div>
   );
 }

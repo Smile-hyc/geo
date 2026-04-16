@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Jockey+One&family=Lexend:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,211 +6,119 @@
 
 @layer base {
   :root {
-    --background: 228 35% 8%;
-    --foreground: 0 0% 98%;
-    --card: 145 38% 14%;
-    --card-foreground: 0 0% 98%;
-    --muted: 145 16% 22%;
-    --muted-foreground: 140 14% 72%;
-    --border: 145 22% 26%;
-    --input: 145 22% 26%;
-    --primary: 145 42% 34%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 146 21% 18%;
-    --secondary-foreground: 0 0% 96%;
-    --accent: 145 26% 20%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 78% 58%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 199 89% 48%;
+
+    --radius: 1rem;
   }
 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 199 89% 48%;
+  }
+}
+
+@layer base {
   * {
     @apply border-border;
   }
-
-  html,
-  body {
-    min-height: 100%;
-  }
-
   body {
     @apply bg-background text-foreground antialiased;
     font-family: "Lexend", sans-serif;
-    background-color: #060b08;
-    background-image:
-      radial-gradient(circle at 10% 12%, rgba(63, 133, 84, 0.18), transparent 36%),
-      radial-gradient(circle at 86% 8%, rgba(96, 175, 120, 0.14), transparent 30%),
-      radial-gradient(circle at 50% 92%, rgba(42, 77, 54, 0.2), transparent 44%),
-      linear-gradient(180deg, #08100b 0%, #050906 62%, #040705 100%);
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(199, 89%, 48%, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(180, 100%, 50%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(210, 100%, 50%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(200, 100%, 70%, 0.1) 0px, transparent 50%);
     background-attachment: fixed;
-  }
-
-  h1,
-  h2,
-  h3 {
-    letter-spacing: 0;
   }
 }
 
 @layer components {
-  .wg-shell {
-    position: relative;
-    min-height: 100vh;
-    color: #f6fff9;
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-glass;
   }
 
-  .wg-shell::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background:
-      linear-gradient(120deg, rgba(36, 87, 52, 0.38) 0%, rgba(11, 24, 15, 0.1) 52%, rgba(3, 7, 4, 0.6) 100%);
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-sm border border-white/30 shadow-glass-sm hover:shadow-glass transition-all duration-300;
   }
 
-  .wg-content {
-    position: relative;
-    z-index: 1;
-    min-height: calc(100vh - 78px);
+  .glass-button {
+    @apply bg-white/40 backdrop-blur-md border border-white/50 hover:bg-white/60 active:scale-95 transition-all;
   }
 
-  .wg-panel {
-    border: 1px solid rgba(118, 163, 131, 0.25);
-    border-radius: 8px;
-    background: rgba(17, 30, 21, 0.76);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
-    backdrop-filter: blur(6px);
-  }
-
-  .wg-stripe {
-    border-bottom: 1px solid rgba(133, 169, 144, 0.22);
-    background: linear-gradient(
-      90deg,
-      rgba(36, 87, 52, 0.36) 0%,
-      rgba(20, 44, 28, 0.2) 56%,
-      rgba(12, 27, 18, 0.15) 100%
-    );
-  }
-
-  .wg-text-muted {
-    color: rgba(227, 242, 232, 0.7);
+  .nav-blur {
+    @apply sticky top-4 z-50 mx-auto max-w-fit px-6 py-3 rounded-full bg-white/70 backdrop-blur-xl border border-white/40 shadow-lg;
   }
 }
 
-.wiki-doc .wiki-article {
-  --wiki-text: #d8e6dc;
-  --wiki-heading: #f3fff6;
-  --wiki-muted: #9eb6a4;
-  --wiki-link: #88c89b;
-  --wiki-code-bg: #1b2d23;
-  --wiki-border: #335341;
+/* Animations */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
 }
-
-.wiki-doc .wiki-article h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--wiki-heading);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--wiki-border);
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
 }
-
-.wiki-doc .wiki-article h2 {
-  font-size: 1.35rem;
-  font-weight: 600;
-  color: var(--wiki-heading);
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
 }
-
-.wiki-doc .wiki-article h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--wiki-heading);
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.wiki-doc .wiki-article p {
-  color: var(--wiki-text);
-  line-height: 1.72;
-  margin-bottom: 1rem;
-}
-
-.wiki-doc .wiki-article ul,
-.wiki-doc .wiki-article ol {
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-  color: var(--wiki-text);
-  line-height: 1.7;
-}
-
-.wiki-doc .wiki-article li {
-  margin-bottom: 0.35rem;
-}
-
-.wiki-doc .wiki-article a {
-  color: var(--wiki-link);
-  text-decoration: none;
-}
-
-.wiki-doc .wiki-article a:hover {
-  text-decoration: underline;
-}
-
-.wiki-doc .wiki-article code {
-  background: var(--wiki-code-bg);
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-  font-size: 0.9em;
-  color: #b9f9cc;
-}
-
-.wiki-doc .wiki-article pre {
-  background: #0d1711;
-  color: #e6f7eb;
-  padding: 1rem 1.25rem;
-  border-radius: 6px;
-  overflow-x: auto;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.wiki-doc .wiki-article pre code {
-  background: none;
-  padding: 0;
-  color: inherit;
-}
-
-.wiki-doc .wiki-article blockquote {
-  border-left: 4px solid var(--wiki-border);
-  padding-left: 1rem;
-  margin: 1rem 0;
-  color: var(--wiki-muted);
-}
-
-.wiki-doc .wiki-article hr {
-  border: none;
-  border-top: 1px solid var(--wiki-border);
-  margin: 2rem 0;
-}
-
-.wiki-doc .wiki-article table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-.wiki-doc .wiki-article th,
-.wiki-doc .wiki-article td {
-  border: 1px solid var(--wiki-border);
-  padding: 0.5rem 0.75rem;
-  text-align: left;
-}
-
-.wiki-doc .wiki-article th {
-  background: var(--wiki-code-bg);
-  font-weight: 600;
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
 }

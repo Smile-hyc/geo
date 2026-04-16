@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Coins, Gift, Loader2, ShoppingBag } from "lucide-react";
+import Link from "next/link";
+import { Coins, Gift, Loader2, ShoppingBag, ArrowRight, Zap, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { listPrizes, redeemPrize } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 interface Prize {
   id: number;
@@ -79,88 +82,131 @@ export default function RewardsPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <section className="wg-panel p-5">
-        <div className="flex items-center gap-2">
-          <Gift className="h-5 w-5 text-[#b2cfbb]" />
-          <h1 className="text-xl font-semibold text-[#f2fff5]">积分奖励</h1>
+    <div className="py-8 max-w-6xl mx-auto space-y-12">
+      <section className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest mb-4">
+            <Gift size={14} />
+            积分商城
+          </div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">专属奖励</h1>
+          <p className="mt-2 text-slate-500 max-w-2xl leading-relaxed">
+            您的每一份贡献都转化为实实在在的奖励。浏览我们的精选礼品库，使用您的积分进行兑换。
+          </p>
         </div>
-        <p className="mt-1 text-sm text-[#c1d6c8]">使用积分兑换可用奖品</p>
-        <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-[#3d634c] bg-[rgba(17,35,24,0.82)] px-3 py-2 text-sm text-[#deefe4]">
-          <Coins className="h-4 w-4" />
-          当前余额：<span className="font-semibold">{user?.points_balance ?? 0}</span>
-        </div>
+
+        <Card className="border-none shadow-xl bg-gradient-to-br from-primary to-blue-600 text-white p-6 rounded-[2.5rem] md:min-w-[240px]">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">当前可用积分</span>
+            <div className="flex items-end gap-2 mt-2">
+              <span className="text-4xl font-black leading-none">{user?.points_balance ?? 0}</span>
+              <Coins size={24} className="mb-1" />
+            </div>
+            <div className="mt-4 pt-4 border-t border-white/20">
+               <Link href="/app/points" className="text-xs font-bold flex items-center gap-1 hover:underline">
+                  查看流水详情 <ArrowRight size={12} />
+               </Link>
+            </div>
+          </div>
+        </Card>
       </section>
 
       {error ? (
-        <div className="rounded-md border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-100">{error}</div>
+        <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold flex items-center gap-2">
+          <Zap size={18} />
+          {error}
+        </div>
       ) : null}
 
       {loading ? (
-        <div className="flex justify-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-[#d9eddf]" />
+        <div className="flex flex-col items-center justify-center py-24 text-slate-400">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p className="text-sm font-bold">正在同步奖励库存...</p>
         </div>
       ) : null}
 
       {!loading && prizes.length === 0 && !error ? (
-        <Card>
-          <CardContent className="py-12 text-center text-[#bfd4c6]">
-            <ShoppingBag className="mx-auto mb-2 h-8 w-8 opacity-80" />
-            暂无可兑换奖励。
+        <Card className="border-dashed border-2 border-slate-200 shadow-none bg-transparent">
+          <CardContent className="py-24 text-center text-slate-400">
+            <ShoppingBag size={48} className="mx-auto mb-4 opacity-10" />
+            <p className="text-lg font-bold">货架暂时空空如也</p>
+            <p className="text-sm">管理员正在快马加鞭上架新奖品</p>
           </CardContent>
         </Card>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {prizes.map((prize) => (
-          <Card key={prize.id} className="overflow-hidden">
-            <div className="aspect-video border-b border-[#2f4c3a] bg-[rgba(13,25,18,0.82)]">
-              {prize.image_url ? (
-                <img src={prize.image_url} alt={prize.name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full items-center justify-center">
-                  <Gift className="h-10 w-10 text-[#8db09a]" />
-                </div>
-              )}
-            </div>
-            <CardContent className="space-y-3 pt-4">
-              <div>
-                <p className="text-sm font-semibold text-[#f2fff5]">{prize.name}</p>
-                {prize.description ? (
-                  <p className="mt-1 line-clamp-2 text-xs text-[#bad2c2]">{prize.description}</p>
-                ) : null}
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[#d6e9dc]">{prize.points_cost} 积分</span>
-                <span className="text-[#9eb8a9]">库存 {prize.stock}</span>
-              </div>
-
-              <Button
-                className="w-full"
-                size="sm"
-                onClick={() => handleRedeem(prize)}
-                disabled={
-                  redeeming !== null ||
-                  (user?.points_balance ?? 0) < prize.points_cost ||
-                  prize.stock <= 0
-                }
-              >
-                {redeeming === prize.id ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    兑换中
-                  </>
-                ) : (user?.points_balance ?? 0) < prize.points_cost ? (
-                  "积分不足"
-                ) : prize.stock <= 0 ? (
-                  "库存不足"
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {prizes.map((prize, index) => (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.1 }}
+            key={prize.id}
+          >
+            <Card className="h-full border-none shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden group rounded-[2.5rem]">
+              <div className="aspect-[4/3] relative overflow-hidden bg-slate-100">
+                {prize.image_url ? (
+                  <img 
+                    src={prize.image_url} 
+                    alt={prize.name} 
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  />
                 ) : (
-                  "立即兑换"
+                  <div className="flex h-full items-center justify-center text-slate-300">
+                    <Gift size={64} className="opacity-20 transition-transform group-hover:scale-125 duration-500" />
+                  </div>
                 )}
-              </Button>
-            </CardContent>
-          </Card>
+                <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md shadow-sm text-primary text-xs font-black">
+                  库存 {prize.stock}
+                </div>
+              </div>
+
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl font-black text-slate-800 group-hover:text-primary transition-colors">{prize.name}</CardTitle>
+                <CardDescription className="line-clamp-2 text-slate-500 text-sm leading-relaxed">
+                  {prize.description || "暂无详细描述，这是一个神秘的惊喜奖项。"}
+                </CardDescription>
+              </CardHeader>
+
+              <CardFooter className="flex flex-col gap-4 pt-4">
+                <div className="w-full flex items-center justify-between px-1">
+                   <div className="flex items-center gap-1.5 text-amber-600">
+                      <Coins size={18} />
+                      <span className="text-xl font-black tabular-nums">{prize.points_cost}</span>
+                      <span className="text-[10px] font-black uppercase tracking-tighter mt-1">PTS</span>
+                   </div>
+                </div>
+
+                <Button
+                  className={cn(
+                    "w-full h-12 rounded-2xl text-base font-bold transition-all",
+                    (user?.points_balance ?? 0) >= prize.points_cost && prize.stock > 0
+                      ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  )}
+                  onClick={() => handleRedeem(prize)}
+                  disabled={
+                    redeeming !== null ||
+                    (user?.points_balance ?? 0) < prize.points_cost ||
+                    prize.stock <= 0
+                  }
+                >
+                  {redeeming === prize.id ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (user?.points_balance ?? 0) < prize.points_cost ? (
+                    "积分不足"
+                  ) : prize.stock <= 0 ? (
+                    "已售罄"
+                  ) : (
+                    <>
+                      <Sparkles size={18} className="mr-2" />
+                      立即兑换
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+          </motion.div>
         ))}
       </div>
     </div>

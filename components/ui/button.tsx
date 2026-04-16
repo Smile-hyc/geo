@@ -4,26 +4,23 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#09140e] disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-2xl text-sm font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95",
   {
     variants: {
       variant: {
-        default:
-          "border border-[#2f7245] bg-gradient-to-br from-[#245734] to-[#173524] text-primary-foreground hover:brightness-110",
-        destructive:
-          "border border-red-400/50 bg-gradient-to-br from-red-600 to-red-700 text-white hover:brightness-110",
-        outline:
-          "border border-[#3d5745] bg-[rgba(14,24,17,0.72)] text-[#d8e9dd] hover:border-[#5c7f67] hover:bg-[rgba(24,38,29,0.8)]",
-        secondary:
-          "border border-[#3a5542] bg-[rgba(25,41,31,0.92)] text-[#e8f5ea] hover:brightness-110",
-        ghost:
-          "text-[#d0e1d5] hover:bg-[rgba(35,56,41,0.72)]",
+        default: "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg shadow-destructive/20",
+        outline: "border border-input bg-background/50 backdrop-blur-sm hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+        glass: "bg-white/40 backdrop-blur-md border border-white/50 hover:bg-white/60 text-slate-700",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-11 px-6 py-2",
+        sm: "h-9 rounded-xl px-3",
+        lg: "h-14 rounded-3xl px-10 text-base",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: {
