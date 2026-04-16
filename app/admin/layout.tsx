@@ -73,6 +73,18 @@ export default function AdminLayout({
     router.push("/auth/login");
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F4F7FE]">
+        <div className="text-sm text-[#4E5969]">加载中…</div>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "admin") {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex bg-[#F4F7FE]">
       {/* 左侧侧边栏：宽度 256px，纯白背景，精致边框 */}

@@ -47,6 +47,7 @@ export default function LoginPage() {
       const dbUser = await syncUserToDb({
         username: email.split("@")[0],
         email,
+        cloudbase_uid: uid,
       });
       setUser({
         uid,
