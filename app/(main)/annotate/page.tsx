@@ -21,8 +21,10 @@ import { getNextTask, getTempFileURL, submitAnnotation } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
 import { getAnnotationTypeName, getModeName } from "@/lib/modes";
 
-const primaryButtonStyle = "rounded-2xl border-2 border-transparent bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200/50 transition-all hover:-translate-y-1 hover:bg-blue-700 active:scale-95 inline-flex items-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0";
-const secondaryButtonStyle = "rounded-2xl border-2 border-slate-200 bg-white px-8 py-3 text-sm font-bold text-slate-700 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-600 hover:text-blue-600 active:scale-95 inline-flex items-center gap-2";
+const primaryButtonStyle =
+  "rounded-md border border-[#4c775c] bg-[rgba(36,87,52,0.9)] px-8 py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.99] inline-flex items-center gap-2 disabled:opacity-50";
+const secondaryButtonStyle =
+  "rounded-md border border-[#3d624b] bg-[rgba(18,36,26,0.86)] px-8 py-3 text-sm font-semibold text-[#deefe4] transition hover:border-[#5a886c] active:scale-[0.99] inline-flex items-center gap-2";
 
 interface Task {
   id: number;
@@ -129,7 +131,7 @@ function AnnotateContent() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-transparent">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
         <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">正在检索地理数据...</p>
       </div>
@@ -138,8 +140,8 @@ function AnnotateContent() {
 
   if (submitted) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-[linear-gradient(180deg,#eff6ff,#f7fafc_100%)] px-6 text-center">
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[32px] bg-green-50 text-green-500 shadow-sm transition-transform hover:scale-105">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-transparent px-6 text-center">
+        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-md border border-[#4b7c60] bg-[rgba(28,61,40,0.86)] text-green-300">
           <CheckCircle className="h-10 w-10" />
         </div>
         <h2 className="mb-2 text-3xl font-extrabold text-slate-900">标注提交成功</h2>
@@ -165,7 +167,7 @@ function AnnotateContent() {
   }
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-[linear-gradient(180deg,#f8fafc,#eff6ff_100%)] flex flex-col">
+    <div className="h-screen w-full overflow-hidden bg-transparent flex flex-col">
       <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-6 py-6 md:px-12 lg:px-16 overflow-hidden">
         
         {/* Header */}
@@ -203,17 +205,17 @@ function AnnotateContent() {
           
           {/* 左侧：画布区 - 修正了高度扩展逻辑 */}
           <section className="lg:col-span-7 overflow-y-auto pr-1 custom-scrollbar">
-            <div className="flex flex-col min-h-0 bg-white rounded-[32px] border border-slate-200 shadow-sm transition-all hover:shadow-md">
+            <div className="wg-panel flex min-h-0 flex-col">
               <div className="flex items-center justify-between border-b border-slate-50 px-6 py-4 shrink-0">
                 <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
                   <Target className="h-4 w-4 text-blue-600" />
                   地理元素识别
                 </h3>
-                <span className="text-[9px] font-mono text-slate-300 tracking-tighter">CANVAS_RENDERER_V2</span>
+                <span className="text-[9px] font-mono text-slate-300 tracking-tighter">画布渲染引擎 V2</span>
               </div>
               
               {/* 这里去掉 flex-1，使用默认高度，让它随内容撑开 */}
-              <div className="relative bg-slate-50 p-4 shrink-0 overflow-hidden">
+              <div className="relative bg-[rgba(12,22,16,0.72)] p-4 shrink-0 overflow-hidden">
                 {task.imageUrl && (
                   <BBoxCanvas 
                     imageUrl={task.imageUrl} 
@@ -235,24 +237,24 @@ function AnnotateContent() {
           <section className="lg:col-span-5 overflow-y-auto pr-1 custom-scrollbar">
             <div className="flex flex-col gap-4">
               {needsReasoning && (
-                <div className="rounded-[32px] border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur-sm transition-all hover:bg-white">
+                <div className="wg-panel p-6">
                   <h3 className="mb-4 text-xs font-bold text-slate-800 flex items-center gap-2 uppercase tracking-widest">
                     <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                    思维链 (CoT) 记录
+                    思维链记录
                   </h3>
                   <ThoughtInput value={thought} onChange={setThought} />
                 </div>
               )}
 
               {task.lat != null && (
-                <div className="rounded-[32px] border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur-sm transition-all hover:bg-white">
+                <div className="wg-panel p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2 uppercase tracking-widest">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                       元数据参考
                     </h3>
                     <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                      Ground Truth
+                      真实坐标
                     </span>
                   </div>
                   <LocationMap
@@ -264,7 +266,7 @@ function AnnotateContent() {
               )}
 
               {/* 提交区域 */}
-              <div className="rounded-[32px] border border-blue-100 bg-blue-50/30 p-8 shadow-sm backdrop-blur-md transition-all hover:border-blue-200">
+              <div className="wg-panel border-[#3e694f] p-8">
                 <div className="mb-6">
                   <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">准备就绪？</h3>
                   <p className="text-xs font-medium text-slate-500 mt-1">
@@ -295,7 +297,7 @@ function AnnotateContent() {
                     >
                       放弃当前任务
                     </Link>
-                    <span className="text-[9px] font-mono text-slate-300 uppercase tracking-widest">GeoAnnotate v1.0</span>
+                    <span className="text-[9px] font-mono text-slate-300 uppercase tracking-widest">平台版本 1.0</span>
                   </div>
                 </div>
               </div>
@@ -308,9 +310,9 @@ function AnnotateContent() {
           <Link href="/app/annotate/mode" className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-blue-600 transition-colors">
             <ArrowLeft className="h-3.5 w-3.5" /> 返回配置页
           </Link>
-          <div className="h-px flex-1 mx-8 bg-slate-50" />
+          <div className="h-px flex-1 mx-8 bg-[#2c4a39]" />
           <p className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em]">
-            Precision Data Collection
+            精准数据采集
           </p>
         </footer>
       </main>
@@ -321,7 +323,7 @@ function AnnotateContent() {
 export default function AnnotatePage() {
   return (
     <Suspense fallback={
-      <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="flex h-screen items-center justify-center bg-transparent">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     }>
