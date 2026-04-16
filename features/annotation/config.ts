@@ -34,7 +34,7 @@ export const ANNOTATION_MODES = [
   {
     id: "mixed",
     name: "混合",
-    description: "用于更广泛采集实验的混合题池。",
+    description: "用于更广泛采集实验数据的混合题池。",
     defaultReward: 65,
     showTruthLocation: true,
     enabled: true,
