@@ -1,24 +1,70 @@
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 33% 98%;
-    --foreground: 220 26% 18%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
     --card: 0 0% 100%;
-    --card-foreground: 220 26% 18%;
-    --muted: 210 25% 94%;
-    --muted-foreground: 215 16% 42%;
-    --border: 214 24% 88%;
-    --input: 214 24% 88%;
-    --primary: 209 82% 46%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 220 26% 18%;
-    --accent: 210 40% 95%;
-    --accent-foreground: 220 26% 18%;
-    --destructive: 0 84% 60%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 199 89% 48%;
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 199 89% 48%;
   }
 }
 
@@ -28,109 +74,51 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+    font-family: "Lexend", sans-serif;
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(199, 89%, 48%, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(180, 100%, 50%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(210, 100%, 50%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(200, 100%, 70%, 0.1) 0px, transparent 50%);
+    background-attachment: fixed;
   }
 }
 
-/* Wiki 文档正文样式（RTD 风格：层级、可读性、代码块） */
-.wiki-doc .wiki-article {
-  --wiki-text: #333;
-  --wiki-heading: #1f2328;
-  --wiki-muted: #656d76;
-  --wiki-link: #0969da;
-  --wiki-code-bg: #f0f2f5;
-  --wiki-border: #e1e4e8;
+@layer components {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-glass;
+  }
+
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-sm border border-white/30 shadow-glass-sm hover:shadow-glass transition-all duration-300;
+  }
+
+  .glass-button {
+    @apply bg-white/40 backdrop-blur-md border border-white/50 hover:bg-white/60 active:scale-95 transition-all;
+  }
+
+  .nav-blur {
+    @apply sticky top-4 z-50 mx-auto max-w-fit px-6 py-3 rounded-full bg-white/70 backdrop-blur-xl border border-white/40 shadow-lg;
+  }
 }
-.wiki-doc .wiki-article h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--wiki-heading);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--wiki-border);
+
+/* Animations */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
 }
-.wiki-doc .wiki-article h2 {
-  font-size: 1.35rem;
-  font-weight: 600;
-  color: var(--wiki-heading);
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
 }
-.wiki-doc .wiki-article h3 {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--wiki-heading);
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
 }
-.wiki-doc .wiki-article p {
-  color: var(--wiki-text);
-  line-height: 1.7;
-  margin-bottom: 1rem;
-}
-.wiki-doc .wiki-article ul,
-.wiki-doc .wiki-article ol {
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-  color: var(--wiki-text);
-  line-height: 1.7;
-}
-.wiki-doc .wiki-article li {
-  margin-bottom: 0.35rem;
-}
-.wiki-doc .wiki-article a {
-  color: var(--wiki-link);
-  text-decoration: none;
-}
-.wiki-doc .wiki-article a:hover {
-  text-decoration: underline;
-}
-.wiki-doc .wiki-article code {
-  background: var(--wiki-code-bg);
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-  font-size: 0.9em;
-  color: #cf222e;
-}
-.wiki-doc .wiki-article pre {
-  background: #1f2328;
-  color: #e6edf3;
-  padding: 1rem 1.25rem;
-  border-radius: 6px;
-  overflow-x: auto;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-.wiki-doc .wiki-article pre code {
-  background: none;
-  padding: 0;
-  color: inherit;
-}
-.wiki-doc .wiki-article blockquote {
-  border-left: 4px solid var(--wiki-border);
-  padding-left: 1rem;
-  margin: 1rem 0;
-  color: var(--wiki-muted);
-}
-.wiki-doc .wiki-article hr {
-  border: none;
-  border-top: 1px solid var(--wiki-border);
-  margin: 2rem 0;
-}
-.wiki-doc .wiki-article table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-.wiki-doc .wiki-article th,
-.wiki-doc .wiki-article td {
-  border: 1px solid var(--wiki-border);
-  padding: 0.5rem 0.75rem;
-  text-align: left;
-}
-.wiki-doc .wiki-article th {
-  background: var(--wiki-code-bg);
-  font-weight: 600;
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
 }

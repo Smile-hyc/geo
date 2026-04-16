@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Loader2, User } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, User, Trophy, Medal } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { getLeaderboard } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface LeaderEntry {
   rank: number;
@@ -13,153 +18,145 @@ interface LeaderEntry {
 }
 
 const RANK_ICONS = ["🥇", "🥈", "🥉"];
-const TABS = ["总积分", "周榜", "月榜", "胜率榜", "标注榜"];
+const TABS = ["全局", "街景", "遥感", "地形", "混合"];
 
 export default function LeaderboardPage() {
-  const currentUser = useAuthStore((s) => s.user);
+  const currentUser = useAuthStore((state) => state.user);
   const [entries, setEntries] = useState<LeaderEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const [activeTab, setActiveTab] = useState("总积分");
+  const [activeTab, setActiveTab] = useState(TABS[0]);
 
   useEffect(() => {
     getLeaderboard({ limit: 50 })
       .then((res) => setEntries(res.leaderboard))
-      .catch((e) => setError(e instanceof Error ? e.message : "加载排行榜失败"))
+      .catch((reason) => {
+        setError(reason instanceof Error ? reason.message : "加载排行榜失败。");
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  // 计算当前用户的排名文本
-  const myEntry = entries.find((e) => e.username === currentUser?.username);
-  const myRankText = myEntry ? `第 ${myEntry.rank} 名` : "未上榜";
+  const myEntry = useMemo(
+    () => entries.find((entry) => entry.username === currentUser?.username),
+    [entries, currentUser?.username]
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F9FAFB] to-[#EFF6FF] p-8 font-sans">
-      <div className="max-w-[1088px] mx-auto">
-        
-        {/* 1. 顶部标题区域 */}
-        <div className="mb-6">
-          <h1 className="text-[30px] font-[700] text-[#1F2937] leading-[36px]">排行榜</h1>
-          <p className="text-[16px] text-[#4B5563] mt-2">你的排名：{myRankText}</p>
+    <div className="py-8 max-w-5xl mx-auto space-y-8">
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest mb-4">
+            <Trophy size={14} />
+            年度名人堂
+          </div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">排行榜</h1>
+          <p className="mt-2 text-slate-500 leading-relaxed">
+            与全球标注者一较高下。{myEntry ? `您当前排名第 ${myEntry.rank} 位。` : "快去开始标注任务，抢占您的席位！"}
+          </p>
         </div>
 
-        {/* 2. 筛选 Tab 栏 */}
-        <div className="flex items-center bg-[#F3F4F6] p-1 rounded-lg w-fit mb-6">
+        <div className="flex bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-slate-100 shadow-sm">
           {TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 text-[14px] font-[500] rounded-md transition-all duration-200 ${
+              className={cn(
+                "px-4 py-2 rounded-xl text-xs font-bold transition-all",
                 activeTab === tab
-                  ? "bg-white text-[#165DFF] shadow-sm"
-                  : "text-[#4B5563] hover:text-[#1F2937]"
-              }`}
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              )}
             >
               {tab}
             </button>
           ))}
         </div>
+      </section>
 
-        {/* 3. 排行榜主体列表 */}
-        <div className="bg-white rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.04)] border border-[#E5E6EB]/50 overflow-hidden">
-          
-          {/* 列表表头 */}
-          <div className="flex items-center px-8 py-4 bg-[#F9FAFB] border-b border-[#E5E7EB]">
-            <div className="w-[100px] text-[16px] font-[500] text-[#86909C]">排名</div>
-            <div className="flex-1 text-[16px] font-[500] text-[#86909C]">用户</div>
-            <div className="w-[150px] text-[16px] font-[500] text-[#86909C] text-right pr-4">积分</div>
-          </div>
+      <Card className="border-none shadow-2xl overflow-hidden">
+        <div className="grid grid-cols-[80px_1fr_120px] bg-slate-50/50 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
+          <span>排名</span>
+          <span>标注者</span>
+          <span className="text-right">总积分</span>
+        </div>
 
-          {/* 列表内容区域 */}
-          <div className="flex flex-col relative min-h-[300px]">
-            {/* 拦截判断：如果不是总积分榜，直接显示暂未接入 */}
-            {activeTab !== "总积分" ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-[#86909C] gap-2">
-                <span className="text-[16px] font-[500] text-[#4E5969]">该榜单后端暂未接入</span>
-                <span className="text-[13px] text-[#86909C]">程序员小哥正在努力开发中...</span>
-              </div>
+        <div className="min-h-[400px]">
+          <AnimatePresence mode="wait">
+            {activeTab !== TABS[0] ? (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-24 text-slate-400"
+              >
+                <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center mb-4">
+                  <Medal size={32} />
+                </div>
+                <p className="text-sm font-bold">该分栏将在后续版本接入</p>
+              </motion.div>
             ) : loading ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-[#86909C] gap-3">
-                <Loader2 className="h-8 w-8 animate-spin text-[#165DFF]" />
-                <p className="text-sm">加载数据中...</p>
+              <div className="flex flex-col items-center justify-center py-24 text-slate-400">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                <p className="text-sm font-bold">正在同步全站数据...</p>
               </div>
             ) : error ? (
-              <div className="absolute inset-0 flex items-center justify-center text-[#F53F3F]">
-                {error}
-              </div>
-            ) : entries.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center text-[#86909C]">
-                暂无排名数据
-              </div>
+              <div className="py-24 text-center text-red-500 font-bold">{error}</div>
             ) : (
-              entries.map((entry) => {
-                const isMe = entry.username === currentUser?.username;
-                
-                return (
-                  <div
-                    key={entry.rank}
-                    className={`flex items-center px-8 py-4 border-b border-[#E5E7EB] last:border-0 hover:bg-[#F9FAFB] transition-colors ${
-                      isMe ? "bg-[#165DFF]/[0.04] hover:bg-[#165DFF]/[0.06]" : ""
-                    }`}
-                  >
-                    {/* 排名列 */}
-                    <div className="w-[100px] flex items-center pl-1">
-                      {entry.rank <= 3 ? (
-                        <span className="text-[26px] drop-shadow-sm">{RANK_ICONS[entry.rank - 1]}</span>
-                      ) : (
-                        <div className="w-[32px] h-[32px] rounded-full bg-[#F2F3F5] flex items-center justify-center text-[#86909C] font-[700] text-[14px]">
-                          {entry.rank}
-                        </div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="divide-y divide-slate-50"
+              >
+                {entries.map((entry, index) => {
+                  const isMe = entry.username === currentUser?.username;
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      key={entry.rank}
+                      className={cn(
+                        "grid grid-cols-[80px_1fr_120px] items-center px-6 py-4 transition-colors",
+                        isMe ? "bg-sky-50/50" : "hover:bg-slate-50/30"
                       )}
-                    </div>
-
-                    {/* 用户列 */}
-                    <div className="flex-1 flex items-center gap-4">
-                      {/* 头像 */}
-                      <div
-                        className={`w-[40px] h-[40px] rounded-full flex items-center justify-center shrink-0 ${
-                          isMe ? "bg-[#165DFF] text-white" : "bg-[#E5E7EB] text-[#86909C]"
-                        }`}
-                      >
-                        <User className="w-[20px] h-[20px]" strokeWidth={2.5} />
+                    >
+                      <div className="flex justify-center md:justify-start">
+                        {entry.rank <= 3 ? (
+                          <span className="text-2xl drop-shadow-sm">{RANK_ICONS[entry.rank - 1]}</span>
+                        ) : (
+                          <span className="text-slate-400 font-black text-sm">#{entry.rank}</span>
+                        )}
                       </div>
-                      
-                      {/* 用户名 */}
-                      <span
-                        className={`text-[16px] font-[500] ${
-                          isMe ? "text-[#165DFF]" : "text-[#1F2937]"
-                        }`}
-                      >
-                        {entry.username}
-                      </span>
-                    </div>
 
-                    {/* 积分列 */}
-                    <div className="w-[150px] text-right flex items-baseline justify-end gap-1">
-                      <span
-                        className={`text-[18px] font-[600] ${
-                          isMe ? "text-[#165DFF]" : "text-[#1D2129]"
-                        }`}
-                      >
-                        {entry.points_balance.toLocaleString()}
-                      </span>
-                      <span
-                        className={`text-[16px] font-[600] ${
-                          isMe ? "text-[#165DFF]" : "text-[#1D2129]"
-                        }`}
-                      >
-                        分
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
+                      <div className="flex items-center gap-4">
+                        <div className={cn(
+                          "w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm border border-white transition-transform hover:scale-110",
+                          isMe ? "bg-primary text-white" : "bg-white text-slate-400"
+                        )}>
+                          <User size={18} />
+                        </div>
+                        <div>
+                          <p className={cn("font-bold text-sm", isMe ? "text-primary" : "text-slate-800")}>
+                            {entry.username}
+                          </p>
+                          <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">LV. {entry.level}</p>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-lg font-black text-slate-900 tabular-nums">
+                          {entry.points_balance.toLocaleString()}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
-        
-      </div>
+      </Card>
     </div>
   );
 }

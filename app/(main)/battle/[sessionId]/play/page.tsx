@@ -201,7 +201,7 @@ export default function BattlePlayPage() {
   };
   if (error) {
     return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center bg-[#F2F3F5]">
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-transparent">
         <p className="text-[#F53F3F] font-medium mb-4">{error}</p>
         <Button variant="outline" onClick={() => router.push("/app/battle/config")}>返回对战配置</Button>
       </div>
@@ -210,7 +210,7 @@ export default function BattlePlayPage() {
 
   if (!session) {
     return (
-      <div className="w-screen h-screen flex items-center justify-center bg-[#F2F3F5]">
+      <div className="w-screen h-screen flex items-center justify-center bg-transparent">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-[#165DFF]" />
           <span className="text-[#86909C] text-sm">初始化战场...</span>
@@ -233,7 +233,7 @@ export default function BattlePlayPage() {
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#F2F3F5] font-sans">
+    <div className="relative w-screen h-screen overflow-hidden bg-transparent font-sans">
       
       {/* 1. 猜测态：全景背景层 (绑定滚轮和拖动事件) */}
       <div 
@@ -269,8 +269,8 @@ export default function BattlePlayPage() {
 
       {/* 2. 猜测态：顶部透明 HUD 面板 */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3 pointer-events-none">
-        <div className="w-[600px] h-[48px] bg-white/85 backdrop-blur-md rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex items-center justify-between px-8 pointer-events-auto">
-          <div className="text-[14px] font-medium text-[#1D2129]">
+        <div className="w-[600px] h-[48px] rounded-md border border-[#3e644c] bg-[rgba(13,25,18,0.9)] backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.22)] flex items-center justify-between px-8 pointer-events-auto">
+          <div className="text-[14px] font-medium text-[#e8f7ec]">
             第 <span className="font-bold">{currentRound + 1} / {session.round_count}</span> 轮
           </div>
           <div className="text-[20px] font-bold text-[#165DFF] flex items-center">
@@ -281,19 +281,10 @@ export default function BattlePlayPage() {
               onExpire={handleSubmitRound}
             />
           </div>
-          <div className="text-[14px] font-bold text-[#1D2129] flex items-center gap-2">
+          <div className="text-[14px] font-bold text-[#e8f7ec] flex items-center gap-2">
             你 <span className="text-[#165DFF] text-[16px]">{userTotal}</span> : <span className="text-[#F53F3F] text-[16px]">{aiTotal}</span> AI
           </div>
         </div>
-
-        {/*注释掉了悬浮方位条
-        <div className="flex items-center gap-3 px-6 py-1.5 bg-black/50 backdrop-blur-sm rounded-full text-white text-[12px] font-black tracking-widest shadow-md">
-          <span>N</span><div className="w-6 h-[2px] bg-[#E5E6EB]/60 rounded" />
-          <span>E</span><div className="w-6 h-[2px] bg-[#E5E6EB]/60 rounded" />
-          <span>S</span><div className="w-6 h-[2px] bg-[#E5E6EB]/60 rounded" />
-          <span>W</span>
-        </div>
-        */}
       </div>
 
       {/* 3. 左下角悬浮工具栏 */}
@@ -373,7 +364,7 @@ export default function BattlePlayPage() {
           </div>
 
           <div className="px-2 pt-2 pb-1 text-[13px] text-[#4E5969] shrink-0 transition-opacity">
-            已选择: {guessPos ? `${guessPos.lat.toFixed(4)}°N, ${guessPos.lng.toFixed(4)}°E` : "暂未落点"}
+            已选择：{guessPos ? `${Math.abs(guessPos.lat).toFixed(4)}°${guessPos.lat >= 0 ? "北纬" : "南纬"}，${Math.abs(guessPos.lng).toFixed(4)}°${guessPos.lng >= 0 ? "东经" : "西经"}` : "暂未落点"}
           </div>
         </div>
         
