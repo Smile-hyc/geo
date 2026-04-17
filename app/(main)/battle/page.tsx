@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-// 全面采用 page1 的电竞风图标，保留 CheckCircle2 用于卡片选中状态
-import { Loader2,BrainCircuit,FlaskConical, Rocket, Timer, Trophy, Zap, Swords, Target, Cpu, CheckCircle2, Shield } from "lucide-react";
+import { motion } from "framer-motion"; // 🚀 1. 引入 framer-motion
+import { Loader2, BrainCircuit, FlaskConical, Rocket, Timer, Trophy, Zap, Swords, Target, Cpu, CheckCircle2, Shield } from "lucide-react";
 import { MapPin, Route, Mountain, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createBattle } from "@/lib/cloudbase";
@@ -16,6 +16,22 @@ import {
   getAiOpponentLabel,
   getBattleModeLabel,
 } from "@/features/battle/config";
+
+// 🚀 2. 定义动画控制配置 (与 page1 完全一致)
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15, // 控制左中右三列依次出现的延迟时间
+    },
+  },
+};
+
+const item = {
+  hidden: { y: 20, opacity: 0 },
+  show: { y: 0, opacity: 1 },
+};
 
 export default function BattleConfigPage() {
   const router = useRouter();
@@ -56,13 +72,18 @@ export default function BattleConfigPage() {
   };
 
   return (
-    // 外层：整个屏幕的浅色背景，带有一点 padding 让内部大容器悬浮
+    // 外层背景
     <div className="h-screen w-full from-slate-50 to-slate-100 p-4 lg:p-6 flex flex-col font-sans overflow-hidden items-center justify-center">
       
-      {/* ================= 核心：一体化大容器包裹所有内容 ================= */}
-      <div className="w-full max-w-[1200px] h-full flex flex-col rounded-[40px] overflow-hidden relative">
+      {/* 🚀 3. 给整个大白框加上初次渲染时的上浮淡入动画 */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="w-full max-w-[1200px] h-full flex flex-col rounded-[40px] overflow-hidden relative"
+      >
         
-        {/* --- 1. 头部区域 (无独立背景，融入大容器) --- */}
+        {/* --- 1. 头部区域 --- */}
         <header className="shrink-0 pt-8 px-8 lg:px-10 z-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-md shadow-primary/20">
@@ -82,12 +103,18 @@ export default function BattleConfigPage() {
           )}
         </header>
 
-        {/* --- 2. 主体选择区 (剥离各自的背景色和阴影，清爽排列) --- */}
+        {/* --- 2. 主体选择区 --- */}
         <main className="flex-1 p-8 lg:p-10 min-h-0 z-10 flex flex-col">
-          <div className="w-full h-full grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+          {/* 🚀 4. 将网格容器改为 motion.div 并应用 stagger 容器配置 */}
+          <motion.div 
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="w-full h-full grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12"
+          >
             
-            {/* 【左侧小栏】: 对战模式 */}
-            <div className="flex flex-col relative h-full">
+            {/* 🚀 5. 给左侧小栏包一层 motion.div 并应用 item 配置 */}
+            <motion.div variants={item} className="flex flex-col relative h-full">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Target className="w-4 h-4" />
@@ -98,38 +125,29 @@ export default function BattleConfigPage() {
               <div className="flex flex-col gap-5 z-10 flex-1 overflow-y-auto pb-4 pr-1">
                 {BATTLE_MODES.map((battleMode) => {
                   const isSelected = mode === battleMode.id;
-                  
                   let ModeIcon;
                   switch (battleMode.id) {
-                    case 'general':
-                      ModeIcon = MapPin;
-                      break;
-                    case 'street_view':
-                      ModeIcon = Route;
-                      break;
-                    case 'remote_sensing':
-                      ModeIcon = Briefcase;
-                      break;
-                    case 'terrain':
-                      ModeIcon = Mountain;
-                      break;
-                    default:
-                      ModeIcon = Target;
+                    case 'general': ModeIcon = MapPin; break;
+                    case 'street_view': ModeIcon = Route; break;
+                    case 'remote_sensing': ModeIcon = Briefcase; break;
+                    case 'terrain': ModeIcon = Mountain; break;
+                    default: ModeIcon = Target;
                   }
 
                   return (
                     <button
                       key={battleMode.id}
                       onClick={() => setMode(battleMode.id)}
-                      // 1. 最外层改为 flex-col (垂直排布)，控制上下区域的间距 (gap-3)
-                      className={`group relative p-4 rounded-[16px] text-left border-[2px] transition-all duration-300 flex flex-col gap-1 w-full ${
+                      className={`group relative overflow-hidden p-4 rounded-[16px] text-left border-[2px] transition-all duration-300 flex flex-col gap-1 w-full ${
                         isSelected 
                           ? "border-primary bg-primary/5 shadow-sm" 
                           : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md hover:shadow-slate-200/50"
                       }`}
                     >
-                      {/* --- 上半部分：图标 + 主标题 + 打勾 --- */}
-                      <div className="flex items-center w-full gap-3.5">
+                      {!isSelected && (
+                        <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0" />
+                      )}
+                      <div className="flex items-center w-full gap-3.5 relative z-10">
                         <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${
                           isSelected 
                             ? 'bg-primary text-white shadow-md shadow-primary/20' 
@@ -137,26 +155,17 @@ export default function BattleConfigPage() {
                         }`}>
                           <ModeIcon size={22} />
                         </div>
-                        
-                        {/* 1.2 主标题区域 */}
                         <div className="flex-1 min-w-0">
-                          <p className={`text-[17px] font-bold transition-colors truncate ${
-                            isSelected ? 'text-primary' : 'text-slate-800 group-hover:text-primary'
-                          }`}>
+                          <p className={`text-[17px] font-bold transition-colors truncate ${isSelected ? 'text-primary' : 'text-slate-800 group-hover:text-primary'}`}>
                             {battleMode.label}
                           </p>
                         </div>
-
-                        {/* 1.3 打勾状态 */}
                         <div className="shrink-0 w-5 h-5 flex items-center justify-center">
                           {isSelected && <CheckCircle2 className="w-5 h-5 text-primary" />}
                         </div>
                       </div>
-
-                      {/* --- 下半部分：辅助文字 (描述) --- */}
                       <div className="w-full">
-                        {/* 放宽了一点行高和字号，使其更贴近参考图的阅读体验 */}
-                        <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-2">
+                        <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-2 relative z-10">
                           {battleMode.description}
                         </p>
                       </div>
@@ -164,11 +173,11 @@ export default function BattleConfigPage() {
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
 
-            {/* 【中间小栏】: AI 对手 */}
-            <div className="flex flex-col relative h-full">
-              <div className="flex items-center gap-2.5 mb-5 shrink-0 px-1">
+            {/* 🚀 6. 给中间小栏包一层 motion.div 并应用 item 配置 */}
+            <motion.div variants={item} className="flex flex-col relative h-full">
+              <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Cpu className="w-4 h-4" />
                 </div>
@@ -177,35 +186,27 @@ export default function BattleConfigPage() {
               <div className="flex flex-col gap-5 z-10 flex-1 overflow-y-auto pb-4 pr-1">
                 {AI_OPPONENTS.map((opponent) => {
                   const isSelected = aiOpponent === opponent.id;
-                  
-                  // 为每个 AI 对手选择一个合理的图标
                   let OpponentIcon;
                   switch (opponent.id) {
-                    case 'mock-v1': 
-                      OpponentIcon = BrainCircuit; 
-                      break;
-                    case 'research-baseline':
-                      OpponentIcon = FlaskConical; 
-                      break;
-                    default:
-                      OpponentIcon = Cpu; 
+                    case 'mock-v1': OpponentIcon = BrainCircuit; break;
+                    case 'research-baseline': OpponentIcon = FlaskConical; break;
+                    default: OpponentIcon = Cpu; 
                   }
 
                   return (
                     <button
                       key={opponent.id}
                       onClick={() => setAiOpponent(opponent.id)}
-                      // 关键修改 1：把 shrink-0 换成了 flex-1，这样按钮会自动拉伸填满父容器的高度
-                      // 关键修改 2：加上 justify-center 使得内部文字和图标垂直居中，并加大 padding (p-6)
-                      className={`group relative p-6 rounded-[24px] text-left border-[2px] transition-all duration-300 flex flex-col justify-center gap-4 w-full flex-1 ${
+                      className={`group relative p-6 rounded-[24px] text-left border-[2px] transition-all duration-300 flex flex-col justify-center gap-4 w-full flex-1 overflow-hidden ${
                         isSelected 
                           ? "border-primary bg-primary/5 shadow-md" 
                           : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50"
                       }`}
                     >
-                      {/* --- 上半部分：图标 + 主标题 + 打勾 --- */}
-                      <div className="flex items-center w-full gap-4">
-                        {/* 关键修改 3：稍微放大了大卡片的图标外壳 (w-14 h-14) 和图标尺寸 (size={26}) */}
+                      {!isSelected && (
+                        <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0" />
+                      )}
+                      <div className="flex items-center w-full gap-4 relative z-10">
                         <div className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${
                           isSelected 
                             ? 'bg-primary text-white shadow-md shadow-primary/20' 
@@ -213,25 +214,16 @@ export default function BattleConfigPage() {
                         }`}>
                           <OpponentIcon size={26} />
                         </div>
-                        
-                        {/* 主标题区域 */}
                         <div className="flex-1 min-w-0">
-                          {/* 字号也从 17px 稍微提到了 19px */}
-                          <p className={`text-[19px] font-bold transition-colors truncate ${
-                            isSelected ? 'text-primary' : 'text-slate-800 group-hover:text-primary'
-                          }`}>
+                          <p className={`text-[19px] font-bold transition-colors truncate ${isSelected ? 'text-primary' : 'text-slate-800 group-hover:text-primary'}`}>
                             {opponent.label}
                           </p>
                         </div>
-
-                        {/* 打勾状态 */}
                         <div className="shrink-0 w-6 h-6 flex items-center justify-center">
                           {isSelected && <CheckCircle2 className="w-6 h-6 text-primary" />}
                         </div>
                       </div>
-
-                      {/* --- 下半部分：辅助文字 (描述) --- */}
-                      <div className="w-full">
+                      <div className="w-full relative z-10">
                         <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-2 pl-1">
                           {opponent.description}
                         </p>
@@ -240,12 +232,11 @@ export default function BattleConfigPage() {
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
 
-            {/* 【右侧小栏】: 游戏规则设置 */}
-            <div className="flex flex-col relative h-full">
+            {/* 🚀 7. 给右侧小栏包一层 motion.div 并应用 item 配置 */}
+            <motion.div variants={item} className="flex flex-col relative h-full">
               <div className="flex flex-col h-full">
-                
                 <div className="flex items-center gap-2.5 mb-5 shrink-0 px-1">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                     <Timer className="w-4 h-4" />
@@ -258,21 +249,19 @@ export default function BattleConfigPage() {
                     const isSelected = timeLimit === timeOption;
                     return (
                       <button key={timeOption} onClick={() => setTimeLimit(timeOption)}
-                        // 统一的外框、过渡动画和悬停阴影
-                        className={`group relative p-4 rounded-[16px] text-left border-[2px] transition-all duration-300 flex items-center justify-between w-full shrink-0 ${
+                        className={`group relative p-4 rounded-[16px] text-left border-[2px] transition-all duration-300 flex items-center justify-between w-full shrink-0 overflow-hidden ${
                           isSelected 
                             ? "border-primary bg-primary/5 shadow-sm" 
                             : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md hover:shadow-slate-200/50"
                         }`}
                       >
-                        {/* 文本悬停变色 */}
-                        <span className={`text-[16px] font-bold transition-colors ${
-                          isSelected ? 'text-primary' : 'text-slate-800 group-hover:text-primary'
-                        }`}>
+                        {!isSelected && (
+                          <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0" />
+                        )}
+                        <span className={`text-[16px] font-bold transition-colors relative z-10 ${isSelected ? 'text-primary' : 'text-slate-800 group-hover:text-primary'}`}>
                           {timeOption} 秒
                         </span>
-                        {/* 统一使用打勾图标代替原本的实心蓝点 */}
-                        <div className="shrink-0 w-5 h-5 flex items-center justify-center">
+                        <div className="shrink-0 w-5 h-5 flex items-center justify-center relative z-10">
                           {isSelected && <CheckCircle2 className="w-5 h-5 text-primary" />}
                         </div>
                       </button>
@@ -292,33 +281,31 @@ export default function BattleConfigPage() {
                     const isSelected = rounds === roundOption;
                     return (
                       <button key={roundOption} onClick={() => setRounds(roundOption)}
-                        // 同样统一成这种中空轻量的卡片风格，不再用沉重的纯蓝底色块
-                        className={`group relative p-4 rounded-[16px] text-center border-[2px] transition-all duration-300 flex items-center justify-center w-full ${
+                        className={`group relative p-4 rounded-[16px] text-center border-[2px] transition-all duration-300 flex items-center justify-center w-full overflow-hidden ${
                           isSelected 
                             ? "border-primary bg-primary/5 shadow-sm" 
                             : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md hover:shadow-slate-200/50"
                         }`}
                       >
-                        <span className={`text-[16px] font-bold transition-colors ${
-                          isSelected ? 'text-primary' : 'text-slate-800 group-hover:text-primary'
-                        }`}>
+                        {!isSelected && (
+                          <div className="absolute -top-10 -right-10 w-24 h-24 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0" />
+                        )}
+                        <span className={`text-[16px] font-bold transition-colors relative z-10 ${isSelected ? 'text-primary' : 'text-slate-800 group-hover:text-primary'}`}>
                           {roundOption} 回合
                         </span>
                       </button>
                     );
                   })}
                 </div>
-
               </div>
-            </div>
+            </motion.div>
 
-          </div>
+          </motion.div>
         </main>
 
-        {/* --- 3. 底部状态栏 (无缝衔接在大容器最底端) --- */}
+        {/* --- 3. 底部状态栏 --- */}
         <footer className="shrink-0 h-[90px] border-t border-slate-100 flex items-center justify-center px-8 lg:px-10">
           <div className="w-full flex items-center justify-between">
-            
             <div className="flex items-center gap-6 lg:gap-14 hidden sm:flex pl-2">
               <div className="flex flex-col">
                 <span className="text-[12px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">战场模式</span>
@@ -362,11 +349,10 @@ export default function BattleConfigPage() {
                 )}
               </Button>
             </div>
-            
           </div>
         </footer>
 
-      </div>
+      </motion.div>
     </div>
   );
 }
