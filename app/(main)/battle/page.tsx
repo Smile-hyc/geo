@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion"; // 🚀 1. 引入 framer-motion
+import { motion } from "framer-motion"; 
 import { Loader2, BrainCircuit, FlaskConical, Rocket, Timer, Trophy, Zap, Swords, Target, Cpu, CheckCircle2, Shield } from "lucide-react";
 import { MapPin, Route, Mountain, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,13 +17,12 @@ import {
   getBattleModeLabel,
 } from "@/features/battle/config";
 
-// 🚀 2. 定义动画控制配置 (与 page1 完全一致)
 const container = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15, // 控制左中右三列依次出现的延迟时间
+      staggerChildren: 0.15, 
     },
   },
 };
@@ -72,31 +71,19 @@ export default function BattleConfigPage() {
   };
 
   return (
-    // 外层背景
-    <div className="h-screen w-full from-slate-50 to-slate-100 p-4 lg:p-6 flex flex-col font-sans overflow-hidden items-center justify-center">
+    <div className="h-screen w-full from-slate-50 to-slate-100 p-4 flex flex-col font-sans overflow-hidden items-center justify-center">
       
-      {/* 🚀 3. 给整个大白框加上初次渲染时的上浮淡入动画 */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-[1200px] h-full flex flex-col rounded-[40px] overflow-hidden relative"
+        className="w-full max-w-[1200px] h-full flex flex-col rounded-[40px] overflow-hidden relative shadow-[0_16px_60px_rgba(0,0,0,0.05)] border border-slate-100"
       >
         
         {/* --- 1. 头部区域 --- */}
-        <header className="shrink-0 pt-8 px-8 lg:px-10 z-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-md shadow-primary/20">
-              <Rocket className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-[22px] font-bold text-slate-900 leading-none tracking-tight">Geo Battle</h1>
-              <p className="text-[13px] text-slate-500 mt-1 font-medium tracking-wide">AI 对战配置引擎</p>
-            </div>
-          </div>
-
+        <header className="shrink-0 pt-8 px-8 z-1 flex items-center justify-between">
           {error && (
-            <div className="text-sm text-rose-500 bg-rose-50 border border-rose-100 px-4 py-1.5 rounded-full flex items-center animate-pulse font-medium">
+            <div className="text-sm text-rose-500 bg-rose-50 border border-rose-100 px-4 py-1.5 rounded-[32px] flex items-center animate-pulse font-medium">
               <Zap className="w-4 h-4 mr-1.5" />
               {error}
             </div>
@@ -105,16 +92,15 @@ export default function BattleConfigPage() {
 
         {/* --- 2. 主体选择区 --- */}
         <main className="flex-1 p-8 lg:p-10 min-h-0 z-10 flex flex-col">
-          {/* 🚀 4. 将网格容器改为 motion.div 并应用 stagger 容器配置 */}
           <motion.div 
             variants={container}
             initial="hidden"
             animate="show"
-            className="w-full h-full grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12"
+            className="w-full h-full grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6"
           >
             
-            {/* 🚀 5. 给左侧小栏包一层 motion.div 并应用 item 配置 */}
-            <motion.div variants={item} className="flex flex-col relative h-full">
+            {/* 左侧小栏：选取战场 */}
+            <motion.div variants={item} className="flex flex-col relative h-full rounded-[32px]">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Target className="w-4 h-4" />
@@ -122,7 +108,7 @@ export default function BattleConfigPage() {
                 <h2 className="text-[18px] font-bold text-slate-900">选取战场</h2>
               </div>
               
-              <div className="flex flex-col gap-5 z-10 flex-1 overflow-y-auto pb-4 pr-1">
+              <div className="flex flex-col gap-3.5 z-10 flex-1 overflow-y-auto pb-4 pr-1">
                 {BATTLE_MODES.map((battleMode) => {
                   const isSelected = mode === battleMode.id;
                   let ModeIcon;
@@ -138,7 +124,7 @@ export default function BattleConfigPage() {
                     <button
                       key={battleMode.id}
                       onClick={() => setMode(battleMode.id)}
-                      className={`group relative overflow-hidden p-4 rounded-[16px] text-left border-[2px] transition-all duration-300 flex flex-col gap-1 w-full ${
+                      className={`group relative overflow-hidden p-4 rounded-[20px] text-left border-[2px] transition-all duration-300 flex flex-col gap-1 w-full ${
                         isSelected 
                           ? "border-primary bg-primary/5 shadow-sm" 
                           : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md hover:shadow-slate-200/50"
@@ -175,15 +161,15 @@ export default function BattleConfigPage() {
               </div>
             </motion.div>
 
-            {/* 🚀 6. 给中间小栏包一层 motion.div 并应用 item 配置 */}
-            <motion.div variants={item} className="flex flex-col relative h-full">
+            {/* 中间小栏：迎战 AI */}
+            <motion.div variants={item} className="flex flex-col relative h-full rounded-[32px]">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Cpu className="w-4 h-4" />
                 </div>
                 <h2 className="text-[18px] font-bold text-slate-900">迎战 AI</h2>
               </div>
-              <div className="flex flex-col gap-5 z-10 flex-1 overflow-y-auto pb-4 pr-1">
+              <div className="flex flex-col gap-4 z-10 flex-1 overflow-y-auto pb-4 pr-1">
                 {AI_OPPONENTS.map((opponent) => {
                   const isSelected = aiOpponent === opponent.id;
                   let OpponentIcon;
@@ -197,7 +183,7 @@ export default function BattleConfigPage() {
                     <button
                       key={opponent.id}
                       onClick={() => setAiOpponent(opponent.id)}
-                      className={`group relative p-6 rounded-[24px] text-left border-[2px] transition-all duration-300 flex flex-col justify-center gap-4 w-full flex-1 overflow-hidden ${
+                      className={`group relative p-6 rounded-[20px] text-left border-[2px] transition-all duration-300 flex flex-col justify-center gap-4 w-full flex-1 overflow-hidden ${
                         isSelected 
                           ? "border-primary bg-primary/5 shadow-md" 
                           : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50"
@@ -234,8 +220,8 @@ export default function BattleConfigPage() {
               </div>
             </motion.div>
 
-            {/* 🚀 7. 给右侧小栏包一层 motion.div 并应用 item 配置 */}
-            <motion.div variants={item} className="flex flex-col relative h-full">
+            {/* 🚀 右侧小栏：规则设置 */}
+            <motion.div variants={item} className="flex flex-col relative h-full rounded-[32px]">
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-2.5 mb-5 shrink-0 px-1">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -244,7 +230,7 @@ export default function BattleConfigPage() {
                   <h2 className="text-[18px] font-bold text-slate-900">极速限制</h2>
                 </div>
                 
-                <div className="flex flex-col gap-3.5 mb-8 shrink-0">
+                <div className="flex flex-col gap-2.5 mb-8 shrink-0">
                   {TIME_OPTIONS.map((timeOption) => {
                     const isSelected = timeLimit === timeOption;
                     return (
@@ -276,7 +262,7 @@ export default function BattleConfigPage() {
                   <h2 className="text-[18px] font-bold text-slate-900">决胜局数</h2>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3.5 shrink-0 pb-1">
+                <div className="grid grid-cols-2 gap-3 shrink-0 pb-1">
                   {ROUND_OPTIONS.map((roundOption) => {
                     const isSelected = rounds === roundOption;
                     return (
@@ -303,52 +289,26 @@ export default function BattleConfigPage() {
           </motion.div>
         </main>
 
-        {/* --- 3. 底部状态栏 --- */}
-        <footer className="shrink-0 h-[90px] border-t border-slate-100 flex items-center justify-center px-8 lg:px-10">
-          <div className="w-full flex items-center justify-between">
-            <div className="flex items-center gap-6 lg:gap-14 hidden sm:flex pl-2">
-              <div className="flex flex-col">
-                <span className="text-[12px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">战场模式</span>
-                <span className="text-[16px] font-bold text-slate-900">{getBattleModeLabel(mode)}</span>
-              </div>
-              <div className="w-px h-8 bg-slate-200 rounded-full"></div>
-              <div className="flex flex-col">
-                <span className="text-[12px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">迎战对手</span>
-                <span className="text-[16px] font-bold text-slate-900">{getAiOpponentLabel(aiOpponent)}</span>
-              </div>
-              <div className="w-px h-8 bg-slate-200 rounded-full"></div>
-              <div className="flex flex-col">
-                <span className="text-[12px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">规则限制</span>
-                <span className="text-[16px] font-bold text-primary">{timeLimit}秒 <span className="text-slate-400 font-normal mx-1">/</span> {rounds}局</span>
-              </div>
-            </div>
+        <footer className="shrink-0 px-8 pb-8 lg:px-10 lg:pb-10 w-full">
+          <div className="w-full flex items-center justify-center">
+            <Button
+              className="w-full h-[60px] lg:h-[68px] text-[18px] lg:text-[22px] font-bold bg-primary hover:bg-primary/90 text-white rounded-[24px] shadow-[0_12px_30px_-10px_rgba(22,93,255,0.5)] transition-all flex items-center justify-center gap-3 hover:-translate-y-1 active:translate-y-0"
+              onClick={handleStart}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-7 w-7 animate-spin" />
+                  <span className="tracking-wide">引擎就绪...</span>
+                </>
+              ) : (
+                <>
+                  <Rocket className="w-6 h-6" />
+                  <span className="tracking-widest">开始对战</span>
+                </>
+              )}
+            </Button>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-              <Button
-                variant="outline"
-                className="w-[120px] lg:w-[150px] h-[56px] lg:h-[60px] text-[16px] lg:text-[18px] font-bold bg-white/50 border-[2px] border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 rounded-[24px] transition-all"
-                onClick={() => router.push("/app/home")}
-              >
-                取消并返回
-              </Button>
-              <Button
-                className="flex-1 sm:flex-none sm:w-[200px] lg:w-[240px] h-[56px] lg:h-[60px] text-[18px] lg:text-[20px] font-bold bg-primary hover:bg-primary/90 text-white rounded-[24px] shadow-lg shadow-primary/40 transition-all flex items-center justify-center gap-2 lg:gap-3 hover:-translate-y-1 active:translate-y-0"
-                onClick={handleStart}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <span className="tracking-wide">引擎就绪...</span>
-                  </>
-                ) : (
-                  <>
-                    <Rocket className="w-5 h-5" />
-                    <span className="tracking-widest">开始对战</span>
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
         </footer>
 
