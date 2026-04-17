@@ -1,6 +1,7 @@
 "use strict";
 
 const { Pool } = require("pg");
+const { hasColumn } = require("./_shared/schema");
 
 let pool = null;
 
@@ -27,10 +28,13 @@ exports.main = async (event) => {
     const db = getPool();
     const client = await db.connect();
     try {
+      const hasDeletedAt = await hasColumn(client, "prizes", "deleted_at");
       const result = await client.query(
         `SELECT id, name, description, points_cost, stock, image_url
          FROM prizes
-         WHERE is_active = true AND stock > 0 AND deleted_at IS NULL
+         WHERE is_active = true AND stock > 0${
+           hasDeletedAt ? " AND deleted_at IS NULL" : ""
+         }
          ORDER BY points_cost ASC
          LIMIT $1`,
         [limit]

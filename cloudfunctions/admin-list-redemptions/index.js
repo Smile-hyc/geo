@@ -1,6 +1,7 @@
 "use strict";
 
 const { Pool } = require("pg");
+const { hasColumn } = require("./_shared/schema");
 
 let pool = null;
 
@@ -39,6 +40,7 @@ exports.main = async (event, context) => {
     const db = getPool();
     const client = await db.connect();
     try {
+      const hasDeletedAt = await hasColumn(client, "prizes", "deleted_at");
       const userResult = await client.query(
         "SELECT id, role FROM users WHERE cloudbase_uid = $1 OR email = $2",
         [cloudbase_uid, email || cloudbase_uid]
@@ -60,8 +62,9 @@ exports.main = async (event, context) => {
                 pr.created_at,
                 u.username,
                 u.email,
-                p.name AS prize_name,
-                p.deleted_at AS prize_deleted_at
+                p.name AS prize_name${
+                  hasDeletedAt ? ", p.deleted_at AS prize_deleted_at" : ""
+                }
          FROM prize_redemptions pr
          JOIN users u ON u.id = pr.user_id
          JOIN prizes p ON p.id = pr.prize_id
@@ -78,7 +81,7 @@ exports.main = async (event, context) => {
         username: r.username || "",
         email: r.email || "",
         prize_name: r.prize_name || "",
-        prize_removed: r.prize_deleted_at != null,
+        prize_removed: hasDeletedAt ? r.prize_deleted_at != null : false,
         created_at: r.created_at ? new Date(r.created_at).toISOString() : "",
       }));
 
