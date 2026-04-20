@@ -267,6 +267,13 @@
       "runtime": "Nodejs16.13",
       "installDependency": true,
       "handler": "index.main"
+    },
+    {
+      "name": "geo-inference",
+      "timeout": 90,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
     }
   ]
 }
