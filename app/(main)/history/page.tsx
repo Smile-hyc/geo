@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapPin, Swords, Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2, MapPin, Swords, Calendar, ArrowRight, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { motion } from "framer-motion";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { callFunction } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 interface HistoryEntry {
   type: "annotation" | "battle";
@@ -16,14 +19,25 @@ interface HistoryEntry {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: "待审核", approved: "已通过", rejected: "已拒绝",
+  pending: "待审核",
+  approved: "已通过",
+  rejected: "已驳回",
 };
+
+const STATUS_ICONS: Record<string, any> = {
+  pending: AlertCircle,
+  approved: CheckCircle2,
+  rejected: XCircle,
+};
+
 const STATUS_COLORS: Record<string, string> = {
-  pending: "text-yellow-400", approved: "text-green-400", rejected: "text-red-400",
+  pending: "text-amber-500 bg-amber-50",
+  approved: "text-emerald-500 bg-emerald-50",
+  rejected: "text-rose-500 bg-rose-50",
 };
 
 export default function HistoryPage() {
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((state) => state.user);
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,95 +48,151 @@ export default function HistoryPage() {
       email: user?.email,
     })
       .then((res) => setEntries(res.entries ?? []))
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "加载历史记录失败");
+      .catch((reason) => {
+        setError(reason instanceof Error ? reason.message : "加载历史记录失败。");
         setEntries([]);
       })
       .finally(() => setLoading(false));
   }, [user?.uid, user?.email]);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-4">
-      <div className="flex items-center gap-3 mb-2">
-        <Clock className="h-6 w-6 text-purple-400" />
-        <h1 className="text-xl font-bold">历史记录</h1>
-      </div>
-
-      {loading && (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <div className="py-8 max-w-4xl mx-auto space-y-8">
+      <section>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-[10px] font-black uppercase tracking-widest mb-4">
+          <Clock size={14} />
+          成果回顾
         </div>
-      )}
+        <h1 className="text-4xl font-black text-slate-900 tracking-tight">历史记录</h1>
+        <p className="mt-2 text-slate-500 max-w-2xl leading-relaxed">
+          回顾您的标注历程与对战表现。每一次记录都是您通往地理专家之路的见证。
+        </p>
+      </section>
 
-      {error && (
-        <p className="text-sm text-muted-foreground text-center">{error}</p>
-      )}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+          <p className="text-sm font-bold">正在加载时光机...</p>
+        </div>
+      ) : null}
 
-      {!loading && entries.length === 0 && !error && (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            暂无记录
+      {error ? (
+        <div className="p-8 rounded-3xl bg-red-50 border border-red-100 text-red-600 text-center font-bold">
+          {error}
+        </div>
+      ) : null}
+
+      {!loading && entries.length === 0 && !error ? (
+        <Card className="border-dashed border-2 border-slate-200 shadow-none bg-transparent">
+          <CardContent className="py-20 text-center text-slate-400">
+            <Calendar size={40} className="mx-auto mb-4 opacity-20" />
+            <p className="text-sm font-bold">暂无历史记录，去开始第一次任务吧！</p>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
-      {entries.map((entry) => (
-        <Card key={`${entry.type}-${entry.id}`}>
-          <CardContent className="py-4 px-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5">
-                {entry.type === "annotation" ? (
-                  <MapPin className="h-5 w-5 text-blue-400" />
-                ) : (
-                  <Swords className="h-5 w-5 text-red-400" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium">
-                    {entry.type === "annotation" ? "标注任务" : "AI 对战"}
-                    <span className="text-muted-foreground ml-2 font-normal text-xs">
-                      {entry.mode_type}
-                    </span>
-                  </p>
-                  <p className="text-xs text-muted-foreground flex-shrink-0">
-                    {new Date(entry.created_at).toLocaleDateString("zh-CN")}
-                  </p>
-                </div>
+      <div className="grid gap-4">
+        {entries.map((entry, index) => (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05 }}
+            key={`${entry.type}-${entry.id}`}
+          >
+            <Card className="border-none shadow-md hover:shadow-xl transition-all overflow-hidden group">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className={cn(
+                    "w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm shrink-0 transition-transform group-hover:scale-110 group-hover:rotate-3",
+                    entry.type === "annotation" ? "bg-sky-50 text-sky-600" : "bg-indigo-50 text-indigo-600"
+                  )}>
+                    {entry.type === "annotation" ? (
+                      <MapPin size={24} />
+                    ) : (
+                      <Swords size={24} />
+                    )}
+                  </div>
 
-                {entry.annotation && (
-                  <div className="mt-1 space-y-0.5">
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {entry.annotation.thought_text || "（无思维链）"}
-                    </p>
-                    <p className="text-xs">
-                      答案：{entry.annotation.final_answer || "—"}
-                      <span className={`ml-2 ${STATUS_COLORS[entry.annotation.quality_status] ?? ""}`}>
-                        {STATUS_LABELS[entry.annotation.quality_status] ?? entry.annotation.quality_status}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-bold text-slate-800">
+                          {entry.type === "annotation" ? "任务标注" : "竞技对战"}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-tighter">
+                          {entry.mode_type}
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-slate-400">
+                        {new Date(entry.created_at).toLocaleDateString("zh-CN", {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
                       </span>
-                    </p>
-                  </div>
-                )}
+                    </div>
 
-                {entry.battle && (
-                  <div className="mt-1 flex items-center gap-3 text-xs">
-                    <span>你 {entry.battle.user_total_score}</span>
-                    <span className="text-muted-foreground">vs</span>
-                    <span>AI {entry.battle.ai_total_score}</span>
-                    <span className={
-                      entry.battle.winner === "user" ? "text-green-400" :
-                      entry.battle.winner === "draw" ? "text-muted-foreground" : "text-red-400"
-                    }>
-                      {entry.battle.winner === "user" ? "胜" : entry.battle.winner === "draw" ? "平" : "负"}
-                    </span>
-                    <span className="text-muted-foreground">{entry.battle.round_count} 轮</span>
+                    {entry.annotation && (
+                      <div className="space-y-3">
+                        <p className="text-sm text-slate-500 italic line-clamp-1 leading-relaxed">
+                          &quot;{entry.annotation.thought_text || "无推理记录"}&quot;
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                             <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">最终答案:</span>
+                             <span className="text-sm font-black text-slate-700">{entry.annotation.final_answer || "-"}</span>
+                          </div>
+                          <div className={cn(
+                            "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold",
+                            STATUS_COLORS[entry.annotation.quality_status]
+                          )}>
+                            {(() => {
+                              const Icon = STATUS_ICONS[entry.annotation.quality_status] || AlertCircle;
+                              return <Icon size={14} />;
+                            })()}
+                            {STATUS_LABELS[entry.annotation.quality_status] || "未知"}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {entry.battle && (
+                      <div className="flex items-center gap-6 mt-4">
+                        <div className="flex flex-col">
+                           <span className="text-[10px] font-black uppercase text-slate-400 mb-1">比分结果</span>
+                           <div className="flex items-center gap-3">
+                              <div className="flex flex-col items-center">
+                                 <span className="text-xs font-bold text-slate-500">我方</span>
+                                 <span className="text-xl font-black text-primary">{entry.battle.user_total_score}</span>
+                              </div>
+                              <span className="text-slate-300 font-black">:</span>
+                              <div className="flex flex-col items-center">
+                                 <span className="text-xs font-bold text-slate-500">AI</span>
+                                 <span className="text-xl font-black text-rose-500">{entry.battle.ai_total_score}</span>
+                              </div>
+                           </div>
+                        </div>
+                        <div className="w-px h-10 bg-slate-100 mx-2" />
+                        <div className="flex flex-col">
+                           <span className="text-[10px] font-black uppercase text-slate-400 mb-1">胜负</span>
+                           <span className={cn(
+                             "text-lg font-black",
+                             entry.battle.winner === "user" ? "text-emerald-500" : entry.battle.winner === "draw" ? "text-amber-500" : "text-rose-500"
+                           )}>
+                              {entry.battle.winner === "user" ? "VICTORY" : entry.battle.winner === "draw" ? "DRAW" : "DEFEAT"}
+                           </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                  
+                  <div className="flex items-center justify-end md:ml-4">
+                    <ArrowRight size={20} className="text-slate-300 group-hover:text-primary transition-all group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }

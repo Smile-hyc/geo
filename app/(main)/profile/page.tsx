@@ -2,15 +2,28 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { User, MapPin, Swords, Coins, Star, Loader2, Pencil, ShieldCheck, ArrowRight, History, Trophy, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  History as HistoryIcon,
+  Loader2,
+  Pencil,
+  ShieldCheck,
+  Star,
+  Trophy,
+  User,
+  Wallet,
+  Settings,
+  Mail,
+  BadgeCheck,
+} from "lucide-react";
+import { motion } from "framer-motion";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuthStore } from "@/lib/auth";
 import { getUserProfile, updateUsername } from "@/lib/cloudbase";
-
-// 复用你之前的全局按钮样式
-const secondaryButtonStyle = "rounded-2xl border-2 border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-600 hover:text-blue-600 active:scale-95 inline-flex items-center gap-2";
-const adminButtonStyle = "rounded-2xl border-2 border-transparent bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-1 active:scale-95 inline-flex items-center gap-2";
+import { cn } from "@/lib/utils";
 
 interface ProfileData {
   id: number;
@@ -24,8 +37,8 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-  const storeUser = useAuthStore((s) => s.user);
-  const setUser = useAuthStore((s) => s.setUser);
+  const storeUser = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,14 +54,16 @@ export default function ProfilePage() {
       email: storeUser?.email,
     })
       .then((res) => setProfile(res.user as ProfileData))
-      .catch((e) => setError(e instanceof Error ? e.message : "加载失败"))
+      .catch((reason) => {
+        setError(reason instanceof Error ? reason.message : "加载个人资料失败。");
+      })
       .finally(() => setLoading(false));
   }, [storeUser?.uid, storeUser?.email]);
 
   const handleSaveUsername = async () => {
     const name = editUsername.trim();
     if (!name || name.length < 2) {
-      setSaveError("用户名至少 2 个字符");
+      setSaveError("用户名至少需要 2 个字符。");
       return;
     }
     setSaving(true);
@@ -60,18 +75,18 @@ export default function ProfilePage() {
         email: storeUser?.email,
       });
       setUser(storeUser ? { ...storeUser, username: res.username } : null);
-      setProfile((p) => (p ? { ...p, username: res.username } : null));
+      setProfile((prev) => (prev ? { ...prev, username: res.username } : null));
       setEditing(false);
-    } catch (e) {
-      setSaveError(e instanceof Error ? e.message : "保存失败");
+    } catch (reason) {
+      setSaveError(reason instanceof Error ? reason.message : "更新用户名失败。");
     } finally {
       setSaving(false);
     }
   };
 
   const data = profile ?? {
-    username: storeUser?.username ?? "—",
-    email: storeUser?.email ?? "—",
+    username: storeUser?.username ?? "-",
+    email: storeUser?.email ?? "-",
     role: storeUser?.role ?? "user",
     points_balance: storeUser?.points_balance ?? 0,
     level: storeUser?.level ?? 1,
@@ -80,150 +95,159 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="h-full w-full bg-[linear-gradient(180deg,#f8fafc,#eff6ff_100%)] px-6 py-8 md:px-16 lg:px-24 flex flex-col items-center overflow-y-auto">
-      <div className="w-full max-w-[800px] flex flex-col gap-8 pb-12">
-        
-        {/* Header Section */}
-        <header className="shrink-0 text-center md:text-left">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.3em] text-blue-500 opacity-80">
-            Account Center
-          </p>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
-            个人中心与<span className="text-blue-600 ml-2">账号概况。</span>
-          </h1>
-        </header>
-
-        {/* Profile Card */}
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white/80 p-8 shadow-sm backdrop-blur-sm">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            {/* Avatar Area */}
-            <div className="relative group shrink-0">
-              <div className="h-24 w-24 rounded-[32px] bg-blue-600 flex items-center justify-center text-white shadow-xl shadow-blue-200 transition-transform group-hover:scale-105">
-                <User className="h-10 w-10" />
-              </div>
-              <div className="absolute -bottom-2 -right-2 h-8 w-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-md">
-                <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-              </div>
+    <div className="py-8 max-w-5xl mx-auto space-y-10">
+      <section>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
+          <div className="relative group">
+            <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-2xl shadow-primary/30 border-4 border-white">
+              {data.username.slice(0, 1).toUpperCase()}
             </div>
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-white shadow-lg border border-slate-100 flex items-center justify-center text-primary">
+              <BadgeCheck size={20} fill="currentColor" className="text-white fill-primary" />
+            </div>
+          </div>
 
-            {/* Info Area */}
-            <div className="flex-1 text-center md:text-left min-w-0">
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-4 flex-wrap">
               {editing ? (
-                <div className="space-y-3">
-                  <div className="flex gap-2 justify-center md:justify-start">
-                    <Input
-                      className="max-w-[200px] rounded-xl border-2 border-blue-100 focus:border-blue-600 transition-all"
-                      value={editUsername}
-                      onChange={(e) => setEditUsername(e.target.value)}
-                      placeholder="新用户名"
-                      autoFocus
-                    />
-                    <Button size="sm" onClick={handleSaveUsername} disabled={saving} className="rounded-xl bg-blue-600 font-bold">
-                      {saving ? "保存中" : "确认"}
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(false)} className="rounded-xl text-slate-400">
-                      取消
-                    </Button>
-                  </div>
-                  {saveError && <p className="text-[10px] font-bold text-rose-500 uppercase">{saveError}</p>}
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={editUsername}
+                    onChange={(e) => setEditUsername(e.target.value)}
+                    className="w-48 h-10 rounded-xl"
+                    autoFocus
+                  />
+                  <Button size="sm" onClick={handleSaveUsername} disabled={saving} className="rounded-xl">
+                    {saving ? <Loader2 size={16} className="animate-spin" /> : "保存"}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditing(false)} className="rounded-xl">
+                    取消
+                  </Button>
                 </div>
               ) : (
-                <div className="flex items-center justify-center md:justify-start gap-3">
-                  <h2 className="text-2xl font-black text-slate-800 tracking-tight">{data.username}</h2>
-                  <button
-                    onClick={() => { setEditUsername(data.username); setEditing(true); }}
-                    className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                <>
+                  <h1 className="text-4xl font-black text-slate-900 tracking-tight">{data.username}</h1>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="w-8 h-8 rounded-xl border-slate-200"
+                    onClick={() => {
+                      setEditUsername(data.username);
+                      setEditing(true);
+                    }}
                   >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                </div>
+                    <Pencil size={14} className="text-slate-400" />
+                  </Button>
+                </>
               )}
-              
-              <p className="mt-1 text-sm font-medium text-slate-400">{data.email}</p>
-              
-              <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-2">
-                <span className="px-3 py-1 rounded-lg bg-blue-100 text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-                  {data.role === "admin" ? "Platform Admin" : "Active Researcher"}
-                </span>
-                <span className="px-3 py-1 rounded-lg bg-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Verified Account
-                </span>
-              </div>
             </div>
-          </div>
-        </section>
-
-        {loading && (
-          <div className="flex justify-center py-4">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-          </div>
-        )}
-
-        {/* Stats Grid */}
-        <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <StatCard icon={<Star className="text-amber-500" />} label="当前等级" value={`Lv.${data.level}`} bgColor="bg-amber-50" />
-          <StatCard icon={<Coins className="text-blue-600" />} label="总积分额" value={data.points_balance.toLocaleString()} bgColor="bg-blue-50" />
-          <StatCard icon={<MapPin className="text-emerald-500" />} label="累计标注" value={data.annotation_count} bgColor="bg-emerald-50" />
-          <StatCard icon={<Swords className="text-rose-500" />} label="对战参与" value={data.battle_count} bgColor="bg-rose-50" />
-        </section>
-
-        {/* Action Buttons */}
-        <section className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link href="/app/points" className={secondaryButtonStyle + " justify-between group"}>
-              <div className="flex items-center gap-3">
-                <Wallet className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition-colors" />
-                <span>查询积分明细</span>
-              </div>
-              <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all" />
-            </Link>
-            
-            <Link href="/app/history" className={secondaryButtonStyle + " justify-between group"}>
-              <div className="flex items-center gap-3">
-                <History className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition-colors" />
-                <span>回顾历史记录</span>
-              </div>
-              <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all" />
-            </Link>
-
-            <Link href="/app/leaderboard" className={secondaryButtonStyle + " justify-between group md:col-span-2"}>
-              <div className="flex items-center gap-3">
-                <Trophy className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition-colors" />
-                <span>查看全球排行榜</span>
-              </div>
-              <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all" />
-            </Link>
+            <div className="flex items-center gap-4 text-slate-500 text-sm font-medium">
+               <span className="flex items-center gap-1.5"><Mail size={14} /> {data.email}</span>
+               <span className="w-1 h-1 rounded-full bg-slate-300" />
+               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest">
+                  {data.role === "admin" ? "管理员" : "研究员"}
+               </span>
+            </div>
+            {saveError && <p className="text-xs font-bold text-red-500">{saveError}</p>}
           </div>
 
-          {data.role === "admin" && (
-            <Link href="/admin" className={adminButtonStyle + " w-full justify-center mt-4"}>
-              <ShieldCheck className="h-5 w-5" />
-              进入平台管理后台
-            </Link>
-          )}
-        </section>
+          <div className="flex gap-2">
+             <Button variant="outline" className="rounded-full px-6">
+                <Settings size={18} className="mr-2" />
+                设置
+             </Button>
+          </div>
+        </div>
+      </section>
 
-        {/* Footer info */}
-        <footer className="mt-auto py-6 border-t border-slate-200/50 flex flex-col md:flex-row justify-between items-center text-slate-400">
-          <p className="text-[10px]">© 2026 <span className="font-bold text-slate-500">GeoAnnotate Platform</span></p>
-          <div className="hidden md:block h-px flex-1 mx-6 bg-slate-200/50"></div>
-          <p className="text-[10px] tracking-widest uppercase font-semibold text-slate-300">Member Directory</p>
-        </footer>
-      </div>
+      {loading && (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold">
+          {error}
+        </div>
+      )}
+
+      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric title="当前等级" value={data.level} icon={<Star size={20} />} color="text-amber-500" bgColor="bg-amber-50" />
+        <Metric title="账户积分" value={data.points_balance} icon={<Wallet size={20} />} color="text-sky-500" bgColor="bg-sky-50" />
+        <Metric title="累计标注" value={data.annotation_count} icon={<ShieldCheck size={20} />} color="text-emerald-500" bgColor="bg-emerald-50" />
+        <Metric title="对战局数" value={data.battle_count} icon={<Trophy size={20} />} color="text-indigo-500" bgColor="bg-indigo-50" />
+      </section>
+
+      <section>
+        <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="px-8 pt-8">
+             <CardTitle className="text-xl font-black text-slate-800">快速导航</CardTitle>
+             <CardDescription>直达您的核心任务与历史记录</CardDescription>
+          </CardHeader>
+          <CardContent className="p-8 pt-6 grid gap-4 sm:grid-cols-2">
+            <QuickLink href="/app/points" title="积分流水明细" icon={<Wallet size={18} />} />
+            <QuickLink href="/app/history" title="标注历史记录" icon={<HistoryIcon size={18} />} />
+            <QuickLink href="/app/leaderboard" title="全球实时排行" icon={<Trophy size={18} />} />
+            {data.role === "admin" && (
+              <QuickLink href="/admin" title="管理后台入口" icon={<ShieldCheck size={18} />} />
+            )}
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }
 
-function StatCard({ icon, label, value, bgColor }: { icon: React.ReactNode; label: string; value: string | number; bgColor: string }) {
+function Metric({
+  title,
+  value,
+  icon,
+  color,
+  bgColor
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+}) {
   return (
-    <div className="group rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-500 hover:shadow-md">
-      <div className={`mb-4 flex h-10 w-10 items-center justify-center rounded-2xl transition-colors ${bgColor}`}>
-        {icon}
+    <Card className="border-none shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{title}</p>
+          <div className={cn("w-10 h-10 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 group-hover:rotate-6", bgColor, color)}>
+            {icon}
+          </div>
+        </div>
+        <p className="text-3xl font-black text-slate-900 tabular-nums">{value}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function QuickLink({
+  href,
+  title,
+  icon,
+}: {
+  href: string;
+  title: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-primary hover:shadow-lg transition-all"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
+          {icon}
+        </div>
+        <span className="font-bold text-slate-700 group-hover:text-slate-900">{title}</span>
       </div>
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">{label}</p>
-        <p className="text-xl font-black text-slate-800 tracking-tight">{value}</p>
-      </div>
-    </div>
+      <ArrowRight size={18} className="text-slate-300 group-hover:text-primary transition-all group-hover:translate-x-1" />
+    </Link>
   );
 }

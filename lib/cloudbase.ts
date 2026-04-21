@@ -555,6 +555,23 @@ export async function recordEvent(params: {
   return callFunction("record-event", params);
 }
 
+/** AI 地理推理（云函数 geo-inference；未配置 GPU 时为占位结果） */
+export type GeoInferenceResult = {
+  address: string;
+  chain_of_thought: string;
+  source?: "stub" | "remote";
+  model_ref?: string;
+};
+
+export async function runGeoInference(params: {
+  image_base64: string;
+  mime_type?: string;
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<GeoInferenceResult> {
+  return callFunction<GeoInferenceResult>("geo-inference", params);
+}
+
 /** 管理端：分析汇总 */
 export async function getAnalyticsSummary(params?: {
   cloudbase_uid?: string;

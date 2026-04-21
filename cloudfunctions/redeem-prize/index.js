@@ -1,6 +1,7 @@
 "use strict";
 
 const { Pool } = require("pg");
+const { hasColumn } = require("./_shared/schema");
 
 let pool = null;
 
@@ -33,6 +34,7 @@ exports.main = async (event, context) => {
   const client = await db.connect();
   
   try {
+    const hasDeletedAt = await hasColumn(client, "prizes", "deleted_at");
     const userResult = await client.query(
       "SELECT id FROM users WHERE cloudbase_uid = $1 OR email = $2",
       [cloudbase_uid, email || cloudbase_uid]
@@ -47,7 +49,9 @@ exports.main = async (event, context) => {
       const prizeLock = await client.query(
         `SELECT id, name, points_cost, stock
          FROM prizes
-         WHERE id = $1 AND is_active = true AND deleted_at IS NULL
+         WHERE id = $1 AND is_active = true${
+           hasDeletedAt ? " AND deleted_at IS NULL" : ""
+         }
          FOR UPDATE`,
         [prize_id]
       );

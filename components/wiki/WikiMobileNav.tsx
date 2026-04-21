@@ -3,56 +3,71 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { WIKI_NAV } from "@/lib/wiki-nav";
+import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 
-/** 小屏幕下显示的 Wiki 目录下拉/列表，便于移动端导航 */
 export default function WikiMobileNav() {
   const pathname = usePathname();
 
   return (
-    <details className="group">
-      <summary className="cursor-pointer list-none text-sm font-medium text-[#424a53] py-1">
-        <span className="inline-flex items-center gap-1">
-          目录
-          <svg className="h-4 w-4 transition group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </span>
+    <details className="group mb-4">
+      <summary className="cursor-pointer list-none py-3 px-4 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-between text-sm font-bold text-slate-700">
+        <span>目录导航</span>
+        <ChevronDown size={16} className="transition-transform group-open:rotate-180" />
       </summary>
-      <ul className="mt-2 space-y-0.5 text-sm pl-2 border-l-2 border-[#e1e4e8]">
-        {WIKI_NAV.flatMap((item) =>
-          item.children
-            ? [
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={pathname === item.href ? "text-[#0969da] font-medium" : "text-[#656d76]"}
-                  >
-                    {item.title}
-                  </Link>
-                </li>,
-                ...item.children.map((child) => (
-                  <li key={child.href} className="pl-2">
+
+      <div className="mt-2 p-2 rounded-2xl bg-white/50 backdrop-blur-md border border-slate-100">
+        <ul className="space-y-1">
+          {WIKI_NAV.flatMap((item) =>
+            item.children
+              ? [
+                  <li key={item.href}>
                     <Link
-                      href={child.href}
-                      className={pathname === child.href ? "text-[#0969da] font-medium" : "text-[#656d76]"}
+                      href={item.href}
+                      className={cn(
+                        "block px-3 py-2 rounded-xl text-sm transition-all",
+                        pathname === item.href
+                          ? "bg-primary text-white font-bold"
+                          : "text-slate-600 hover:bg-slate-100"
+                      )}
                     >
-                      {child.title}
+                      {item.title}
                     </Link>
-                  </li>
-                )),
-              ]
-            : [
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={pathname === item.href ? "text-[#0969da] font-medium" : "text-[#656d76]"}
-                  >
-                    {item.title}
-                  </Link>
-                </li>,
-              ]
-        )}
-      </ul>
+                  </li>,
+                  ...item.children.map((child) => (
+                    <li key={child.href} className="pl-4">
+                      <Link
+                        href={child.href}
+                        className={cn(
+                          "block px-3 py-1.5 rounded-lg text-xs transition-colors",
+                          pathname === child.href
+                            ? "text-primary font-bold"
+                            : "text-slate-500 hover:text-slate-900"
+                        )}
+                      >
+                        {child.title}
+                      </Link>
+                    </li>
+                  )),
+                ]
+              : [
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "block px-3 py-2 rounded-xl text-sm transition-all",
+                        pathname === item.href
+                          ? "bg-primary text-white font-bold"
+                          : "text-slate-600 hover:bg-slate-100"
+                      )}
+                    >
+                      {item.title}
+                    </Link>
+                  </li>,
+                ]
+          )}
+        </ul>
+      </div>
     </details>
   );
 }

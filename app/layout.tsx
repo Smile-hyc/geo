@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "GeoAnnotate | 地理推理标注",
-  description: "地理图片推理与标注数据收集",
+  title: "GeoAnnotate",
+  description: "GeoAnnotate 地理标注与竞技平台",
 };
 
 export default function RootLayout({
@@ -12,8 +12,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
-      <body className="min-h-screen font-sans">{children}</body>
+    <html lang="zh-CN" suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans text-foreground">
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Coins, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Coins, Loader2, TrendingDown, TrendingUp, History, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
+
+import { Card, CardContent } from "@/components/ui/card";
 import { callFunction } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 interface LedgerEntry {
   id: number;
@@ -17,84 +20,120 @@ interface LedgerEntry {
 const REASON_LABELS: Record<string, string> = {
   annotation_reward: "标注奖励",
   battle_reward: "对战奖励",
-  quality_bonus: "质量奖金",
+  quality_bonus: "质量加成",
   admin_adjust: "管理员调整",
-  prize_redemption: "兑换奖品",
+  prize_redemption: "奖品兑换",
 };
 
 export default function PointsPage() {
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((state) => state.user);
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    callFunction<{ entries: LedgerEntry[]; total_earned: number }>("get-points-history", {
+    callFunction<{ entries: LedgerEntry[] }>("get-points-history", {
       cloudbase_uid: user?.uid,
       email: user?.email,
     })
       .then((res) => setEntries(res.entries ?? []))
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "加载积分记录失败");
+      .catch((reason) => {
+        setError(reason instanceof Error ? reason.message : "加载积分流水失败。");
         setEntries([]);
       })
       .finally(() => setLoading(false));
   }, [user?.uid, user?.email]);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-center gap-3 mb-6">
-        <Coins className="h-6 w-6 text-yellow-400" />
-        <h1 className="text-xl font-bold">积分明细</h1>
-      </div>
-
-      {loading && (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <div className="py-8 max-w-4xl mx-auto space-y-8">
+      <section>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-[10px] font-black uppercase tracking-widest mb-4">
+          <History size={14} />
+          交易明细
         </div>
-      )}
+        <h1 className="text-4xl font-black text-slate-900 tracking-tight">积分流水</h1>
+        <p className="mt-2 text-slate-500 max-w-2xl leading-relaxed">
+          追踪标注与对战带来的每一次积分变动。公平透明的奖励机制，见证您的每一份贡献。
+        </p>
+      </section>
 
-      {error && (
-        <p className="text-sm text-muted-foreground text-center">{error}</p>
-      )}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+          <p className="text-sm font-bold">正在提取历史记录...</p>
+        </div>
+      ) : null}
 
-      {!loading && entries.length === 0 && !error && (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            暂无积分记录，完成标注或对战来获取积分
+      {error ? (
+        <div className="p-8 rounded-3xl bg-red-50 border border-red-100 text-red-600 text-center font-bold">
+          {error}
+        </div>
+      ) : null}
+
+      {!loading && entries.length === 0 && !error ? (
+        <Card className="border-dashed border-2 border-slate-200 shadow-none bg-transparent">
+          <CardContent className="py-20 text-center text-slate-400">
+            <Coins size={40} className="mx-auto mb-4 opacity-20" />
+            <p className="text-sm font-bold">暂无积分变动记录</p>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
-      <div className="space-y-2">
-        {entries.map((entry) => (
-          <Card key={entry.id}>
-            <CardContent className="py-3 px-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {entry.change_amount > 0 ? (
-                    <TrendingUp className="h-4 w-4 text-green-400 flex-shrink-0" />
-                  ) : (
-                    <TrendingDown className="h-4 w-4 text-red-400 flex-shrink-0" />
-                  )}
-                  <div>
-                    <p className="text-sm font-medium">
-                      {REASON_LABELS[entry.reason_type] ?? entry.reason_type}
+      <div className="grid gap-3">
+        {entries.map((entry, index) => (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            key={entry.id}
+          >
+            <Card className="border-none shadow-md hover:shadow-lg transition-all overflow-hidden group">
+              <CardContent className="px-6 py-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-5">
+                    <div className={cn(
+                      "w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm",
+                      entry.change_amount >= 0 
+                        ? "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white" 
+                        : "bg-rose-50 text-rose-600 group-hover:bg-rose-500 group-hover:text-white"
+                    )}>
+                      {entry.change_amount >= 0 ? (
+                        <TrendingUp size={22} />
+                      ) : (
+                        <TrendingDown size={22} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800">
+                        {REASON_LABELS[entry.reason_type] ?? entry.reason_type}
+                      </p>
+                      <p className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5 mt-1">
+                        <Calendar size={12} />
+                        {new Date(entry.created_at).toLocaleString("zh-CN", {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <p className={cn(
+                      "text-xl font-black tabular-nums",
+                      entry.change_amount >= 0 ? "text-emerald-500" : "text-rose-500"
+                    )}>
+                      {entry.change_amount >= 0 ? "+" : ""}
+                      {entry.change_amount}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(entry.created_at).toLocaleString("zh-CN")}
-                    </p>
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mt-1">余额 {entry.balance_after}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`font-bold ${entry.change_amount > 0 ? "text-green-400" : "text-red-400"}`}>
-                    {entry.change_amount > 0 ? "+" : ""}{entry.change_amount}
-                  </p>
-                  <p className="text-xs text-muted-foreground">余额 {entry.balance_after}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
     </div>

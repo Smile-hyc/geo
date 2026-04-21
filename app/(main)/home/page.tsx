@@ -1,185 +1,152 @@
 "use client";
 
 import Link from "next/link";
-import { useAuthStore } from "@/lib/auth";
+import { motion } from "framer-motion";
+import { Crosshair, Brain, Swords, Trophy, Map, Zap, Database, Globe } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-type EntryCard = {
-  id: string;
-  href: string;
-  title: string;
-  description: string;
-  iconBg: string;
-  iconText: string;
-  hoverBg: string;
-  icon: React.ReactNode;
-  bgImage?: string; 
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
 };
 
-const ENTRY_CARDS: EntryCard[] = [
+const item = {
+  hidden: { y: 20, opacity: 0 },
+  show: { y: 0, opacity: 1 },
+};
+
+const FEATURES = [
   {
-    id: "annotate",
     href: "/app/annotate/mode",
-    title: "标注任务",
-    description: "选择数据采集模式，并决定采集思维链、地理元素框，或两者同时采集。",
-    iconBg: "bg-blue-50",
-    iconText: "text-blue-600",
-    hoverBg: "group-hover:bg-blue-600",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-      </svg>
-    ),
-    bgImage: "/images/home/annotation_task.png",
+    title: "快速标注",
+    description: "高效的单张影像标注流程，支持多种几何类型。",
+    icon: Crosshair,
+    color: "bg-sky-500",
+    lightColor: "bg-sky-50",
+    textColor: "text-sky-600",
   },
   {
-    id: "battle",
     href: "/app/battle",
-    title: "AI 对战",
-    description: "配置限时回合、选择 AI 对手，并逐轮比较得分表现。",
-    iconBg: "bg-rose-50",
-    iconText: "text-rose-500",
-    hoverBg: "group-hover:bg-rose-500",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18.5 5.5L5.5 18.5" /><path d="M4.5 15.5l4 4" /><path d="M3.5 20.5l2-2" /><path d="M5.5 5.5l13 13" /><path d="M15.5 19.5l4-4" /><path d="M18.5 18.5l2 2" />
-      </svg>
-    ),
-    bgImage: "/images/home/ai_match.png",
+    title: "竞技对战",
+    description: "在快节奏的多轮竞技中挑战 AI，提升标注精度。",
+    icon: Swords,
+    color: "bg-indigo-500",
+    lightColor: "bg-indigo-50",
+    textColor: "text-indigo-600",
   },
   {
-    id: "rewards",
-    href: "/app/rewards",
-    title: "奖励中心",
-    description: "使用积分兑换奖品，并查看当前可用的奖励库存。",
-    iconBg: "bg-amber-50",
-    iconText: "text-amber-500",
-    hoverBg: "group-hover:bg-amber-600",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="8" width="18" height="14" rx="2" ry="2" /><path d="M12 8V22" /><path d="M3 12h18" /><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5H12z" />
-      </svg>
-    ),
-    bgImage: "/images/home/award.png",
-  },
-  {
-    id: "leaderboard",
-    href: "/app/leaderboard",
-    title: "排行榜",
-    description: "查看当前高分用户，并为后续更丰富的统计入口预留位置。",
-    iconBg: "bg-emerald-50",
-    iconText: "text-emerald-500",
-    hoverBg: "group-hover:bg-emerald-600",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-      </svg>
-    ),
-    bgImage: "/images/home/rank.png",
-  },
-  {
-    id: "history",
-    href: "/app/history",
-    title: "历史记录",
-    description: "回顾你的历史标注、对战记录和当前采集状态。",
-    iconBg: "bg-violet-50",
-    iconText: "text-violet-500",
-    hoverBg: "group-hover:bg-violet-600",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-    bgImage: "/images/home/record.png",
-  },
-  {
-    id: "wiki",
-    href: "/wiki",
-    title: "公开 Wiki",
-    description: "查看入门与科研文档，而不混入主应用操作壳层。",
-    iconBg: "bg-sky-50",
-    iconText: "text-sky-500",
-    hoverBg: "group-hover:bg-sky-600",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 6s3-1 10-1 10 1 10 1v12s-3-1-10-1-10 1-10 1V6z" /><line x1="12" y1="5" x2="12" y2="18" />
-      </svg>
-    ),
-    bgImage: "/images/home/wiki_document.png",
+    href: "/app/inference",
+    title: "推理任务",
+    description: "利用大模型与地理空间推理技术，自动化验证与处理复杂标注。",
+    icon: Brain,
+    color: "bg-purple-500",
+    lightColor: "bg-purple-50",
+    textColor: "text-purple-600",
   },
 ];
 
 export default function HomePage() {
-  const user = useAuthStore((state) => state.user);
-  const buttonStyle = "rounded-2xl border-2 border-gray-300 bg-white px-10 py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-all hover:-translate-y-1 hover:bg-blue-600 hover:border-blue-600 hover:text-white hover:shadow-blue-200 active:scale-95";
-
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col overflow-hidden px-6 py-4 md:px-16 lg:px-24">
-      <main className="flex flex-1 flex-col justify-center overflow-hidden">
-        {/* 核心修改：去掉了外层 section 的所有容器样式（border, bg, shadow, backdrop-blur） */}
-        <section className="relative mb-12 px-2">
-          <div className="relative z-10">
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-blue-500 opacity-80">CORE APPLICATION</p>
-            <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-800 md:text-5xl">欢迎回来，{user?.username ?? "Smile"}。</h1>
-            <p className="mb-8 max-w-3xl text-base leading-relaxed text-gray-500">
-              平台现在按照需求文档重组，围绕数据采集、AI 对战、用户成长和研究管理流程展开。
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <span className="text-sm font-bold text-gray-700">等级 {user?.level ?? 1}</span>
-              <span className="text-sm font-bold text-gray-700">{user?.points_balance ?? 0} 积分</span>
-              <span className="text-sm font-bold text-gray-700">角色：{user?.role === "admin" ? "管理员" : "用户"}</span>
-            </div>
+    <div className="relative pb-20 pt-10">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] bg-sky-200/20 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[10%] left-[-5%] w-[300px] h-[300px] bg-blue-200/20 blur-[80px] rounded-full" />
+      </div>
+
+      <section className="text-center mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-50 border border-sky-100 text-sky-600 text-xs font-bold uppercase tracking-wider mb-6">
+            <Zap size={14} className="fill-sky-600" />
+            地理数据标注的新标准
           </div>
-        </section>
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6">
+            Master <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600">Geospatial</span> Data
+          </h1>
+          <p className="max-w-2xl mx-auto text-lg text-slate-500 leading-relaxed">
+            GeoAnnotate 是一个集成竞技、标注与学习的地理信息平台。在这里，你可以磨练标注技能，并在真实的对战中获取丰厚奖励。
+          </p>
+        </motion.div>
+      </section>
 
-        <section className="mb-8 grid shrink-0 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {ENTRY_CARDS.map((card) => (
+      <motion.div
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+      >
+        {FEATURES.map((feature) => (
+          <motion.div key={feature.href} variants={item}>
             <Link
-              key={card.id}
-              href={card.href}
-              className="group relative overflow-hidden rounded-[32px] border border-gray-300 bg-gradient-to-br from-white to-slate-50 p-8 shadow-sm transition-all duration-300 hover:-translate-y-1"
+              href={feature.href}
+              className="group relative flex flex-col h-full p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-sky-100 transition-all duration-500 overflow-hidden"
             >
-              {card.bgImage && (
-                <div
-                  className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center"
-                  style={{ opacity: 0.62 }}
-                >
-                  <img
-                    src={card.bgImage}
-                    alt=""
-                    className="h-full w-full object-cover contrast-140 brightness-90 saturate-120"
-                  />
-                </div>
-              )}
+              {/* Hover Background Accent */}
+              <div className={cn("absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity", feature.color)} />
+              
+              <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-500", feature.lightColor, feature.textColor)}>
+                <feature.icon size={28} />
+              </div>
 
-              <div className="relative z-10">
-                <div className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${card.iconBg} ${card.hoverBg}`}>
-                  <span className={`transition-colors group-hover:text-white ${card.iconText}`}>{card.icon}</span>
-                </div>
-                <h3 className="mb-3 text-xl font-bold text-gray-800">{card.title}</h3>
-                <p className="text-sm leading-relaxed text-gray-600">{card.description}</p>
+              <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-primary transition-colors">
+                {feature.title}
+              </h3>
+              <p className="text-slate-500 text-sm leading-relaxed mb-6">
+                {feature.description}
+              </p>
+
+              <div className="mt-auto flex items-center gap-2 text-sm font-bold text-slate-400 group-hover:text-primary transition-colors">
+                立即开始
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  →
+                </motion.span>
               </div>
             </Link>
-          ))}
-        </section>
+          </motion.div>
+        ))}
+      </motion.div>
 
-        <section className="mt-2 flex shrink-0 flex-col items-center justify-between space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
-          <div className="flex space-x-4">
-            <Link href="/app/annotate/mode" className={buttonStyle}>开始标注</Link>
-            <Link href="/app/battle" className={buttonStyle}>开始对战</Link>
-          </div>
-          <Link
-            href="/app/profile"
-            className="group flex items-center gap-2 px-6 py-3 text-sm font-semibold text-gray-400 transition-colors hover:text-blue-600"
-          >
-            <span>打开个人中心</span>
-            <span className="transition-transform group-hover:translate-x-1">→</span>
-          </Link>
-        </section>
-      </main>
+      {/* Statistics or Status bar */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="mt-20 p-8 rounded-[3rem] bg-slate-900 text-white overflow-hidden relative"
+      >
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+          <Globe className="absolute -right-20 -bottom-20 w-80 h-80" />
+        </div>
+        
+        <div className="flex flex-col md:flex-row items-center justify-around gap-12 relative z-10">
+          <StatItem icon={Map} label="已完成标注" value="128k+" />
+          <StatItem icon={Database} label="活跃任务数" value="456" />
+          <StatItem icon={Trophy} label="本月发放奖励" value="¥12,400" />
+        </div>
+      </motion.section>
+    </div>
+  );
+}
 
-      <footer className="shrink-0 px-12 py-4 text-center text-[10px] tracking-wide text-gray-400">
-        &copy; 2024 <span className="font-semibold text-gray-500">GeoAnnotate Platform</span>. All rights reserved.
-      </footer>
+function StatItem({ icon: Icon, label, value }: { icon: any, label: string, value: string }) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-2">
+        <Icon size={20} className="text-sky-400" />
+      </div>
+      <p className="text-3xl font-extrabold tracking-tight">{value}</p>
+      <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{label}</p>
     </div>
   );
 }
