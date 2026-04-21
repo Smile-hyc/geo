@@ -40,7 +40,7 @@ const FEATURES = [
     textColor: "text-indigo-600",
   },
   {
-    href: "/app/rewards",
+    href: "/app/inference",
     title: "推理任务",
     description: "利用大模型与地理空间推理技术，自动化验证与处理复杂标注。",
     icon: Brain,

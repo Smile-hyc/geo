@@ -51,6 +51,7 @@ const nextConfig = {
       { source: "/points", destination: "/app/points", permanent: false },
       { source: "/profile", destination: "/app/profile", permanent: false },
       { source: "/rewards", destination: "/app/rewards", permanent: false },
+      { source: "/inference", destination: "/app/inference", permanent: false },
       {
         source: "/leaderboard",
         destination: "/app/leaderboard",
