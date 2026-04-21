@@ -27,6 +27,11 @@ jobs:
           npm install
           npm run build
 
+      - name: Prepare Cloud Functions Shared Code
+        run: |
+          npm run cloudfunctions:sync-shared
+          npm run cloudfunctions:verify-shared
+
       # 4. 机器人安装腾讯云命令行工具
       - name: Install CloudBase CLI
         run: npm install -g @cloudbase/cli

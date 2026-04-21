@@ -46,7 +46,7 @@ function CloudImage({ url }: { url: string }) {
   if (!src) {
     return <div className="w-full h-full bg-[#F2F3F5] flex items-center justify-center"><MapPin className="text-[#C9CDD4]" /></div>;
   }
-  return <img src={src} alt="回合图像" className="w-full h-full object-cover" />;
+  return <img src={src} alt="Round" className="w-full h-full object-cover" />;
 }
 
 interface BattleResult {
@@ -284,7 +284,7 @@ export default function BattleResultPage() {
                 <span className="text-[16px] text-[#4B5563] font-medium">用户总分</span>
                 <span className="text-[40px] font-black text-[#165DFF] leading-none">{session.user_total_score}</span>
               </div>
-              <div className="text-[24px] font-black text-[#86909C] italic">对决</div>
+              <div className="text-[24px] font-black text-[#86909C] italic">VS</div>
               <div className="flex flex-col items-center gap-1">
                 <span className="text-[16px] text-[#4B5563] font-medium">AI 总分</span>
                 <span className="text-[40px] font-black text-[#F53F3F] leading-none">{session.ai_total_score}</span>
@@ -294,18 +294,18 @@ export default function BattleResultPage() {
             <div className="mt-8 flex justify-between px-2">
               <div className="flex flex-col gap-1">
                 <span className="text-[14px] text-[#4B5563]">用户平均误差</span>
-                <span className="text-[20px] font-bold text-[#165DFF]">{avgUserDist} <span className="text-[14px] font-normal">公里</span></span>
+                <span className="text-[20px] font-bold text-[#165DFF]">{avgUserDist} <span className="text-[14px] font-normal">km</span></span>
               </div>
               <div className="flex flex-col gap-1 text-right">
                 <span className="text-[14px] text-[#4B5563]">AI 平均误差</span>
-                <span className="text-[20px] font-bold text-[#F53F3F]">{avgAiDist} <span className="text-[14px] font-normal">公里</span></span>
+                <span className="text-[20px] font-bold text-[#F53F3F]">{avgAiDist} <span className="text-[14px] font-normal">km</span></span>
               </div>
             </div>
 
             <div className="mt-4 p-4 bg-[#F9FAFB] rounded-xl border border-[#E5E6EB]/50">
               <p className="text-[14px] text-[#4E5969] leading-relaxed">
                 平均误差越小表示预测越精准。
-                您的平均误差比 AI {userIsBetter ? "少" : "多"} <strong className={userIsBetter ? "text-[#00B42A]" : "text-[#F53F3F]"}>{diffDist} 公里</strong>。
+                您的平均误差比 AI {userIsBetter ? "少" : "多"} <strong className={userIsBetter ? "text-[#00B42A]" : "text-[#F53F3F]"}>{diffDist} km</strong>。
               </p>
             </div>
           </div>
@@ -341,13 +341,13 @@ export default function BattleResultPage() {
                         <div className="flex justify-between text-[13px]">
                           <span className="text-[#86909C]">我方距离:</span>
                           <span className="font-bold text-[#1D2129]">
-                            {calculateDistance(round.user_guess_lat, round.user_guess_lng, round.true_lat, round.true_lng).toFixed(0)} 公里
+                            {calculateDistance(round.user_guess_lat, round.user_guess_lng, round.true_lat, round.true_lng).toFixed(0)} km
                           </span>
                         </div>
                         <div className="flex justify-between text-[13px]">
-                          <span className="text-[#86909C]">AI 距离：</span>
+                          <span className="text-[#86909C]">AI 距离:</span>
                           <span className="font-bold text-[#1D2129]">
-                            {calculateDistance(round.ai_guess_lat, round.ai_guess_lng, round.true_lat, round.true_lng).toFixed(0)} 公里
+                            {calculateDistance(round.ai_guess_lat, round.ai_guess_lng, round.true_lat, round.true_lng).toFixed(0)} km
                           </span>
                         </div>
                       </div>

@@ -1,6 +1,6 @@
 /**
- * Wiki 目录结构（与文档目录保持一致）
- * 可在此维护侧边栏与层级关系
+ * Wiki 目录结构（与 wiki.docx 建议一致）
+ * 管理员可在此维护侧边栏与层级
  */
 export interface WikiNavItem {
   title: string;
