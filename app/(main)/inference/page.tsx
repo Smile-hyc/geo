@@ -135,10 +135,6 @@ export default function InferencePage() {
             </span>
             任务
           </h1>
-          <p className="max-w-2xl mx-auto text-lg text-slate-500 leading-relaxed">
-            上传影像，由 GeoAgent 类模型推断地理位置并给出思维链说明。当前后端可返回占位结果；部署 GPU
-            推理服务并配置环境变量后即可接入真实模型。
-          </p>
         </motion.div>
       </section>
 
