@@ -3,6 +3,26 @@
 const DEFAULT_SPACE_ID = "EugeneZhao/geoagent-api";
 const DEFAULT_ENDPOINT = "/predict";
 const DEFAULT_FILE_NAME = "input.jpg";
+const SECTION_LABELS = {
+  CountryIdentification: "国家判断",
+  RegionalGuess: "区域猜测",
+  PreciseLocalization: "精确定位",
+};
+const FIELD_LABELS = {
+  Conclusion: "结论",
+  conclusion: "结论",
+  Reasoning: "推理",
+  reasoning: "推理",
+  Clues: "线索",
+  clues: "线索",
+  Uncertainty: "不确定性",
+  uncertainty: "不确定性",
+};
+const VALUE_LABELS = {
+  Low: "低",
+  Medium: "中",
+  High: "高",
+};
 
 function ensureWebStreamGlobals() {
   try {
@@ -358,12 +378,13 @@ function formatChainSection(title, value) {
 
   const section = value;
   const parts = [];
+  const sectionTitle = SECTION_LABELS[title] || title;
 
   const conclusion = pickString(section, ["Conclusion", "conclusion"]);
-  if (conclusion) parts.push(`Conclusion: ${conclusion}`);
+  if (conclusion) parts.push(`${FIELD_LABELS.Conclusion}: ${conclusion}`);
 
   const reasoning = pickString(section, ["Reasoning", "reasoning"]);
-  if (reasoning) parts.push(`Reasoning: ${reasoning}`);
+  if (reasoning) parts.push(`${FIELD_LABELS.Reasoning}: ${reasoning}`);
 
   const clues = section.Clues ?? section.clues;
   if (Array.isArray(clues) && clues.length > 0) {
@@ -371,14 +392,18 @@ function formatChainSection(title, value) {
       .map((item) => String(item || "").trim())
       .filter(Boolean)
       .join(", ");
-    if (clueText) parts.push(`Clues: ${clueText}`);
+    if (clueText) parts.push(`${FIELD_LABELS.Clues}: ${clueText}`);
   }
 
   const uncertainty = pickString(section, ["Uncertainty", "uncertainty"]);
-  if (uncertainty) parts.push(`Uncertainty: ${uncertainty}`);
+  if (uncertainty) {
+    parts.push(
+      `${FIELD_LABELS.Uncertainty}: ${VALUE_LABELS[uncertainty] || uncertainty}`
+    );
+  }
 
   if (!parts.length) return null;
-  return `${title}\n${parts.join("\n")}`;
+  return `${sectionTitle}\n${parts.join("\n")}`;
 }
 
 function formatChainOfThought(value) {

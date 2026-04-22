@@ -34,7 +34,7 @@ const pool = new Pool(
 );
 
 const DEFAULT_BATTLE_PROMPT =
-  'You are GeoAgent in a geolocation battle. Analyze the image and output your single best guess. Return JSON only with keys "address", "chain_of_thought", "latitude", "longitude".';
+    '你是地理定位对战中的 GeoAgent。请分析图片并给出唯一最佳猜测。请尽量用简体中文输出；如果返回 JSON，请只使用键 "address"、"chain_of_thought"、"latitude"、"longitude"，并确保值使用简体中文。';
 const DEFAULT_MAX_NEW_TOKENS = 1024;
 const DOWNLOAD_TIMEOUT_MS = 60_000;
 const DOWNLOAD_BODY_MAX = 8 * 1024 * 1024;

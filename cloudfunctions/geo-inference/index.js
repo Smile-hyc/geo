@@ -6,7 +6,7 @@ const {
 } = require("./_shared/hfSpace");
 
 const DEFAULT_PROMPT =
-  "Based on the image, tell me the specific location and your thinking process";
+  '请基于图片判断具体地点，并用简体中文输出推理过程。如果返回 JSON，请保留英文键名（如 "FinalAnswer"、"ChainOfThought"），但所有值都使用简体中文。';
 const DEFAULT_MAX_NEW_TOKENS = 2048;
 const MAX_BASE64_LEN = 9 * 1024 * 1024;
 
