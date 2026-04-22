@@ -7,8 +7,31 @@ const DEFAULT_SPACE_URL =
   process.env.NEXT_PUBLIC_GEO_INFERENCE_SPACE_URL?.trim() ||
   "https://eugenezhao-geoagent-api.hf.space";
 const DEFAULT_PROMPT =
-  "Based on the image, tell me the specific location and your thinking process";
+  '请基于图片判断具体地点，并用简体中文输出推理过程。如果返回 JSON，请保留英文键名（如 "FinalAnswer"、"ChainOfThought"），但所有值都使用简体中文。';
 const DEFAULT_MAX_NEW_TOKENS = 2048;
+
+const SECTION_LABELS: Record<string, string> = {
+  CountryIdentification: "国家判断",
+  RegionalGuess: "区域猜测",
+  PreciseLocalization: "精确定位",
+};
+
+const FIELD_LABELS: Record<string, string> = {
+  Conclusion: "结论",
+  conclusion: "结论",
+  Reasoning: "推理",
+  reasoning: "推理",
+  Clues: "线索",
+  clues: "线索",
+  Uncertainty: "不确定性",
+  uncertainty: "不确定性",
+};
+
+const VALUE_LABELS: Record<string, string> = {
+  Low: "低",
+  Medium: "中",
+  High: "高",
+};
 
 function buildSpaceUrl(pathname: string): string {
   return new URL(pathname, DEFAULT_SPACE_URL).toString();
@@ -114,12 +137,13 @@ function formatChainSection(
 
   const section = value as Record<string, unknown>;
   const parts: string[] = [];
+  const sectionTitle = SECTION_LABELS[title] || title;
 
   const conclusion = pickString(section, ["Conclusion", "conclusion"]);
-  if (conclusion) parts.push(`Conclusion: ${conclusion}`);
+  if (conclusion) parts.push(`${FIELD_LABELS.Conclusion}: ${conclusion}`);
 
   const reasoning = pickString(section, ["Reasoning", "reasoning"]);
-  if (reasoning) parts.push(`Reasoning: ${reasoning}`);
+  if (reasoning) parts.push(`${FIELD_LABELS.Reasoning}: ${reasoning}`);
 
   const clues = section.Clues ?? section.clues;
   if (Array.isArray(clues) && clues.length > 0) {
@@ -127,14 +151,18 @@ function formatChainSection(
       .map((item) => String(item || "").trim())
       .filter(Boolean)
       .join(", ");
-    if (clueText) parts.push(`Clues: ${clueText}`);
+    if (clueText) parts.push(`${FIELD_LABELS.Clues}: ${clueText}`);
   }
 
   const uncertainty = pickString(section, ["Uncertainty", "uncertainty"]);
-  if (uncertainty) parts.push(`Uncertainty: ${uncertainty}`);
+  if (uncertainty) {
+    parts.push(
+      `${FIELD_LABELS.Uncertainty}: ${VALUE_LABELS[uncertainty] || uncertainty}`
+    );
+  }
 
   if (!parts.length) return null;
-  return `${title}\n${parts.join("\n")}`;
+  return `${sectionTitle}\n${parts.join("\n")}`;
 }
 
 function formatChainOfThought(value: unknown): string | null {
