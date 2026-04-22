@@ -158,7 +158,7 @@ export default function RoundResultOverlay({
       }
 
       // C. AI 位置 (橙色) -> 连线到正确位置
-      if (result.ai_guess_lat && result.ai_guess_lng) {
+      if (result.ai_guess_lat != null && result.ai_guess_lng != null) {
         L.marker([result.ai_guess_lat, result.ai_guess_lng], { 
           icon: createCrosshairIcon("#FF7D00", "AI位置") 
         }).addTo(map);
@@ -234,7 +234,7 @@ export default function RoundResultOverlay({
       {/* 3. 左下角：当前图片与真实位置 */}
       <div className="absolute bottom-8 left-8 z-20 w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.15)] border-2 border-white/80 group bg-black/10">
         {imageUrl && (
-          <img src={imageUrl} alt="回合图像" className="w-full h-full object-cover" />
+          <img src={imageUrl} alt="Round Image" className="w-full h-full object-cover" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
         <div className="absolute bottom-0 left-0 p-4 w-full">
@@ -242,7 +242,7 @@ export default function RoundResultOverlay({
             回合目标位置
           </h3>
           <p className="text-white/80 text-[12px] mt-1 leading-snug drop-shadow-sm">
-            真实坐标：{Math.abs(result.true_lat).toFixed(4)}°{result.true_lat >= 0 ? "北纬" : "南纬"}，{Math.abs(result.true_lng).toFixed(4)}°{result.true_lng >= 0 ? "东经" : "西经"}
+            真实坐标: {Math.abs(result.true_lat).toFixed(4)}°{result.true_lat >= 0 ? 'N' : 'S'}, {Math.abs(result.true_lng).toFixed(4)}°{result.true_lng >= 0 ? 'E' : 'W'}
           </p>
         </div>
       </div>
@@ -253,14 +253,14 @@ export default function RoundResultOverlay({
         <div className="flex flex-col items-center w-[100px]">
           <span className="text-[#86909C] text-[13px] font-medium mb-1">AI 距离</span>
           <span className="text-[#165DFF] text-[20px] font-bold whitespace-nowrap">
-            {result.ai_distance_km ? result.ai_distance_km.toLocaleString() : "2,450"} <span className="text-[14px]">公里</span>
+            {result.ai_distance_km != null ? result.ai_distance_km.toLocaleString() : "2,450"} <span className="text-[14px]">km</span>
           </span>
         </div>
 
         <div className="flex flex-col items-center w-[100px]">
           <span className="text-[#86909C] text-[13px] font-medium mb-1">我方距离</span>
           <span className="text-[#00B42A] text-[20px] font-bold whitespace-nowrap">
-            {result.distance_km.toLocaleString()} <span className="text-[14px]">公里</span>
+            {result.distance_km.toLocaleString()} <span className="text-[14px]">km</span>
           </span>
         </div>
 
@@ -269,7 +269,7 @@ export default function RoundResultOverlay({
             className="w-[140px] h-[48px] text-[16px] font-bold bg-[#165DFF] hover:bg-[#0E42C9] text-white rounded-lg shadow-md transition-transform hover:scale-105"
             onClick={onNext}
           >
-            {result.session_ended ? "最终战报" : "下一轮"}
+            {result.session_ended ? "最终战报" : "NEXT"}
           </Button>
         </div>
 

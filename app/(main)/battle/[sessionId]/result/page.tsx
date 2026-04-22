@@ -7,8 +7,24 @@ import { Button } from "@/components/ui/button";
 import { getBattleResult, getTempFileURL } from "@/lib/cloudbase";
 
 // 计算两点经纬度之间的距离 (公里)
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
+function calculateDistance(
+  lat1: number | null,
+  lon1: number | null,
+  lat2: number | null,
+  lon2: number | null
+) {
+  if (
+    lat1 == null ||
+    lon1 == null ||
+    lat2 == null ||
+    lon2 == null ||
+    Number.isNaN(lat1) ||
+    Number.isNaN(lon1) ||
+    Number.isNaN(lat2) ||
+    Number.isNaN(lon2)
+  ) {
+    return 0;
+  }
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -46,7 +62,7 @@ function CloudImage({ url }: { url: string }) {
   if (!src) {
     return <div className="w-full h-full bg-[#F2F3F5] flex items-center justify-center"><MapPin className="text-[#C9CDD4]" /></div>;
   }
-  return <img src={src} alt="回合图像" className="w-full h-full object-cover" />;
+  return <img src={src} alt="Round" className="w-full h-full object-cover" />;
 }
 
 interface BattleResult {
@@ -63,10 +79,10 @@ interface BattleResult {
   rounds: Array<{
     round_index: number;
     image_storage_url: string;
-    user_guess_lat: number;
-    user_guess_lng: number;
-    ai_guess_lat: number;
-    ai_guess_lng: number;
+    user_guess_lat: number | null;
+    user_guess_lng: number | null;
+    ai_guess_lat: number | null;
+    ai_guess_lng: number | null;
     user_score: number;
     ai_score: number;
     true_lat: number;
@@ -164,7 +180,7 @@ export default function BattleResultPage() {
 
       // 遍历所有回合进行绘制
       result.rounds.forEach((r) => {
-        const roundLabel = `R${r.round_index + 1}`;
+        const roundLabel = `R${r.round_index}`;
 
         // A. 正确位置 (红)
         L.marker([r.true_lat, r.true_lng], {
@@ -174,7 +190,7 @@ export default function BattleResultPage() {
         bounds.push([r.true_lat, r.true_lng]);
 
         // B. 我方位置 (绿)
-        if (r.user_guess_lat) {
+        if (r.user_guess_lat != null && r.user_guess_lng != null) {
           L.marker([r.user_guess_lat, r.user_guess_lng], {
             icon: createCrosshairIcon("#00B42A", `你(${roundLabel})`),
           }).addTo(map);
@@ -191,7 +207,7 @@ export default function BattleResultPage() {
         }
 
         // C. AI 位置 (橙)
-        if (r.ai_guess_lat && r.ai_guess_lng) {
+        if (r.ai_guess_lat != null && r.ai_guess_lng != null) {
           L.marker([r.ai_guess_lat, r.ai_guess_lng], {
             icon: createCrosshairIcon("#FF7D00", `AI(${roundLabel})`),
           }).addTo(map);
@@ -284,7 +300,7 @@ export default function BattleResultPage() {
                 <span className="text-[16px] text-[#4B5563] font-medium">用户总分</span>
                 <span className="text-[40px] font-black text-[#165DFF] leading-none">{session.user_total_score}</span>
               </div>
-              <div className="text-[24px] font-black text-[#86909C] italic">对决</div>
+              <div className="text-[24px] font-black text-[#86909C] italic">VS</div>
               <div className="flex flex-col items-center gap-1">
                 <span className="text-[16px] text-[#4B5563] font-medium">AI 总分</span>
                 <span className="text-[40px] font-black text-[#F53F3F] leading-none">{session.ai_total_score}</span>
@@ -294,18 +310,18 @@ export default function BattleResultPage() {
             <div className="mt-8 flex justify-between px-2">
               <div className="flex flex-col gap-1">
                 <span className="text-[14px] text-[#4B5563]">用户平均误差</span>
-                <span className="text-[20px] font-bold text-[#165DFF]">{avgUserDist} <span className="text-[14px] font-normal">公里</span></span>
+                <span className="text-[20px] font-bold text-[#165DFF]">{avgUserDist} <span className="text-[14px] font-normal">km</span></span>
               </div>
               <div className="flex flex-col gap-1 text-right">
                 <span className="text-[14px] text-[#4B5563]">AI 平均误差</span>
-                <span className="text-[20px] font-bold text-[#F53F3F]">{avgAiDist} <span className="text-[14px] font-normal">公里</span></span>
+                <span className="text-[20px] font-bold text-[#F53F3F]">{avgAiDist} <span className="text-[14px] font-normal">km</span></span>
               </div>
             </div>
 
             <div className="mt-4 p-4 bg-[#F9FAFB] rounded-xl border border-[#E5E6EB]/50">
               <p className="text-[14px] text-[#4E5969] leading-relaxed">
                 平均误差越小表示预测越精准。
-                您的平均误差比 AI {userIsBetter ? "少" : "多"} <strong className={userIsBetter ? "text-[#00B42A]" : "text-[#F53F3F]"}>{diffDist} 公里</strong>。
+                您的平均误差比 AI {userIsBetter ? "少" : "多"} <strong className={userIsBetter ? "text-[#00B42A]" : "text-[#F53F3F]"}>{diffDist} km</strong>。
               </p>
             </div>
           </div>
@@ -325,7 +341,7 @@ export default function BattleResultPage() {
                     </div>
 
                     <div className="flex justify-between items-center border-b border-[#E5E6EB] pb-3 mb-3 pr-24">
-                      <span className="text-[15px] font-bold text-[#1D2129]">第 {round.round_index + 1} 轮</span>
+                      <span className="text-[15px] font-bold text-[#1D2129]">第 {round.round_index} 轮</span>
                       <div className="flex items-center gap-4 text-[13px] font-medium">
                         <span className="text-[#00B42A]">我方: {round.user_score}</span>
                         <span className="text-[#F53F3F]">对方: {round.ai_score}</span>
@@ -341,13 +357,13 @@ export default function BattleResultPage() {
                         <div className="flex justify-between text-[13px]">
                           <span className="text-[#86909C]">我方距离:</span>
                           <span className="font-bold text-[#1D2129]">
-                            {calculateDistance(round.user_guess_lat, round.user_guess_lng, round.true_lat, round.true_lng).toFixed(0)} 公里
+                            {calculateDistance(round.user_guess_lat, round.user_guess_lng, round.true_lat, round.true_lng).toFixed(0)} km
                           </span>
                         </div>
                         <div className="flex justify-between text-[13px]">
-                          <span className="text-[#86909C]">AI 距离：</span>
+                          <span className="text-[#86909C]">AI 距离:</span>
                           <span className="font-bold text-[#1D2129]">
-                            {calculateDistance(round.ai_guess_lat, round.ai_guess_lng, round.true_lat, round.true_lng).toFixed(0)} 公里
+                            {calculateDistance(round.ai_guess_lat, round.ai_guess_lng, round.true_lat, round.true_lng).toFixed(0)} km
                           </span>
                         </div>
                       </div>

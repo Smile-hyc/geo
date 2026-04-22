@@ -3,6 +3,7 @@
 const { getPool } = require("./_shared/db");
 const { requireRole } = require("./_shared/auth");
 const { ok, fail } = require("./_shared/response");
+const { hasColumn } = require("./_shared/schema");
 
 function getData(event) {
   const raw = event && typeof event === "object" ? event : {};
@@ -20,15 +21,16 @@ exports.main = async (event, context) => {
   const client = await getPool().connect();
   try {
     await requireRole(client, event, context, ["admin"]);
+    const hasDeletedAt = await hasColumn(client, "prizes", "deleted_at");
 
     const existResult = await client.query(
-      "SELECT id, deleted_at FROM prizes WHERE id = $1",
+      `SELECT id${hasDeletedAt ? ", deleted_at" : ""} FROM prizes WHERE id = $1`,
       [prize_id]
     );
     if (existResult.rows.length === 0) {
       return fail("奖品不存在");
     }
-    if (existResult.rows[0].deleted_at != null) {
+    if (hasDeletedAt && existResult.rows[0].deleted_at != null) {
       return fail("该奖品已移除，无法编辑");
     }
 
