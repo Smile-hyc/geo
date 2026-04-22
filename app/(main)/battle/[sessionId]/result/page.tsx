@@ -7,8 +7,24 @@ import { Button } from "@/components/ui/button";
 import { getBattleResult, getTempFileURL } from "@/lib/cloudbase";
 
 // 计算两点经纬度之间的距离 (公里)
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
+function calculateDistance(
+  lat1: number | null,
+  lon1: number | null,
+  lat2: number | null,
+  lon2: number | null
+) {
+  if (
+    lat1 == null ||
+    lon1 == null ||
+    lat2 == null ||
+    lon2 == null ||
+    Number.isNaN(lat1) ||
+    Number.isNaN(lon1) ||
+    Number.isNaN(lat2) ||
+    Number.isNaN(lon2)
+  ) {
+    return 0;
+  }
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -63,10 +79,10 @@ interface BattleResult {
   rounds: Array<{
     round_index: number;
     image_storage_url: string;
-    user_guess_lat: number;
-    user_guess_lng: number;
-    ai_guess_lat: number;
-    ai_guess_lng: number;
+    user_guess_lat: number | null;
+    user_guess_lng: number | null;
+    ai_guess_lat: number | null;
+    ai_guess_lng: number | null;
     user_score: number;
     ai_score: number;
     true_lat: number;
@@ -164,7 +180,7 @@ export default function BattleResultPage() {
 
       // 遍历所有回合进行绘制
       result.rounds.forEach((r) => {
-        const roundLabel = `R${r.round_index + 1}`;
+        const roundLabel = `R${r.round_index}`;
 
         // A. 正确位置 (红)
         L.marker([r.true_lat, r.true_lng], {
@@ -174,7 +190,7 @@ export default function BattleResultPage() {
         bounds.push([r.true_lat, r.true_lng]);
 
         // B. 我方位置 (绿)
-        if (r.user_guess_lat) {
+        if (r.user_guess_lat != null && r.user_guess_lng != null) {
           L.marker([r.user_guess_lat, r.user_guess_lng], {
             icon: createCrosshairIcon("#00B42A", `你(${roundLabel})`),
           }).addTo(map);
@@ -191,7 +207,7 @@ export default function BattleResultPage() {
         }
 
         // C. AI 位置 (橙)
-        if (r.ai_guess_lat && r.ai_guess_lng) {
+        if (r.ai_guess_lat != null && r.ai_guess_lng != null) {
           L.marker([r.ai_guess_lat, r.ai_guess_lng], {
             icon: createCrosshairIcon("#FF7D00", `AI(${roundLabel})`),
           }).addTo(map);
@@ -325,7 +341,7 @@ export default function BattleResultPage() {
                     </div>
 
                     <div className="flex justify-between items-center border-b border-[#E5E6EB] pb-3 mb-3 pr-24">
-                      <span className="text-[15px] font-bold text-[#1D2129]">第 {round.round_index + 1} 轮</span>
+                      <span className="text-[15px] font-bold text-[#1D2129]">第 {round.round_index} 轮</span>
                       <div className="flex items-center gap-4 text-[13px] font-medium">
                         <span className="text-[#00B42A]">我方: {round.user_score}</span>
                         <span className="text-[#F53F3F]">对方: {round.ai_score}</span>

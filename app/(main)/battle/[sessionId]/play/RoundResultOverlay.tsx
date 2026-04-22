@@ -158,7 +158,7 @@ export default function RoundResultOverlay({
       }
 
       // C. AI 位置 (橙色) -> 连线到正确位置
-      if (result.ai_guess_lat && result.ai_guess_lng) {
+      if (result.ai_guess_lat != null && result.ai_guess_lng != null) {
         L.marker([result.ai_guess_lat, result.ai_guess_lng], { 
           icon: createCrosshairIcon("#FF7D00", "AI位置") 
         }).addTo(map);
@@ -253,7 +253,7 @@ export default function RoundResultOverlay({
         <div className="flex flex-col items-center w-[100px]">
           <span className="text-[#86909C] text-[13px] font-medium mb-1">AI 距离</span>
           <span className="text-[#165DFF] text-[20px] font-bold whitespace-nowrap">
-            {result.ai_distance_km ? result.ai_distance_km.toLocaleString() : '2,450'} <span className="text-[14px]">km</span>
+            {result.ai_distance_km != null ? result.ai_distance_km.toLocaleString() : "2,450"} <span className="text-[14px]">km</span>
           </span>
         </div>
 
