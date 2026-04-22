@@ -2,6 +2,8 @@
   "name": "geo-inference",
   "main": "index.js",
   "dependencies": {
-    "pg": "^8.11.3"
+    "@gradio/client": "^1.17.0",
+    "pg": "^8.11.3",
+    "undici": "^5.28.5"
   }
 }
