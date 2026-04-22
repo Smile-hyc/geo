@@ -115,10 +115,6 @@ export default function InferencePage() {
             </span>
             任务
           </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-500">
-            上传影像，由 GeoAgent 模型推断地理位置并给出思维链说明。推理页现在直接请求
-            Hugging Face Space，不再经过 CloudBase 云函数上传大体积 base64。
-          </p>
         </motion.div>
       </section>
 
