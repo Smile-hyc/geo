@@ -1,4 +1,4 @@
-// 升级版UI界面
+﻿// 升级版UI界面
 
 "use client";
 
@@ -81,10 +81,10 @@ export default function AnnotateModeSelectPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-1">
-              Geo Annotate
+              识图寻境
             </h1>
             <p className="text-sm font-bold text-slate-500">
-              AI标注模式选择
+              识图任务模式选择
             </p>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function AnnotateModeSelectPage() {
               <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-blue-400 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-sky-500/30">
                 1
               </div>
-              <h2 className="text-base font-black text-slate-800 tracking-tight">确定标注类型</h2>
+              <h2 className="text-base font-black text-slate-800 tracking-tight">确定任务类型</h2>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -249,7 +249,7 @@ export default function AnnotateModeSelectPage() {
         >
           <div className="flex gap-12">
             <div>
-              <p className="text-[11px] font-bold text-slate-500/80 uppercase tracking-widest mb-1">1. 标注类型</p>
+              <p className="text-[11px] font-bold text-slate-500/80 uppercase tracking-widest mb-1">1. 任务类型</p>
               <p className="text-base font-black text-slate-800">{ANNOTATION_TYPES.find(t => t.id === annotationType)?.name}</p>
             </div>
             <div>
@@ -266,7 +266,7 @@ export default function AnnotateModeSelectPage() {
             </Link>
             <Link href={`/app/annotate?mode=${encodeURIComponent(selectedMode)}&annotationType=${encodeURIComponent(annotationType)}`}>
               <Button className="rounded-full h-12 px-10 text-base font-black bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white shadow-xl shadow-sky-500/30 transition-all hover:scale-105 active:scale-95">
-                <Zap className="mr-2 fill-white/80" size={18} /> 开始标注
+                <Zap className="mr-2 fill-white/80" size={18} /> 开始识图
               </Button>
             </Link>
           </div>

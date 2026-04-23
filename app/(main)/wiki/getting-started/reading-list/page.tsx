@@ -1,5 +1,5 @@
-export const metadata = {
-  title: "阅读清单 | Wiki",
+﻿export const metadata = {
+  title: "阅读清单 | 识图寻境知识库",
   description: "论文阅读路径与推荐文献",
 };
 
@@ -15,3 +15,4 @@ export default function ReadingListPage() {
     </>
   );
 }
+

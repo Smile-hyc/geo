@@ -1,5 +1,5 @@
-export const metadata = {
-  title: "实验规范 | Wiki",
+﻿export const metadata = {
+  title: "实验规范 | 识图寻境知识库",
   description: "实验规范与训练评测流程",
 };
 
@@ -15,3 +15,4 @@ export default function ExperimentsPage() {
     </>
   );
 }
+

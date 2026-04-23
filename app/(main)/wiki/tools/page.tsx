@@ -1,5 +1,5 @@
-export const metadata = {
-  title: "工具 | Wiki",
+﻿export const metadata = {
+  title: "工具 | 识图寻境知识库",
   description: "常用论文与工具",
 };
 
@@ -15,3 +15,4 @@ export default function ToolsPage() {
     </>
   );
 }
+

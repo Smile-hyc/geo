@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Coins, Loader2, TrendingDown, TrendingUp, History, Calendar } from "lucide-react";
@@ -18,11 +18,11 @@ interface LedgerEntry {
 }
 
 const REASON_LABELS: Record<string, string> = {
-  annotation_reward: "标注奖励",
-  battle_reward: "对战奖励",
+  annotation_reward: "识图奖励",
+  battle_reward: "寻境奖励",
   quality_bonus: "质量加成",
   admin_adjust: "管理员调整",
-  prize_redemption: "奖品兑换",
+  prize_redemption: "权益兑换",
 };
 
 export default function PointsPage() {
@@ -53,7 +53,7 @@ export default function PointsPage() {
         </div>
         <h1 className="text-4xl font-black text-slate-900 tracking-tight">积分流水</h1>
         <p className="mt-2 text-slate-500 max-w-2xl leading-relaxed">
-          追踪标注与对战带来的每一次积分变动。公平透明的奖励机制，见证您的每一份贡献。
+          追踪识图任务与寻境求证带来的每一次积分变化。透明的激励机制，记录每一份有效贡献。
         </p>
       </section>
 
@@ -93,8 +93,8 @@ export default function PointsPage() {
                   <div className="flex items-center gap-5">
                     <div className={cn(
                       "w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm",
-                      entry.change_amount >= 0 
-                        ? "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white" 
+                      entry.change_amount >= 0
+                        ? "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white"
                         : "bg-rose-50 text-rose-600 group-hover:bg-rose-500 group-hover:text-white"
                     )}>
                       {entry.change_amount >= 0 ? (
@@ -110,11 +110,11 @@ export default function PointsPage() {
                       <p className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5 mt-1">
                         <Calendar size={12} />
                         {new Date(entry.created_at).toLocaleString("zh-CN", {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </p>
                     </div>

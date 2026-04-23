@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,9 +14,9 @@ export default function WikiSidebar() {
       <nav className="sticky top-0 h-screen overflow-y-auto px-6 py-10">
         <Card className="mb-8 border-none shadow-sm bg-sky-50/50 overflow-hidden">
           <CardContent className="p-4">
-            <p className="font-bold text-slate-900 text-sm">GeoAnnotate 知识库</p>
+            <p className="font-bold text-slate-900 text-sm">识图寻境知识库</p>
             <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-              工具、环境、数据集与实验的结构化笔记。
+              产品定位、技术架构、场景方案与数据评测的结构化文档。
             </p>
             <div className="mt-4 flex gap-2">
               <Link

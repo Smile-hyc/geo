@@ -1,7 +1,7 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export const metadata = {
-  title: "入门 | Wiki",
+  title: "入门 | 识图寻境知识库",
   description: "新人入门路线",
 };
 
@@ -19,3 +19,4 @@ export default function GettingStartedPage() {
     </>
   );
 }
+

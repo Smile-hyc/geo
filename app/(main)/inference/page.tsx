@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
@@ -108,8 +108,8 @@ export default function InferencePage() {
     result?.source === "stub"
       ? "当前为占位响应：请在云函数环境配置 GEO_INFERENCE_SERVICE_URL 后接入真实服务。"
       : result?.source === "remote"
-        ? "由已配置的推理服务返回。"
-        : "提交图片后在此查看地址推断与思维链。";
+        ? "由已配置的寻境推理服务返回。"
+        : "提交图片后在此查看地点推断、证据摘要与思维链。";
 
   return (
     <div className="relative pb-20 pt-2">
@@ -126,18 +126,17 @@ export default function InferencePage() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-50 border border-sky-100 text-sky-600 text-xs font-bold uppercase tracking-wider mb-6">
             <Zap size={14} className="fill-sky-600" />
-            AI 地理推理
+            寻境推理
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6">
-            智能
+            空间
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600">
-              推理
+              求证
             </span>
             任务
           </h1>
           <p className="max-w-2xl mx-auto text-lg text-slate-500 leading-relaxed">
-            上传影像，由 GeoAgent 类模型推断地理位置并给出思维链说明。当前后端可返回占位结果；部署 GPU
-            推理服务并配置环境变量后即可接入真实模型。
+            上传图像后，系统将基于“识图”初判与“寻境”工作流进行地理推理，输出候选地点、关键线索和可复核的思维链说明。
           </p>
         </motion.div>
       </section>
@@ -211,7 +210,7 @@ export default function InferencePage() {
                 ) : (
                   <>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    开始推理
+                    开始求证
                   </>
                 )}
               </Button>
@@ -233,7 +232,7 @@ export default function InferencePage() {
               <Brain size={28} strokeWidth={2} />
             </div>
 
-            <h2 className="text-xl font-bold text-slate-800 mb-2">推理结果</h2>
+            <h2 className="text-xl font-bold text-slate-800 mb-2">求证结果</h2>
             <p className="text-slate-500 text-sm leading-relaxed mb-6">{resultDescription}</p>
 
             <div className="flex-1 flex flex-col space-y-4 min-h-0">
@@ -261,7 +260,7 @@ export default function InferencePage() {
                   ) : null}
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
-                      地址推断
+                      地点推断
                     </h3>
                     <p className="text-slate-800 whitespace-pre-wrap leading-relaxed">
                       {result.address}

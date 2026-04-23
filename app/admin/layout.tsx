@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import Link from "next/link";
@@ -77,7 +77,7 @@ export default function AdminLayout({
             </div>
             <div>
                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Control Panel</p>
-               <h1 className="text-lg font-black text-slate-900 tracking-tight leading-none">GeoAdmin</h1>
+               <h1 className="text-lg font-black text-slate-900 tracking-tight leading-none">识图寻境后台</h1>
             </div>
           </Link>
         </div>
@@ -132,3 +132,4 @@ export default function AdminLayout({
     </div>
   );
 }
+
