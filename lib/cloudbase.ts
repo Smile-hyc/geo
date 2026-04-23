@@ -244,6 +244,10 @@ export async function submitBattleRound(params: {
   true_lat: number;
   true_lng: number;
   distance_km: number;
+  ai_distance_km?: number;
+  ai_guess_lat?: number;
+  ai_guess_lng?: number;
+  ai_guess_source?: string;
   session_ended: boolean;
 }> {
   return callFunction("submit-battle-round", params);
@@ -259,8 +263,8 @@ export async function getBattleResult(params: {
   };
   rounds: Array<{
     round_index: number; image_storage_url: string;
-    user_guess_lat: number; user_guess_lng: number;
-    ai_guess_lat: number; ai_guess_lng: number;
+    user_guess_lat: number | null; user_guess_lng: number | null;
+    ai_guess_lat: number | null; ai_guess_lng: number | null;
     user_score: number; ai_score: number;
     true_lat: number; true_lng: number;
   }>;
@@ -561,11 +565,15 @@ export type GeoInferenceResult = {
   chain_of_thought: string;
   source?: "stub" | "remote";
   model_ref?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export async function runGeoInference(params: {
   image_base64: string;
   mime_type?: string;
+  prompt?: string;
+  max_new_tokens?: number;
   cloudbase_uid?: string;
   email?: string;
 }): Promise<GeoInferenceResult> {
