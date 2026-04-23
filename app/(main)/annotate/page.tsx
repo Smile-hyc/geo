@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -107,7 +107,7 @@ function AnnotateContent() {
     }
 
     if (needsBoxes && bboxes.length === 0) {
-      setError("地理元素标注至少需要绘制一个框。");
+      setError("地理线索提取至少需要绘制一个框。");
       return;
     }
 
@@ -157,9 +157,9 @@ function AnnotateContent() {
         <div className="mb-8 w-24 h-24 rounded-[2.5rem] bg-emerald-50 text-emerald-500 flex items-center justify-center shadow-2xl shadow-emerald-100 border-4 border-white">
           <CheckCircle size={48} />
         </div>
-        <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">标注提交成功</h2>
+        <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">任务提交成功</h2>
         <p className="max-w-md text-slate-500 font-medium leading-relaxed mb-10">
-          您的贡献已记录。标注结果已同步至云端，相应积分将在专家审核完成后发放。
+          您的贡献已记录。识图结果已同步至云端，相应积分将在审核完成后发放。
         </p>
         <div className="flex gap-4">
           <Button onClick={loadTask} size="lg" className="rounded-full px-8 h-14 text-base">
@@ -181,7 +181,7 @@ function AnnotateContent() {
         <div className="w-20 h-20 rounded-[2rem] bg-rose-50 text-rose-500 flex items-center justify-center mb-6">
           <AlertCircle size={40} />
         </div>
-        <p className="text-xl font-bold text-slate-700 mb-8">{error ?? "未识别到有效的标注配置。"}</p>
+        <p className="text-xl font-bold text-slate-700 mb-8">{error ?? "未识别到有效的任务配置。"}</p>
         <Link href="/app/annotate/mode">
           <Button className="rounded-full px-10 h-14">重新配置模式</Button>
         </Link>
@@ -256,7 +256,7 @@ function AnnotateContent() {
                  <ShieldCheck size={40} className="mb-4 text-indigo-200" />
                  <h3 className="text-xl font-black mb-2 tracking-tight">品质保障</h3>
                  <p className="text-xs text-indigo-100 leading-relaxed font-medium">
-                    您的标注将进入多重校验流程。保持高精度的标注记录将获得额外的“卓越贡献者”勋章与积分加成。
+                    您的识图结果将进入多重校验流程。保持高质量任务记录将获得额外积分加成。
                  </p>
               </Card>
               <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-sky-600 text-white relative overflow-hidden group">
@@ -264,7 +264,7 @@ function AnnotateContent() {
                  <Sparkles size={40} className="mb-4 text-sky-200" />
                  <h3 className="text-xl font-black mb-2 tracking-tight">积分回馈</h3>
                  <p className="text-xs text-sky-100 leading-relaxed font-medium">
-                    当前任务成功提交后，系统将即时锁定预支积分。每日完成 20 组有效标注可激活“连胜奖励”。
+                    当前任务成功提交后，系统将即时锁定预支积分。每日完成 20 组有效任务可激活阶段奖励。
                  </p>
               </Card>
            </div>
@@ -307,7 +307,7 @@ function AnnotateContent() {
               <div className="relative z-10">
                  <h3 className="text-2xl font-black tracking-tight mb-2">准备好同步了吗？</h3>
                  <p className="text-xs font-medium text-slate-400 mb-8 leading-relaxed">
-                    请在提交前仔细检查标注框的完整性与思维链的逻辑严密性。
+                    请在提交前仔细检查线索框完整性与思维链逻辑严密性。
                  </p>
 
                  {error && (
@@ -327,7 +327,7 @@ function AnnotateContent() {
                        <Loader2 size={24} className="animate-spin" />
                     ) : (
                        <>
-                          同步标注结果
+                          同步任务结果
                           <SendHorizontal size={20} className="ml-2 transition-transform group-hover:translate-x-1" />
                        </>
                     )}
@@ -361,3 +361,4 @@ export default function AnnotatePage() {
     </Suspense>
   );
 }
+

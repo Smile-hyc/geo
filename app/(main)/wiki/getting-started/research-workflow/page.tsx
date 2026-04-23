@@ -1,5 +1,5 @@
-export const metadata = {
-  title: "科研流程 | Wiki",
+﻿export const metadata = {
+  title: "科研流程 | 识图寻境知识库",
   description: "从选题到实验的科研工作流",
 };
 
@@ -15,3 +15,4 @@ export default function ResearchWorkflowPage() {
     </>
   );
 }
+

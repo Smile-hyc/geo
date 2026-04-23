@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Clock, Loader2, MapPin, Swords, Calendar, ArrowRight, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
@@ -64,7 +64,7 @@ export default function HistoryPage() {
         </div>
         <h1 className="text-4xl font-black text-slate-900 tracking-tight">历史记录</h1>
         <p className="mt-2 text-slate-500 max-w-2xl leading-relaxed">
-          回顾您的标注历程与对战表现。每一次记录都是您通往地理专家之路的见证。
+          回顾您的识图任务历程与寻境求证表现。每一次记录，都是空间智能能力进化的证据。
         </p>
       </section>
 
@@ -116,7 +116,7 @@ export default function HistoryPage() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <span className="text-lg font-bold text-slate-800">
-                          {entry.type === "annotation" ? "任务标注" : "竞技对战"}
+                          {entry.type === "annotation" ? "识图任务" : "寻境对局"}
                         </span>
                         <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-tighter">
                           {entry.mode_type}
@@ -124,8 +124,8 @@ export default function HistoryPage() {
                       </div>
                       <span className="text-xs font-bold text-slate-400">
                         {new Date(entry.created_at).toLocaleDateString("zh-CN", {
-                          month: 'short',
-                          day: 'numeric'
+                          month: "short",
+                          day: "numeric",
                         })}
                       </span>
                     </div>
@@ -137,8 +137,8 @@ export default function HistoryPage() {
                         </p>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                             <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">最终答案:</span>
-                             <span className="text-sm font-black text-slate-700">{entry.annotation.final_answer || "-"}</span>
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">最终答案:</span>
+                            <span className="text-sm font-black text-slate-700">{entry.annotation.final_answer || "-"}</span>
                           </div>
                           <div className={cn(
                             "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold",
@@ -157,33 +157,33 @@ export default function HistoryPage() {
                     {entry.battle && (
                       <div className="flex items-center gap-6 mt-4">
                         <div className="flex flex-col">
-                           <span className="text-[10px] font-black uppercase text-slate-400 mb-1">比分结果</span>
-                           <div className="flex items-center gap-3">
-                              <div className="flex flex-col items-center">
-                                 <span className="text-xs font-bold text-slate-500">我方</span>
-                                 <span className="text-xl font-black text-primary">{entry.battle.user_total_score}</span>
-                              </div>
-                              <span className="text-slate-300 font-black">:</span>
-                              <div className="flex flex-col items-center">
-                                 <span className="text-xs font-bold text-slate-500">AI</span>
-                                 <span className="text-xl font-black text-rose-500">{entry.battle.ai_total_score}</span>
-                              </div>
-                           </div>
+                          <span className="text-[10px] font-black uppercase text-slate-400 mb-1">比分结果</span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs font-bold text-slate-500">我方</span>
+                              <span className="text-xl font-black text-primary">{entry.battle.user_total_score}</span>
+                            </div>
+                            <span className="text-slate-300 font-black">:</span>
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs font-bold text-slate-500">AI</span>
+                              <span className="text-xl font-black text-rose-500">{entry.battle.ai_total_score}</span>
+                            </div>
+                          </div>
                         </div>
                         <div className="w-px h-10 bg-slate-100 mx-2" />
                         <div className="flex flex-col">
-                           <span className="text-[10px] font-black uppercase text-slate-400 mb-1">胜负</span>
-                           <span className={cn(
-                             "text-lg font-black",
-                             entry.battle.winner === "user" ? "text-emerald-500" : entry.battle.winner === "draw" ? "text-amber-500" : "text-rose-500"
-                           )}>
-                              {entry.battle.winner === "user" ? "VICTORY" : entry.battle.winner === "draw" ? "DRAW" : "DEFEAT"}
-                           </span>
+                          <span className="text-[10px] font-black uppercase text-slate-400 mb-1">胜负</span>
+                          <span className={cn(
+                            "text-lg font-black",
+                            entry.battle.winner === "user" ? "text-emerald-500" : entry.battle.winner === "draw" ? "text-amber-500" : "text-rose-500"
+                          )}>
+                            {entry.battle.winner === "user" ? "VICTORY" : entry.battle.winner === "draw" ? "DRAW" : "DEFEAT"}
+                          </span>
                         </div>
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center justify-end md:ml-4">
                     <ArrowRight size={20} className="text-slate-300 group-hover:text-primary transition-all group-hover:translate-x-1" />
                   </div>

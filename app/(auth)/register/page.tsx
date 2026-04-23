@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -164,7 +164,7 @@ export default function RegisterPage() {
       <CardHeader>
         <CardTitle className="text-3xl font-black">注册</CardTitle>
         <CardDescription>
-          开启您的地理标注竞技之旅。
+          开启识图寻境的空间智能探索之旅。
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -253,3 +253,4 @@ function Field({
     </div>
   );
 }
+

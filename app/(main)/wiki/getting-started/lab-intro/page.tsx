@@ -1,5 +1,5 @@
-export const metadata = {
-  title: "实验室介绍 | Wiki",
+﻿export const metadata = {
+  title: "实验室介绍 | 识图寻境知识库",
   description: "实验室简介与科研方向",
 };
 
@@ -15,3 +15,4 @@ export default function LabIntroPage() {
     </>
   );
 }
+

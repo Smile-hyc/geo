@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -175,8 +175,8 @@ export default function ProfilePage() {
       <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Metric title="当前等级" value={data.level} icon={<Star size={20} />} color="text-amber-500" bgColor="bg-amber-50" />
         <Metric title="账户积分" value={data.points_balance} icon={<Wallet size={20} />} color="text-sky-500" bgColor="bg-sky-50" />
-        <Metric title="累计标注" value={data.annotation_count} icon={<ShieldCheck size={20} />} color="text-emerald-500" bgColor="bg-emerald-50" />
-        <Metric title="对战局数" value={data.battle_count} icon={<Trophy size={20} />} color="text-indigo-500" bgColor="bg-indigo-50" />
+        <Metric title="累计识图" value={data.annotation_count} icon={<ShieldCheck size={20} />} color="text-emerald-500" bgColor="bg-emerald-50" />
+        <Metric title="寻境局数" value={data.battle_count} icon={<Trophy size={20} />} color="text-indigo-500" bgColor="bg-indigo-50" />
       </section>
 
       <section>
@@ -187,7 +187,7 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="p-8 pt-6 grid gap-4 sm:grid-cols-2">
             <QuickLink href="/app/points" title="积分流水明细" icon={<Wallet size={18} />} />
-            <QuickLink href="/app/history" title="标注历史记录" icon={<HistoryIcon size={18} />} />
+            <QuickLink href="/app/history" title="任务历史记录" icon={<HistoryIcon size={18} />} />
             <QuickLink href="/app/leaderboard" title="全球实时排行" icon={<Trophy size={18} />} />
             {data.role === "admin" && (
               <QuickLink href="/admin" title="管理后台入口" icon={<ShieldCheck size={18} />} />
@@ -251,3 +251,4 @@ function QuickLink({
     </Link>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -15,7 +15,6 @@ import {
   Menu,
   Swords,
   Trophy,
-  UserCircle2,
   X,
   Home,
 } from "lucide-react";
@@ -63,6 +62,7 @@ export default function Navbar() {
     try {
       await signOut();
     } catch {
+      // ignore
     } finally {
       logout();
       router.push("/auth/login");
@@ -93,7 +93,7 @@ export default function Navbar() {
             />
           </div>
           <span className="hidden font-bold tracking-tight text-slate-800 lg:block">
-            GeoAnnotate
+            识图寻境
           </span>
         </Link>
 
@@ -150,7 +150,6 @@ export default function Navbar() {
         </div>
       </motion.nav>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div

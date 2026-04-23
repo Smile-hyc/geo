@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Stage, Layer, Line, Image as KonvaImage } from "react-konva";
@@ -202,7 +202,7 @@ export default function PlayContent() {
     <main className="min-h-screen p-6 flex flex-col items-center">
       <div className="w-full max-w-4xl flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">地理推理 · 标注证据</h1>
+          <h1 className="text-xl font-semibold">地理推理 · 空间证据</h1>
           <Link href="/">
             <Button variant="ghost" size="sm">返回首页</Button>
           </Link>
@@ -318,3 +318,4 @@ export default function PlayContent() {
     </main>
   );
 }
+

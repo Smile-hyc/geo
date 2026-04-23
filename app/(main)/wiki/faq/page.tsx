@@ -1,5 +1,5 @@
-export const metadata = {
-  title: "常见问题 | Wiki",
+﻿export const metadata = {
+  title: "常见问题 | 识图寻境知识库",
   description: "FAQ",
 };
 
@@ -15,3 +15,4 @@ export default function FaqPage() {
     </>
   );
 }
+

@@ -1,5 +1,5 @@
-export const metadata = {
-  title: "环境配置 | Wiki",
+﻿export const metadata = {
+  title: "环境配置 | 识图寻境知识库",
   description: "开发与实验环境搭建",
 };
 
@@ -15,3 +15,4 @@ export default function EnvironmentSetupPage() {
     </>
   );
 }
+
