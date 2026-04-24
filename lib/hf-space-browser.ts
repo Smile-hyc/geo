@@ -386,13 +386,14 @@ function parseSseEvents(text: string): Array<{ event: string; data: string }> {
   return events;
 }
 
-async function uploadFile(file: File): Promise<string> {
+async function uploadFile(file: File, signal?: AbortSignal): Promise<string> {
   const formData = new FormData();
   formData.append("files", file);
 
   const response = await fetch(buildSpaceUrl("/gradio_api/upload"), {
     method: "POST",
     body: formData,
+    signal,
   });
   await ensureSuccess(response, "GeoAgent upload");
 
@@ -408,7 +409,8 @@ async function uploadFile(file: File): Promise<string> {
 async function startPrediction(
   uploadedPath: string,
   prompt: string,
-  maxNewTokens: number
+  maxNewTokens: number,
+  signal?: AbortSignal
 ): Promise<string> {
   const response = await fetch(buildSpaceUrl("/gradio_api/call/v2/predict"), {
     method: "POST",
@@ -421,6 +423,7 @@ async function startPrediction(
       prompt,
       max_new_tokens: maxNewTokens,
     }),
+    signal,
   });
   await ensureSuccess(response, "GeoAgent predict");
 
@@ -433,10 +436,13 @@ async function startPrediction(
   return eventId;
 }
 
-async function fetchPredictionPayload(eventId: string): Promise<unknown> {
+async function fetchPredictionPayload(
+  eventId: string,
+  signal?: AbortSignal
+): Promise<unknown> {
   const response = await fetch(
     buildSpaceUrl(`/gradio_api/call/predict/${encodeURIComponent(eventId)}`),
-    { method: "GET" }
+    { method: "GET", signal }
   );
   await ensureSuccess(response, "GeoAgent result");
 
@@ -456,25 +462,62 @@ async function fetchPredictionPayload(eventId: string): Promise<unknown> {
   return parsed != null ? parsed : completeEvent.data;
 }
 
+export type GeoInferencePhase = "upload" | "predict" | "poll";
+
+const DEFAULT_INFERENCE_TIMEOUT_MS = 120_000;
+
+function isAbortError(reason: unknown): boolean {
+  return (
+    (reason instanceof Error && reason.name === "AbortError") ||
+    (typeof DOMException !== "undefined" &&
+      reason instanceof DOMException &&
+      reason.name === "AbortError")
+  );
+}
+
 export async function runGeoInferenceFromSpace(params: {
   file: File;
   prompt?: string;
   maxNewTokens?: number;
+  /** 当前阶段：上传 → 发起任务 → 等待推理结果 */
+  onPhase?: (phase: GeoInferencePhase) => void;
+  /** 全流程超时（毫秒），默认 120000 */
+  timeoutMs?: number;
 }): Promise<GeoInferenceResult> {
   const prompt = params.prompt?.trim() || DEFAULT_PROMPT;
   const maxNewTokens = Math.min(
     4096,
     Math.max(64, params.maxNewTokens ?? DEFAULT_MAX_NEW_TOKENS)
   );
+  const timeoutMs = params.timeoutMs ?? DEFAULT_INFERENCE_TIMEOUT_MS;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  const uploadedPath = await uploadFile(params.file);
-  const eventId = await startPrediction(uploadedPath, prompt, maxNewTokens);
-  const payload = await fetchPredictionPayload(eventId);
-  const mapped = mapRemoteBody(payload);
+  try {
+    params.onPhase?.("upload");
+    const uploadedPath = await uploadFile(params.file, controller.signal);
+    params.onPhase?.("predict");
+    const eventId = await startPrediction(
+      uploadedPath,
+      prompt,
+      maxNewTokens,
+      controller.signal
+    );
+    params.onPhase?.("poll");
+    const payload = await fetchPredictionPayload(eventId, controller.signal);
+    const mapped = mapRemoteBody(payload);
 
-  if (!mapped) {
-    throw new Error("GeoAgent Space returned an unsupported payload");
+    if (!mapped) {
+      throw new Error("GeoAgent Space returned an unsupported payload");
+    }
+
+    return mapped;
+  } catch (reason) {
+    if (isAbortError(reason)) {
+      throw new Error("推理等待超时，请检查网络后重试。");
+    }
+    throw reason;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return mapped;
 }
