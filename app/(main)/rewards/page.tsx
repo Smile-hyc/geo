@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -35,7 +35,7 @@ export default function RewardsPage() {
       const res = await listPrizes();
       setPrizes(res.prizes ?? []);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "加载奖励列表失败。");
+      setError(reason instanceof Error ? reason.message : "加载权益列表失败。");
       setPrizes([]);
     } finally {
       setLoading(false);
@@ -87,11 +87,11 @@ export default function RewardsPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest mb-4">
             <Gift size={14} />
-            积分商城
+            地衡权益
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">专属奖励</h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">权益兑换</h1>
           <p className="mt-2 text-slate-500 max-w-2xl leading-relaxed">
-            您的每一份贡献都转化为实实在在的奖励。浏览我们的精选礼品库，使用您的积分进行兑换。
+            将识图与寻境任务贡献转化为可兑现的权益。浏览当前权益库，使用您的积分完成兑换。
           </p>
         </div>
 
@@ -103,9 +103,9 @@ export default function RewardsPage() {
               <Coins size={24} className="mb-1" />
             </div>
             <div className="mt-4 pt-4 border-t border-white/20">
-               <Link href="/app/points" className="text-xs font-bold flex items-center gap-1 hover:underline">
-                  查看流水详情 <ArrowRight size={12} />
-               </Link>
+              <Link href="/app/points" className="text-xs font-bold flex items-center gap-1 hover:underline">
+                查看流水详情 <ArrowRight size={12} />
+              </Link>
             </div>
           </div>
         </Card>
@@ -121,7 +121,7 @@ export default function RewardsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 text-slate-400">
           <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-          <p className="text-sm font-bold">正在同步奖励库存...</p>
+          <p className="text-sm font-bold">正在同步权益库存...</p>
         </div>
       ) : null}
 
@@ -129,8 +129,8 @@ export default function RewardsPage() {
         <Card className="border-dashed border-2 border-slate-200 shadow-none bg-transparent">
           <CardContent className="py-24 text-center text-slate-400">
             <ShoppingBag size={48} className="mx-auto mb-4 opacity-10" />
-            <p className="text-lg font-bold">货架暂时空空如也</p>
-            <p className="text-sm">管理员正在快马加鞭上架新奖品</p>
+            <p className="text-lg font-bold">权益库暂未开放</p>
+            <p className="text-sm">管理员正在配置可兑换权益</p>
           </CardContent>
         </Card>
       ) : null}
@@ -146,10 +146,10 @@ export default function RewardsPage() {
             <Card className="h-full border-none shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden group rounded-[2.5rem]">
               <div className="aspect-[4/3] relative overflow-hidden bg-slate-100">
                 {prize.image_url ? (
-                  <img 
-                    src={prize.image_url} 
-                    alt={prize.name} 
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  <img
+                    src={prize.image_url}
+                    alt={prize.name}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-slate-300">
@@ -164,17 +164,17 @@ export default function RewardsPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl font-black text-slate-800 group-hover:text-primary transition-colors">{prize.name}</CardTitle>
                 <CardDescription className="line-clamp-2 text-slate-500 text-sm leading-relaxed">
-                  {prize.description || "暂无详细描述，这是一个神秘的惊喜奖项。"}
+                  {prize.description || "暂无详细描述，这是一个待发布权益项目。"}
                 </CardDescription>
               </CardHeader>
 
               <CardFooter className="flex flex-col gap-4 pt-4">
                 <div className="w-full flex items-center justify-between px-1">
-                   <div className="flex items-center gap-1.5 text-amber-600">
-                      <Coins size={18} />
-                      <span className="text-xl font-black tabular-nums">{prize.points_cost}</span>
-                      <span className="text-[10px] font-black uppercase tracking-tighter mt-1">PTS</span>
-                   </div>
+                  <div className="flex items-center gap-1.5 text-amber-600">
+                    <Coins size={18} />
+                    <span className="text-xl font-black tabular-nums">{prize.points_cost}</span>
+                    <span className="text-[10px] font-black uppercase tracking-tighter mt-1">PTS</span>
+                  </div>
                 </div>
 
                 <Button

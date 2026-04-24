@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import {
   ArrowRight,
   Database,
@@ -10,7 +10,7 @@ import {
   BookOpen,
   HelpCircle,
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 type WikiItem = {
@@ -23,26 +23,26 @@ type WikiItem = {
 const START_ITEMS: WikiItem[] = [
   {
     href: "/wiki/getting-started/lab-intro",
-    title: "实验室介绍",
-    desc: "项目背景、目标与评估范围。",
+    title: "项目概览",
+    desc: "识图寻境的项目背景、目标场景与能力边界。",
     icon: Rocket,
   },
   {
     href: "/wiki/getting-started/reading-list",
     title: "阅读清单",
-    desc: "核心参考资料与新人阅读顺序。",
+    desc: "核心资料、参考论文与团队共识文档。",
     icon: BookOpen,
   },
   {
     href: "/wiki/getting-started/environment-setup",
     title: "环境配置",
-    desc: "本地环境搭建与项目依赖说明。",
+    desc: "本地开发环境与依赖工具配置说明。",
     icon: Wrench,
   },
   {
     href: "/wiki/getting-started/research-workflow",
-    title: "科研流程",
-    desc: "从标注到审核的完整流程。",
+    title: "研发流程",
+    desc: "从识图任务到寻境求证再到评测回流的全链路流程。",
     icon: GitBranch,
   },
 ];
@@ -51,25 +51,25 @@ const RESOURCE_ITEMS: WikiItem[] = [
   {
     href: "/wiki/datasets",
     title: "数据集",
-    desc: "图像集合、标签规范与来源说明。",
+    desc: "GeoSeek 数据组织方式、样本规范与数据治理要求。",
     icon: Database,
   },
   {
     href: "/wiki/tools",
-    title: "工具",
-    desc: "内部工具与使用参考。",
+    title: "工具链",
+    desc: "识图与寻境工作流相关工具、脚本与平台能力。",
     icon: Wrench,
   },
   {
     href: "/wiki/experiments",
     title: "实验规范",
-    desc: "实验记录、假设与结果总结。",
+    desc: "实验记录模板、评测口径与结果复现要求。",
     icon: FlaskConical,
   },
   {
     href: "/wiki/glossary",
     title: "术语表",
-    desc: "常用术语与快速释义。",
+    desc: "识图寻境常用概念、指标与业务术语说明。",
     icon: BookOpen,
   },
 ];
@@ -85,10 +85,11 @@ export default function WikiPage() {
               知识库中心
             </div>
             <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-              GeoAnnotate Wiki
+              识图寻境文档中心
             </h1>
             <p className="mt-2 text-slate-500 max-w-2xl leading-relaxed">
-              用于入门、数据处理、标注流程与运营规范的结构化文档。在这里您可以找到关于平台的一切技术细节。
+              用于沉淀识图、寻境、地衡三位一体产品的技术方案、研发流程与运营规范，
+              支持团队协作、版本迭代与外部展示统一口径。
             </p>
           </div>
           <Link href="/wiki/faq">

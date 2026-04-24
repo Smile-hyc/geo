@@ -1,5 +1,5 @@
-export const metadata = {
-  title: "术语表 | Wiki",
+﻿export const metadata = {
+  title: "术语表 | 识图寻境知识库",
   description: "术语与缩写说明",
 };
 
@@ -15,3 +15,4 @@ export default function GlossaryPage() {
     </>
   );
 }
+

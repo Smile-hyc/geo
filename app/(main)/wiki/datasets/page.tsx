@@ -1,5 +1,5 @@
-export const metadata = {
-  title: "数据集 | Wiki",
+﻿export const metadata = {
+  title: "数据集 | 识图寻境知识库",
   description: "数据集说明与使用方式",
 };
 
@@ -15,3 +15,4 @@ export default function DatasetsPage() {
     </>
   );
 }
+

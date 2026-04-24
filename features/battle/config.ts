@@ -29,13 +29,13 @@ export const AI_OPPONENTS = [
   {
     id: "mock-v1",
     label: "模拟对手",
-    description: "当前通过云函数接入的本地模拟 AI。",
+    description: "搭载基础「识图」大模型架构，具备极速初判能力的轻量级空间认知智能体。",
     image: "/images/mock.png",
   },
   {
     id: "research-baseline",
     label: "研究基线",
-    description: "为后续可插拔 AI 适配层预留的基线对手。",
+    description: "集成类 OpenClaw 工作流的「寻境」空间推理 Agent，具备多轮工具调用与强证据链分析能力。",
     image: "/images/baseline.png",
   },
 ] as const;

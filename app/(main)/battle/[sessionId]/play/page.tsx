@@ -20,6 +20,9 @@ interface RoundResult {
   true_lat: number;
   true_lng: number;
   distance_km: number;
+  ai_distance_km?: number;
+  ai_guess_lat?: number;
+  ai_guess_lng?: number;
   session_ended: boolean;
 }
 
@@ -115,7 +118,7 @@ export default function BattlePlayPage() {
     try {
       const result = await submitBattleRound({
         session_id: sessionId,
-        round_index: currentRound,
+        round_index: currentRound + 1,
         user_guess_lat: position.lat,
         user_guess_lng: position.lng,
         cloudbase_uid: user?.uid,

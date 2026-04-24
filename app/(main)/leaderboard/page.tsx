@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, User, Trophy, Medal } from "lucide-react";
@@ -7,8 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getLeaderboard } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface LeaderEntry {
   rank: number;
@@ -47,11 +46,11 @@ export default function LeaderboardPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest mb-4">
             <Trophy size={14} />
-            年度名人堂
+            地衡榜单
           </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">排行榜</h1>
           <p className="mt-2 text-slate-500 leading-relaxed">
-            与全球标注者一较高下。{myEntry ? `您当前排名第 ${myEntry.rank} 位。` : "快去开始标注任务，抢占您的席位！"}
+            与全站贡献者一较高下。{myEntry ? `您当前排名第 ${myEntry.rank} 位。` : "快去完成识图或寻境任务，进入榜单吧！"}
           </p>
         </div>
 
@@ -76,7 +75,7 @@ export default function LeaderboardPage() {
       <Card className="border-none shadow-2xl overflow-hidden">
         <div className="grid grid-cols-[80px_1fr_120px] bg-slate-50/50 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
           <span>排名</span>
-          <span>标注者</span>
+          <span>贡献者</span>
           <span className="text-right">总积分</span>
         </div>
 

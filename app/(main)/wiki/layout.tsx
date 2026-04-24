@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import WikiSidebar from "@/components/wiki/WikiSidebar";
 import WikiMobileNav from "@/components/wiki/WikiMobileNav";
 import { Button } from "@/components/ui/button";
@@ -16,10 +16,10 @@ export default function WikiLayout({
           <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                GeoAnnotate 知识库
+                识图寻境知识库
               </p>
               <h2 className="text-lg font-bold text-slate-800 tracking-tight">
-                文档、流程与实验参考
+                文档、评测与产品路径参考
               </h2>
             </div>
             <div className="hidden sm:flex items-center gap-2">

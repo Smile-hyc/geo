@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -11,7 +11,7 @@ export default function AdminAiModelsPage() {
   // 使用本地 State 来管理 UI 交互，等待后续接入真实后端
   const [isSaving, setIsSaving] = useState(false);
   const [modelConfig, setModelConfig] = useState({
-    modelName: "GeoAnnotate AI v2.0",
+    modelName: "识图大模型 v2.0",
     precision: 80,
     batchSize: "32",
     learningRate: "0.001",
@@ -55,8 +55,8 @@ export default function AdminAiModelsPage() {
                     value={modelConfig.modelName}
                     onChange={(e) => setModelConfig({ ...modelConfig, modelName: e.target.value })}
                   >
-                    <option value="GeoAnnotate AI v2.0">GeoAnnotate AI v2.0</option>
-                    <option value="GeoAnnotate AI v1.5">GeoAnnotate AI v1.5</option>
+                    <option value="识图大模型 v2.0">识图大模型 v2.0</option>
+                    <option value="识图大模型 v1.5">识图大模型 v1.5</option>
                     <option value="Experimental Model">Experimental Beta</option>
                   </select>
                   {/* 自定义下拉箭头 */}

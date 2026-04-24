@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -53,7 +53,6 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <div className="relative pb-20 pt-10">
-      {/* Decorative Background Elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] bg-sky-200/20 blur-[100px] rounded-full" />
         <div className="absolute bottom-[10%] left-[-5%] w-[300px] h-[300px] bg-blue-200/20 blur-[80px] rounded-full" />
@@ -67,13 +66,14 @@ export default function HomePage() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-50 border border-sky-100 text-sky-600 text-xs font-bold uppercase tracking-wider mb-6">
             <Zap size={14} className="fill-sky-600" />
-            地理数据标注的新标准
+            识图 · 寻境 · 地衡
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6">
-            Master <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600">Geospatial</span> Data
+            识图寻境 <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600">空间智能平台</span>
           </h1>
           <p className="max-w-2xl mx-auto text-lg text-slate-500 leading-relaxed">
-            GeoAnnotate 是一个集成竞技、标注与学习的地理信息平台。在这里，你可以磨练标注技能，并在真实的对战中获取丰厚奖励。
+            面向图像地理定位与可信求证场景，提供从快速初判到高精度核验再到数据回流的完整能力链路，
+            让空间推理更快、更准、更可审计。
           </p>
         </motion.div>
       </section>
@@ -90,9 +90,8 @@ export default function HomePage() {
               href={feature.href}
               className="group relative flex flex-col h-full p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-sky-100 transition-all duration-500 overflow-hidden"
             >
-              {/* Hover Background Accent */}
               <div className={cn("absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity", feature.color)} />
-              
+
               <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-500", feature.lightColor, feature.textColor)}>
                 <feature.icon size={28} />
               </div>
@@ -105,7 +104,7 @@ export default function HomePage() {
               </p>
 
               <div className="mt-auto flex items-center gap-2 text-sm font-bold text-slate-400 group-hover:text-primary transition-colors">
-                立即开始
+                立即进入
                 <motion.span
                   animate={{ x: [0, 5, 0] }}
                   transition={{ repeat: Infinity, duration: 1.5 }}
@@ -118,35 +117,34 @@ export default function HomePage() {
         ))}
       </motion.div>
 
-      {/* Statistics or Status bar */}
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
-        className="mt-20 p-8 rounded-[3rem] bg-slate-900 text-white overflow-hidden relative"
+        className="mt-20 p-8 rounded-[3rem] bg-sky-50 border border-sky-100 text-slate-900 overflow-hidden relative"
       >
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none text-sky-500">
           <Globe className="absolute -right-20 -bottom-20 w-80 h-80" />
         </div>
-        
+
         <div className="flex flex-col md:flex-row items-center justify-around gap-12 relative z-10">
-          <StatItem icon={Map} label="已完成标注" value="128k+" />
-          <StatItem icon={Database} label="活跃任务数" value="456" />
-          <StatItem icon={Trophy} label="本月发放奖励" value="¥12,400" />
+          <StatItem icon={Map} label="识图任务量" value="128k+" />
+          <StatItem icon={Database} label="活跃求证流" value="456" />
+          <StatItem icon={Trophy} label="本月交付案例" value="1,240+" />
         </div>
       </motion.section>
     </div>
   );
 }
 
-function StatItem({ icon: Icon, label, value }: { icon: any, label: string, value: string }) {
+function StatItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-2">
-        <Icon size={20} className="text-sky-400" />
+      <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center mb-2 shadow-sm border border-sky-100">
+        <Icon size={20} className="text-sky-600" />
       </div>
-      <p className="text-3xl font-extrabold tracking-tight">{value}</p>
-      <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{label}</p>
+      <p className="text-3xl font-extrabold tracking-tight text-slate-900">{value}</p>
+      <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{label}</p>
     </div>
   );
 }
