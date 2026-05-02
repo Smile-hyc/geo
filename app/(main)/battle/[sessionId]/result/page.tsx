@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, RotateCcw, PlaySquare, Home, CheckCircle2, XCircle, MapPin } from "lucide-react";
+import { Loader2, RotateCcw, PlaySquare, Home, CheckCircle2, XCircle, MapPin, MinusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getBattleResult, getTempFileURL } from "@/lib/cloudbase";
 
@@ -33,6 +33,41 @@ function calculateDistance(
     Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+type RoundWinnerVariant = "user" | "ai" | "draw";
+
+function roundOutcomeFromApi(round: {
+  round_winner_type?: string | null;
+  user_score: number;
+  ai_score: number;
+}): { label: string; variant: RoundWinnerVariant } {
+  const t = round.round_winner_type;
+  if (t === "user") return { label: "用户胜", variant: "user" };
+  if (t === "ai") return { label: "AI 胜", variant: "ai" };
+  if (t === "draw") return { label: "平局", variant: "draw" };
+  if (round.user_score > round.ai_score) return { label: "用户胜", variant: "user" };
+  if (round.ai_score > round.user_score) return { label: "AI 胜", variant: "ai" };
+  return { label: "平局", variant: "draw" };
+}
+
+function sessionOutcomeLabel(
+  winner: string | null | undefined,
+  status?: string
+): { title: string; subtitle: string; variant: RoundWinnerVariant | "pending" } {
+  if (!winner && (status === "active" || status === "finished")) {
+    return { title: "对局进行中", subtitle: "完成后将显示整局胜负", variant: "pending" };
+  }
+  if (winner === "user") {
+    return { title: "本局胜利", subtitle: "总分领先 AI，干得漂亮！", variant: "user" };
+  }
+  if (winner === "draw") {
+    return { title: "本局平局", subtitle: "你的总分与 AI 持平", variant: "draw" };
+  }
+  if (winner === "ai") {
+    return { title: "本局失利", subtitle: "再接再厉，下次地图见", variant: "ai" };
+  }
+  return { title: "赛果统计", subtitle: "查看下方比分与逐轮详情", variant: "pending" };
 }
 
 // 专门负责把云函数的图片 URL 转成真实 HTTP 链接
@@ -73,8 +108,9 @@ interface BattleResult {
     time_limit_sec: number;
     user_total_score: number;
     ai_total_score: number;
-    winner: string;
+    winner: string | null;
     round_count: number;
+    status?: string;
   };
   rounds: Array<{
     round_index: number;
@@ -87,6 +123,8 @@ interface BattleResult {
     ai_score: number;
     true_lat: number;
     true_lng: number;
+    round_winner_type?: string | null;
+    elapsed_ms?: number | null;
   }>;
 }
 
@@ -295,6 +333,26 @@ export default function BattleResultPage() {
         <div className="w-[460px] bg-white flex flex-col border-l border-[#E5E6EB] shadow-[-8px_0_24px_rgba(0,0,0,0.03)] z-10">
           
           <div className="p-8 pb-6 border-b border-[#E5E6EB]">
+            {(() => {
+              const outcome = sessionOutcomeLabel(session.winner, session.status);
+              const bannerClass =
+                outcome.variant === "user"
+                  ? "bg-[#00B42A]/10 border-[#00B42A]/25 text-[#00B42A]"
+                  : outcome.variant === "ai"
+                    ? "bg-[#F53F3F]/10 border-[#F53F3F]/25 text-[#F53F3F]"
+                    : outcome.variant === "draw"
+                      ? "bg-amber-50 border-amber-200/80 text-amber-700"
+                      : "bg-[#F2F3F5] border-[#E5E6EB] text-[#4E5969]";
+              return (
+                <div className={`mb-8 rounded-xl border px-4 py-3 ${bannerClass}`}>
+                  <p className="text-[15px] font-black leading-tight">{outcome.title}</p>
+                  <p className="text-[12px] font-medium mt-1 opacity-90">{outcome.subtitle}</p>
+                  {session.status === "rewarded" ? (
+                    <p className="text-[11px] font-medium mt-2 opacity-75">积分奖励已结算</p>
+                  ) : null}
+                </div>
+              );
+            })()}
             <div className="flex justify-between items-center px-4">
               <div className="flex flex-col items-center gap-1">
                 <span className="text-[16px] text-[#4B5563] font-medium">用户总分</span>
@@ -331,13 +389,29 @@ export default function BattleResultPage() {
             
             <div className="flex flex-col gap-4">
               {rounds.map((round, idx) => {
-                const userWon = round.user_score >= round.ai_score;
+                const ro = roundOutcomeFromApi(round);
+                const userWon = ro.variant === "user";
+                const isDraw = ro.variant === "draw";
                 return (
                   <div key={idx} className="bg-white border border-[#E5E6EB] rounded-xl p-4 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                    
-                    <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-[12px] font-bold flex items-center gap-1 ${userWon ? 'bg-[#00B42A]/10 text-[#00B42A]' : 'bg-[#F53F3F]/10 text-[#F53F3F]'}`}>
-                      {userWon ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                      {userWon ? '用户胜' : 'AI 胜'}
+
+                    <div
+                      className={`absolute top-3 right-3 px-3 py-1 rounded-full text-[12px] font-bold flex items-center gap-1 ${
+                        isDraw
+                          ? "bg-amber-50 text-amber-700"
+                          : userWon
+                            ? "bg-[#00B42A]/10 text-[#00B42A]"
+                            : "bg-[#F53F3F]/10 text-[#F53F3F]"
+                      }`}
+                    >
+                      {isDraw ? (
+                        <MinusCircle className="w-3 h-3" />
+                      ) : userWon ? (
+                        <CheckCircle2 className="w-3 h-3" />
+                      ) : (
+                        <XCircle className="w-3 h-3" />
+                      )}
+                      {ro.label}
                     </div>
 
                     <div className="flex justify-between items-center border-b border-[#E5E6EB] pb-3 mb-3 pr-24">

@@ -54,7 +54,7 @@
     {
       "name": "submit-battle-round",
       "timeout": 15,
-      "runtime": "Nodejs18.15",
+      "runtime": "Nodejs16.13",
       "installDependency": true,
       "handler": "index.main"
     },

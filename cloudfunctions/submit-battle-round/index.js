@@ -556,22 +556,37 @@ exports.main = async (event, context) => {
             : "draw";
     }
 
-    await client.query(
-      `UPDATE battle_sessions
-       SET user_total_score = $1,
-           ai_total_score = $2,
-           winner = $3,
-           status = $4,
-           updated_at = NOW()
-       WHERE id = $5`,
-      [
-        newUserTotal,
-        newAiTotal,
-        winner,
-        sessionEnded ? "finished" : "active",
-        session_id,
-      ]
-    );
+    if (sessionEnded) {
+      await client.query(
+        `UPDATE battle_sessions
+         SET user_total_score = $1,
+             ai_total_score = $2,
+             winner = $3,
+             winner_type = $3,
+             status = 'finished',
+             finished_at = NOW(),
+             updated_at = NOW()
+         WHERE id = $4`,
+        [newUserTotal, newAiTotal, winner, session_id]
+      );
+    } else {
+      await client.query(
+        `UPDATE battle_sessions
+         SET user_total_score = $1,
+             ai_total_score = $2,
+             winner = $3,
+             status = $4,
+             updated_at = NOW()
+         WHERE id = $5`,
+        [
+          newUserTotal,
+          newAiTotal,
+          winner,
+          "active",
+          session_id,
+        ]
+      );
+    }
 
     await client.query("COMMIT");
 

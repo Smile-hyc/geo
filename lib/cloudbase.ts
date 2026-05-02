@@ -258,15 +258,29 @@ export async function getBattleResult(params: {
   session_id: number;
 }): Promise<{
   session: {
-    id: number; ai_model_id: string; mode_type: string; time_limit_sec: number;
-    user_total_score: number; ai_total_score: number; winner: string; round_count: number;
+    id: number;
+    ai_model_id: string;
+    mode_type: string;
+    time_limit_sec: number;
+    user_total_score: number;
+    ai_total_score: number;
+    winner: string | null;
+    round_count: number;
+    status?: string;
   };
   rounds: Array<{
-    round_index: number; image_storage_url: string;
-    user_guess_lat: number | null; user_guess_lng: number | null;
-    ai_guess_lat: number | null; ai_guess_lng: number | null;
-    user_score: number; ai_score: number;
-    true_lat: number; true_lng: number;
+    round_index: number;
+    image_storage_url: string;
+    user_guess_lat: number | null;
+    user_guess_lng: number | null;
+    ai_guess_lat: number | null;
+    ai_guess_lng: number | null;
+    user_score: number;
+    ai_score: number;
+    true_lat: number;
+    true_lng: number;
+    round_winner_type?: string | null;
+    elapsed_ms?: number | null;
   }>;
 }> {
   return callFunction("get-battle-result", params);
