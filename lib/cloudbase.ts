@@ -116,30 +116,6 @@ export async function callFunction<T = unknown>(
 
   const res = await getApp().callFunction({ name, data: payload });
   const result = res.result as T & { errMsg?: string } | undefined;
-  // #region agent log
-  try {
-    const em = typeof result?.errMsg === "string" ? result.errMsg : "";
-    if (/Cannot find module/i.test(em) && em.includes("hfSpace")) {
-      fetch("http://127.0.0.1:7629/ingest/9cacff90-c744-456c-9c2a-be8ca2fff40b", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "742b80",
-        },
-        body: JSON.stringify({
-          sessionId: "742b80",
-          hypothesisId: "H-remote-scf-hf-require",
-          location: "lib/cloudbase.ts:callFunction",
-          message: "errMsg mentions hf Space path",
-          data: { fn: name, snippet: em.slice(0, 320) },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-    }
-  } catch {
-    /* debug */
-  }
-  // #endregion
   if (result?.errMsg) throw new Error(result.errMsg);
   if (result !== undefined && result !== null) return result as T;
   throw new Error((res as { errMsg?: string }).errMsg || "云函数调用失败");
