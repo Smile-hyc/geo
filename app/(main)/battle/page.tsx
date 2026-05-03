@@ -95,11 +95,11 @@ export default function BattleConfigPage() {
             variants={container}
             initial="hidden"
             animate="show"
-            className="w-full h-full grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6"
+            className="grid h-full min-h-0 w-full grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6"
           >
 
             {/* 左侧小栏：选取战场 */}
-            <motion.div variants={item} className="flex flex-col relative h-full rounded-[32px]">
+            <motion.div variants={item} className="relative flex h-full min-h-0 flex-col rounded-[32px]">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Target className="w-4 h-4" />
@@ -107,7 +107,7 @@ export default function BattleConfigPage() {
                 <h2 className="text-[18px] font-bold text-slate-900">选取战场</h2>
               </div>
 
-              <div className="flex flex-col gap-3.5 z-10 flex-1 overflow-y-auto pb-4 pr-1">
+              <div className="z-10 flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto pb-4 pr-1">
                 {BATTLE_MODES.map((battleMode) => {
                   const isSelected = mode === battleMode.id;
                   let ModeIcon;
@@ -159,23 +159,23 @@ export default function BattleConfigPage() {
             </motion.div>
 
             {/* 中间小栏：模型选择 */}
-            <motion.div variants={item} className="flex flex-col relative h-full rounded-[32px]">
+            <motion.div variants={item} className="relative flex h-full min-h-0 flex-col rounded-[32px]">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Cpu className="w-4 h-4" />
                 </div>
                 <h2 className="text-[18px] font-bold text-slate-900">模型选择</h2>
               </div>
-              <div className="flex flex-col gap-4 z-10 flex-1 min-h-0 overflow-y-auto pb-4 pr-1">
-                <div className="group relative flex flex-1 flex-col rounded-[20px] border-[2px] border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50">
+              <div className="z-10 flex min-h-0 flex-1 flex-col pb-4 pr-1">
+                <div className="group relative flex min-h-0 flex-1 flex-col rounded-[20px] border-[2px] border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50">
                   <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/20 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
                   <label
                     htmlFor="battle-model-select"
-                    className="relative z-10 mb-3 text-[13px] font-medium text-slate-600"
+                    className="relative z-10 mb-3 shrink-0 text-[13px] font-medium text-slate-600"
                   >
                     当前模型
                   </label>
-                  <div className="relative z-10">
+                  <div className="relative z-10 shrink-0">
                     <select
                       id="battle-model-select"
                       value={aiModelId}
@@ -195,15 +195,12 @@ export default function BattleConfigPage() {
                       </svg>
                     </div>
                   </div>
-                  <p className="relative z-10 mt-5 text-[13px] leading-relaxed text-slate-500">
-                    {INFERENCE_MODELS.find((m) => m.id === aiModelId)?.description}
-                  </p>
                 </div>
               </div>
             </motion.div>
 
             {/* 🚀 右侧小栏：规则设置 */}
-            <motion.div variants={item} className="flex flex-col relative h-full rounded-[32px]">
+            <motion.div variants={item} className="relative flex h-full min-h-0 flex-col rounded-[32px]">
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-2.5 mb-5 shrink-0 px-1">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
