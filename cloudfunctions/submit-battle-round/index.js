@@ -5,10 +5,11 @@ const https = require("https");
 const { Pool } = require("pg");
 const tcb = require("@cloudbase/node-sdk");
 const { URL } = require("url");
+/** 与 ./_shared/hfSpace 同源的可提交副本；腾讯云只打本子目录时需此文件。（同步：npm run cloudfunctions:sync-shared） */
 const {
   isValidCoordinatePair,
   predictGeoAgentFromBuffer,
-} = require("./_shared/hfSpace");
+} = require("./hfSpace");
 
 const pool = new Pool(
   process.env.DATABASE_URL

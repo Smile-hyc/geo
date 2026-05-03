@@ -1,9 +1,10 @@
 "use strict";
 
+/** 与 ./_shared/hfSpace 同源的可提交副本；腾讯云只打本子目录时需此文件。（同步：npm run cloudfunctions:sync-shared） */
 const {
   isValidCoordinatePair,
   predictGeoAgentFromBuffer,
-} = require("./_shared/hfSpace");
+} = require("./hfSpace");
 
 const DEFAULT_PROMPT =
   '请基于图片判断具体地点，并用简体中文输出推理过程。如果返回 JSON，请保留英文键名（如 "FinalAnswer"、"ChainOfThought"），但所有值都使用简体中文。';
