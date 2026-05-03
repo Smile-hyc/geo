@@ -1,0 +1,26 @@
+
+> geoannotate@0.1.0 dev
+> next dev --hostname 127.0.0.1 --port 3000
+
+  ▲ Next.js 14.2.3
+  - Local:        http://127.0.0.1:3000
+  - Network:      http://127.0.0.1:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 4.7s
+ ○ Compiling /app/inference ...
+ ✓ Compiled /app/inference in 7.1s (1939 modules)
+ GET /app/inference 200 in 8282ms
+ ✓ Compiled in 1309ms (976 modules)
+ GET /app/inference 200 in 74ms
+ GET /app/inference 200 in 100ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 1318ms (2115 modules)
+ GET /app/inference 200 in 596ms
+ ○ Compiling /app/home ...
+ ✓ Compiled /app/home in 1600ms (2130 modules)
+ GET /app/inference 200 in 2828ms
+ ✓ Compiled in 1450ms (2144 modules)
+ ✓ Compiled in 1261ms (2144 modules)
+ GET /app/inference 200 in 416ms

@@ -6,6 +6,7 @@ import { Brain, ImagePlus, Loader2, Sparkles, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
+import { InferenceProgress } from "@/components/inference/InferenceProgress";
 import type { GeoInferenceResult } from "@/lib/cloudbase";
 import { runGeoInferenceFromSpace } from "@/lib/hf-space-browser";
 import { cn } from "@/lib/utils";
@@ -223,10 +224,7 @@ export default function InferencePage() {
                 </p>
               ) : null}
               {loading ? (
-                <div className="flex flex-1 items-center justify-center gap-2 rounded-3xl border border-slate-100 bg-slate-50/30 py-12 text-sm text-slate-500">
-                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
-                  正在请求 GeoAgent Space…
-                </div>
+                <InferenceProgress />
               ) : null}
               {result ? (
                 <motion.div
