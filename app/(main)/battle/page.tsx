@@ -98,7 +98,7 @@ export default function BattleConfigPage() {
             className="flex h-full min-h-0 w-full flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-6"
           >
 
-            {/* 左侧小栏：选取战场（lg 与另两列同高：flex-1 + h-full） */}
+            {/* 左侧小栏：选取战场 */}
             <motion.div variants={item} className="relative flex w-full flex-none flex-col rounded-[32px] lg:h-full lg:min-h-0 lg:min-w-0 lg:basis-0 lg:flex-1">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -158,7 +158,7 @@ export default function BattleConfigPage() {
               </div>
             </motion.div>
 
-            {/* 中间小栏：模型选择 */}
+            {/* 中间小栏：模型选择（白卡片不拉高；列内 flex-1 占位填满下部，与左右留白一致） */}
             <motion.div variants={item} className="relative flex w-full flex-none flex-col rounded-[32px] lg:h-full lg:min-h-0 lg:min-w-0 lg:basis-0 lg:flex-1">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -166,8 +166,8 @@ export default function BattleConfigPage() {
                 </div>
                 <h2 className="text-[18px] font-bold text-slate-900">模型选择</h2>
               </div>
-              <div className="z-10 flex min-h-0 flex-1 flex-col pb-4 pr-1 lg:h-full lg:min-h-0">
-                <div className="group relative flex min-h-0 flex-1 flex-col rounded-[20px] border-[2px] border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50 lg:h-full lg:min-h-0">
+              <div className="z-10 w-full shrink-0 pb-4 pr-1">
+                <div className="group relative w-full shrink-0 rounded-[20px] border-[2px] border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50">
                   <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/20 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
                   <label
                     htmlFor="battle-model-select"
@@ -197,6 +197,7 @@ export default function BattleConfigPage() {
                   </div>
                 </div>
               </div>
+              <div className="min-h-0 flex-1" aria-hidden />
             </motion.div>
 
             {/* 🚀 右侧小栏：规则设置 */}
@@ -260,6 +261,7 @@ export default function BattleConfigPage() {
                     );
                   })}
                 </div>
+                <div className="min-h-0 flex-1" aria-hidden />
               </div>
             </motion.div>
 
