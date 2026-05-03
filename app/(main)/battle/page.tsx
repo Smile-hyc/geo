@@ -70,13 +70,13 @@ export default function BattleConfigPage() {
   };
 
   return (
-    <div className="h-screen w-full from-slate-50 to-slate-100 p-4 flex flex-col font-sans overflow-hidden items-center justify-center">
+    <div className="flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 p-4 font-sans">
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-[1200px] h-full flex flex-col rounded-[40px] overflow-hidden relative shadow-[0_16px_60px_rgba(0,0,0,0.05)] border border-slate-100"
+        className="relative mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 flex-col overflow-hidden rounded-[40px] border border-slate-100 shadow-[0_16px_60px_rgba(0,0,0,0.05)]"
       >
 
         {/* --- 1. 头部区域 --- */}
@@ -90,16 +90,16 @@ export default function BattleConfigPage() {
         </header>
 
         {/* --- 2. 主体选择区 --- */}
-        <main className="flex-1 p-8 pb-2 lg:p-10 lg:pb-4 min-h-0 z-10 flex flex-col">
+        <main className="z-10 flex min-h-0 flex-1 flex-col p-8 pb-2 lg:p-10 lg:pb-4">
           <motion.div
             variants={container}
             initial="hidden"
             animate="show"
-            className="grid h-full min-h-0 w-full grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6"
+            className="flex h-full min-h-0 w-full flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-6"
           >
 
-            {/* 左侧小栏：选取战场 */}
-            <motion.div variants={item} className="relative flex h-full min-h-0 flex-col rounded-[32px]">
+            {/* 左侧小栏：选取战场（lg 与另两列同高：flex-1 + h-full） */}
+            <motion.div variants={item} className="relative flex w-full flex-none flex-col rounded-[32px] lg:h-full lg:min-h-0 lg:min-w-0 lg:basis-0 lg:flex-1">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Target className="w-4 h-4" />
@@ -159,15 +159,15 @@ export default function BattleConfigPage() {
             </motion.div>
 
             {/* 中间小栏：模型选择 */}
-            <motion.div variants={item} className="relative flex h-full min-h-0 flex-col rounded-[32px]">
+            <motion.div variants={item} className="relative flex w-full flex-none flex-col rounded-[32px] lg:h-full lg:min-h-0 lg:min-w-0 lg:basis-0 lg:flex-1">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Cpu className="w-4 h-4" />
                 </div>
                 <h2 className="text-[18px] font-bold text-slate-900">模型选择</h2>
               </div>
-              <div className="z-10 flex min-h-0 flex-1 flex-col pb-4 pr-1">
-                <div className="group relative flex min-h-0 flex-1 flex-col rounded-[20px] border-[2px] border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50">
+              <div className="z-10 flex min-h-0 flex-1 flex-col pb-4 pr-1 lg:h-full lg:min-h-0">
+                <div className="group relative flex min-h-0 flex-1 flex-col rounded-[20px] border-[2px] border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50 lg:h-full lg:min-h-0">
                   <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/20 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
                   <label
                     htmlFor="battle-model-select"
@@ -200,8 +200,8 @@ export default function BattleConfigPage() {
             </motion.div>
 
             {/* 🚀 右侧小栏：规则设置 */}
-            <motion.div variants={item} className="relative flex h-full min-h-0 flex-col rounded-[32px]">
-              <div className="flex flex-col h-full">
+            <motion.div variants={item} className="relative flex w-full flex-none flex-col rounded-[32px] lg:h-full lg:min-h-0 lg:min-w-0 lg:basis-0 lg:flex-1">
+              <div className="flex h-full min-h-0 flex-col">
                 <div className="flex items-center gap-2.5 mb-5 shrink-0 px-1">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                     <Timer className="w-4 h-4" />
