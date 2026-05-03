@@ -54,6 +54,17 @@ exports.main = async (event, context) => {
 
   const client = await pool.connect();
   try {
+    // 与 prisma/migrations/20260403000100_backend_foundation_base 对齐：线上库若未跑迁移会缺列
+    await client.query(
+      `ALTER TABLE battle_sessions ADD COLUMN IF NOT EXISTS started_at TIMESTAMP(3)`
+    );
+    await client.query(
+      `ALTER TABLE battle_sessions ADD COLUMN IF NOT EXISTS finished_at TIMESTAMP(3)`
+    );
+    await client.query(
+      `ALTER TABLE battle_sessions ADD COLUMN IF NOT EXISTS winner_type TEXT`
+    );
+
     let userResult;
 
     if (cloudbaseUid) {

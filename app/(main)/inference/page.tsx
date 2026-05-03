@@ -1,11 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Brain, Check, ImagePlus, Loader2, Sparkles, Zap } from "lucide-react";
+import { Brain, Check, Cpu, ImagePlus, Loader2, Sparkles, Zap } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
+import {
+  getInferenceModelsForContext,
+  type InferenceModelId,
+} from "@/features/battle/config";
 import type { GeoInferenceResult } from "@/lib/cloudbase";
 import {
   runGeoInferenceFromSpace,
@@ -164,6 +168,13 @@ export default function InferencePage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const prefersReducedMotion = useReducedMotion();
   const reducedMotion = prefersReducedMotion === true;
+  const standaloneModels = useMemo(
+    () => getInferenceModelsForContext("standalone"),
+    []
+  );
+  const [inferenceModelId, setInferenceModelId] = useState<InferenceModelId>(() =>
+    getInferenceModelsForContext("standalone")[0].id
+  );
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -243,6 +254,7 @@ export default function InferencePage() {
     try {
       const nextResult = await runGeoInferenceFromSpace({
         file,
+        modelId: inferenceModelId,
         onPhase: (phase) => {
           setInferencePhase(phase);
         },
@@ -255,7 +267,7 @@ export default function InferencePage() {
       setLoading(false);
       setInferencePhase(null);
     }
-  }, [file]);
+  }, [file, inferenceModelId]);
 
   const resultDescription =
     result?.source === "stub"
@@ -300,6 +312,65 @@ export default function InferencePage() {
           </p>
         </motion.div>
       </section>
+
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.08 }}
+        className="mx-auto mb-6 max-w-7xl"
+      >
+        <div className="flex flex-col gap-4 rounded-[2.5rem] border border-slate-100 bg-white p-6 shadow-sm transition-shadow duration-500 hover:shadow-xl hover:shadow-sky-100 md:flex-row md:items-stretch md:gap-8">
+          <div className="flex shrink-0 items-start gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
+              <Cpu size={26} strokeWidth={2} />
+            </div>
+            <div className="min-w-0 pt-0.5">
+              <h2 className="text-lg font-bold text-slate-800">模型选择</h2>
+              <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                选择本次「空间求证」使用的推理模型；请求会携带 model_id
+                交由寻境服务路由（含 DeepSeek 等接入后生效）。
+              </p>
+            </div>
+          </div>
+          <div className="flex min-h-[52px] flex-1 flex-col justify-center md:max-w-md md:shrink-0">
+            <label htmlFor="inference-model-select" className="sr-only">
+              选择模型
+            </label>
+            <div className="relative">
+              <select
+                id="inference-model-select"
+                value={inferenceModelId}
+                onChange={(e) =>
+                  setInferenceModelId(e.target.value as InferenceModelId)
+                }
+                disabled={loading}
+                className="h-[52px] w-full cursor-pointer appearance-none rounded-2xl border-2 border-slate-100 bg-slate-50/80 px-4 pr-10 text-[15px] font-semibold text-slate-800 outline-none transition-colors focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-200/60 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {standaloneModels.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-slate-400">
+              {standaloneModels.find((m) => m.id === inferenceModelId)?.description}
+            </p>
+          </div>
+        </div>
+      </motion.div>
 
       <motion.div
         variants={container}

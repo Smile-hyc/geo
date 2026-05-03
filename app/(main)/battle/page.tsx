@@ -3,18 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Loader2, BrainCircuit, FlaskConical, Rocket, Timer, Trophy, Zap, Swords, Target, Cpu, CheckCircle2, Shield } from "lucide-react";
+import { Loader2, Rocket, Timer, Trophy, Zap, Target, Cpu, CheckCircle2 } from "lucide-react";
 import { MapPin, Route, Mountain, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createBattle } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
 import {
-  AI_OPPONENTS,
+  INFERENCE_MODELS,
   BATTLE_MODES,
   ROUND_OPTIONS,
   TIME_OPTIONS,
-  getAiOpponentLabel,
-  getBattleModeLabel,
+  type InferenceModelId,
 } from "@/features/battle/config";
 
 const container = {
@@ -37,7 +36,7 @@ export default function BattleConfigPage() {
   const [mode, setMode] = useState<(typeof BATTLE_MODES)[number]["id"]>(BATTLE_MODES[0].id);
   const [timeLimit, setTimeLimit] = useState<(typeof TIME_OPTIONS)[number]>(TIME_OPTIONS[1]);
   const [rounds, setRounds] = useState<(typeof ROUND_OPTIONS)[number]>(ROUND_OPTIONS[1]);
-  const [aiOpponent, setAiOpponent] = useState<(typeof AI_OPPONENTS)[number]["id"]>(AI_OPPONENTS[0].id);
+  const [aiModelId, setAiModelId] = useState<InferenceModelId>(INFERENCE_MODELS[0].id);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,7 +58,7 @@ export default function BattleConfigPage() {
         mode_type: mode,
         time_limit_sec: timeLimit,
         round_count: rounds,
-        ai_model_id: aiOpponent,
+        ai_model_id: aiModelId,
         cloudbase_uid: uid,
         email,
       });
@@ -159,60 +158,47 @@ export default function BattleConfigPage() {
               </div>
             </motion.div>
 
-            {/* 中间小栏：迎战 AI */}
+            {/* 中间小栏：模型选择 */}
             <motion.div variants={item} className="flex flex-col relative h-full rounded-[32px]">
               <div className="flex items-center gap-5 mb-5 shrink-0 px-1">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Cpu className="w-4 h-4" />
                 </div>
-                <h2 className="text-[18px] font-bold text-slate-900">迎战 AI</h2>
+                <h2 className="text-[18px] font-bold text-slate-900">模型选择</h2>
               </div>
-              <div className="flex flex-col gap-4 z-10 flex-1 overflow-y-auto pb-4 pr-1">
-                {AI_OPPONENTS.map((opponent) => {
-                  const isSelected = aiOpponent === opponent.id;
-                  let OpponentIcon;
-                  switch (opponent.id) {
-                    case 'mock-v1': OpponentIcon = BrainCircuit; break;
-                    case 'research-baseline': OpponentIcon = FlaskConical; break;
-                    default: OpponentIcon = Cpu;
-                  }
-
-                  return (
-                    <button
-                      key={opponent.id}
-                      onClick={() => setAiOpponent(opponent.id)}
-                      className={`group relative p-6 rounded-[20px] text-left border-[2px] transition-all duration-300 flex flex-col justify-center gap-4 w-full shrink-0 min-h-[221px] overflow-hidden ${isSelected
-                          ? "border-primary bg-primary/5 shadow-md"
-                          : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50"
-                        }`}
+              <div className="flex flex-col gap-4 z-10 flex-1 min-h-0 overflow-y-auto pb-4 pr-1">
+                <div className="group relative flex flex-1 flex-col rounded-[20px] border-[2px] border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50">
+                  <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/20 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
+                  <label
+                    htmlFor="battle-model-select"
+                    className="relative z-10 mb-3 text-[13px] font-medium text-slate-600"
+                  >
+                    当前模型
+                  </label>
+                  <div className="relative z-10">
+                    <select
+                      id="battle-model-select"
+                      value={aiModelId}
+                      onChange={(e) => setAiModelId(e.target.value as InferenceModelId)}
+                      disabled={loading}
+                      className="h-[52px] w-full cursor-pointer appearance-none rounded-[16px] border-[2px] border-slate-100 bg-white px-4 pr-10 text-[16px] font-bold text-slate-800 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {!isSelected && (
-                        <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0" />
-                      )}
-                      <div className="flex items-center w-full gap-4 relative z-10">
-                        <div className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${isSelected
-                            ? 'bg-primary text-white shadow-md shadow-primary/20'
-                            : 'bg-slate-50 text-slate-500 group-hover:bg-primary/10 group-hover:text-primary'
-                          }`}>
-                          <OpponentIcon size={26} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-[19px] font-bold transition-colors truncate ${isSelected ? 'text-primary' : 'text-slate-800 group-hover:text-primary'}`}>
-                            {opponent.label}
-                          </p>
-                        </div>
-                        <div className="shrink-0 w-6 h-6 flex items-center justify-center">
-                          {isSelected && <CheckCircle2 className="w-6 h-6 text-primary" />}
-                        </div>
-                      </div>
-                      <div className="w-full relative z-10">
-                        <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-2 pl-1">
-                          {opponent.description}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
+                      {INFERENCE_MODELS.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="relative z-10 mt-5 text-[13px] leading-relaxed text-slate-500">
+                    {INFERENCE_MODELS.find((m) => m.id === aiModelId)?.description}
+                  </p>
+                </div>
               </div>
             </motion.div>
 

@@ -25,20 +25,45 @@ export const BATTLE_MODES = [
   },
 ] as const;
 
-export const AI_OPPONENTS = [
+/** 对战与「空间求证」共用的推理模型选项（ai_model_id / 前端透传） */
+export const INFERENCE_MODELS = [
   {
     id: "mock-v1",
-    label: "模拟对手",
-    description: "搭载基础「识图」大模型架构，具备极速初判能力的轻量级空间认知智能体。",
+    label: "模拟对手（本地）",
+    description:
+      "搭载基础「识图」大模型架构的轻量级链路；对战内为本地快速占位，不调用远程 GPU。",
     image: "/images/mock.png",
+    /** 空间求证页走浏览器推理，不包含本地 mock */
+    standaloneInference: false as const,
   },
   {
     id: "research-baseline",
-    label: "研究基线",
-    description: "集成类 OpenClaw 工作流的「寻境」空间推理 Agent，具备多轮工具调用与强证据链分析能力。",
+    label: "寻境 · 研究基线（HF）",
+    description:
+      "集成类 OpenClaw 工作流的「寻境」空间推理 Agent，多轮工具调用与证据链分析（默认对接 HF Space）。",
     image: "/images/baseline.png",
+    standaloneInference: true as const,
+  },
+  {
+    id: "deepseek-chat",
+    label: "DeepSeek Chat",
+    description:
+      "DeepSeek 对话模型 API；需在推理服务侧配置对应路由后，由接口识别 model_id。",
+    image: "/images/baseline.png",
+    standaloneInference: true as const,
+  },
+  {
+    id: "deepseek-reasoner",
+    label: "DeepSeek 推理（Reasoner）",
+    description:
+      "DeepSeek 深度推理模型；适合复杂空间链路与长思维链（依赖服务端与密钥配置）。",
+    image: "/images/baseline.png",
+    standaloneInference: true as const,
   },
 ] as const;
+
+/** @deprecated 使用 INFERENCE_MODELS；保留别名以免旧代码断裂 */
+export const AI_OPPONENTS = INFERENCE_MODELS;
 
 export const TIME_OPTIONS = [10, 30, 60, 120] as const;
 export const ROUND_OPTIONS = [1, 3, 5, 10] as const;
@@ -47,6 +72,21 @@ export function getBattleModeLabel(id: string): string {
   return BATTLE_MODES.find((mode) => mode.id === id)?.label ?? id;
 }
 
+export function getInferenceModelLabel(id: string): string {
+  return INFERENCE_MODELS.find((m) => m.id === id)?.label ?? id;
+}
+
 export function getAiOpponentLabel(id: string): string {
-  return AI_OPPONENTS.find((opponent) => opponent.id === id)?.label ?? id;
+  return getInferenceModelLabel(id);
+}
+
+export type InferenceModelId = (typeof INFERENCE_MODELS)[number]["id"];
+
+export function getInferenceModelsForContext(
+  ctx: "battle" | "standalone"
+): (typeof INFERENCE_MODELS)[number][] {
+  if (ctx === "standalone") {
+    return INFERENCE_MODELS.filter((m) => m.standaloneInference);
+  }
+  return [...INFERENCE_MODELS];
 }
