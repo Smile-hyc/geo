@@ -112,7 +112,7 @@ tcb login
 #### 4. 配置并部署
 
 1. 在项目**根目录**确认 `cloudbaserc.json` 中 **`envId`** 正确。
-2. **（必选）** 各云函数仅打包自己的子目录，公共代码在 `cloudfunctions/_shared`。部署前在根目录执行一次 `npm run cloudfunctions:sync-shared`，将 `_shared` 复制进每个引用它的函数目录（含 `require("./_shared/...")` 的 `index.js`），否则会报 `Cannot find module '../_shared/db'`（或 `./_shared/db` 未同步）。可再执行 `npm run cloudfunctions:verify-shared` 做本地自检（通过后再 `tcb fn deploy`）。
+2. **（必选）** 各云函数仅打包自己的子目录，公共代码在 `cloudfunctions/_shared`。部署前在根目录执行一次 `npm run cloudfunctions:sync-shared`，将 `_shared` 复制进每个引用它的函数目录（含 `require("./_shared/...")` 的 `index.js`），否则会报 **`Cannot find module './_shared/hfSpace'`**（对战提交 `submit-battle-round`、`geo-inference`）或 `./_shared/db` 等相关模块缺失。可再执行 **`npm run cloudfunctions:verify-shared`** 做本地自检（通过后再 `tcb fn deploy`）。
 3. 在项目**根目录**打开终端，执行：
 
 ```bash

@@ -283,7 +283,7 @@ export default function BattleResultPage() {
       <div className="flex h-screen items-center justify-center bg-[#F2F3F5]">
         <div className="text-center">
           <p className="text-[#F53F3F] mb-4">{error}</p>
-          <Button onClick={() => router.push("/app/battle/config")}>返回配置页</Button>
+          <Button onClick={() => router.push("/app/battle")}>返回配置页</Button>
         </div>
       </div>
     );
