@@ -207,7 +207,7 @@ tcb fn deploy create-question --deployMode zip --force --yes -e <你的环境ID>
 
 对战与云函数推理按 `ai_model_id` 路由（允许值与前端 [`features/battle/config.ts`](../features/battle/config.ts) 及云侧 [`cloudfunctions/_shared/modelRegistry.js`](../cloudfunctions/_shared/modelRegistry.js) 对齐）。部署或更新 `_shared` 后请在仓库根目录执行 **`npm run cloudfunctions:sync-shared`**，再部署 **`geo-inference`**、**`submit-battle-round`**。
 
-`submit-battle-round` 需拉图并调用第三方多模态 API，**执行超时建议 ≥ 90 秒**（与根目录 [`cloudbaserc.json`](../cloudbaserc.json) 中配置一致）。`geo-inference` 在配置中为 **120 秒**，控制台若仍为旧值请一并调大。若控制台仍为 15 秒，提交时会 `invoking task timed out`，请在 **函数配置 → 执行超时** 中改大并保存。
+`submit-battle-round` 需拉图并调用第三方多模态 API，**执行超时建议 ≥ 90 秒**（与根目录 [`cloudbaserc.json`](../cloudbaserc.json) 中配置一致）。**`geo-inference`**（空间求证）在配置中为 **180 秒**；若日志仍出现 `timed out after 90 seconds`，说明线上未同步，请 **`tcb fn deploy geo-inference`** 或在控制台把执行超时改为 **≥180 秒** 并保存。前端 `lib/cloudbase.ts` 中客户端请求超时需略大于云函数超时（当前约 210s）。若控制台 `submit-battle-round` 仍为 15 秒，提交时会 `invoking task timed out`，请在 **函数配置 → 执行超时** 中改大并保存。
 
 | 变量名 | 作用 | 说明 |
 |--------|------|------|

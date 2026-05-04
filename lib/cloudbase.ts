@@ -9,8 +9,9 @@ const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID || "";
 /**
  * CloudBase JS SDK 默认请求超时约 15s，长耗时云函数（如 geo-inference 多模态）未完成即被客户端中止，
  * 会表现为 `network request error`。需大于云函数执行超时并留余量（SDK 单请求上限 10 分钟）。
+ * Kimi/Qwen 等多模态 + 大图 base64 可能接近或超过 90s，须与 `cloudbaserc.json` 中 geo-inference 超时对齐。
  */
-const CLOUDBASE_CLIENT_TIMEOUT_MS = 120_000;
+const CLOUDBASE_CLIENT_TIMEOUT_MS = 210_000;
 
 let app: cloudbase.app.App | null = null;
 
