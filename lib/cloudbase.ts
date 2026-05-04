@@ -6,12 +6,21 @@ import { useAuthStore } from "@/lib/auth";
 
 const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID || "";
 
+/**
+ * CloudBase JS SDK 默认请求超时约 15s，长耗时云函数（如 geo-inference 多模态）未完成即被客户端中止，
+ * 会表现为 `network request error`。需大于云函数执行超时并留余量（SDK 单请求上限 10 分钟）。
+ */
+const CLOUDBASE_CLIENT_TIMEOUT_MS = 120_000;
+
 let app: cloudbase.app.App | null = null;
 
 export function getApp(): cloudbase.app.App {
   if (!app) {
     if (!envId) throw new Error("NEXT_PUBLIC_CLOUDBASE_ENV_ID 未配置");
-    app = cloudbase.init({ env: envId });
+    app = cloudbase.init({
+      env: envId,
+      timeout: CLOUDBASE_CLIENT_TIMEOUT_MS,
+    });
   }
   return app;
 }

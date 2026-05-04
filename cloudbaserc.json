@@ -270,7 +270,7 @@
     },
     {
       "name": "geo-inference",
-      "timeout": 90,
+      "timeout": 120,
       "runtime": "Nodejs18.15",
       "installDependency": true,
       "handler": "index.main"
