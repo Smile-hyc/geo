@@ -203,6 +203,28 @@ tcb fn deploy create-question --deployMode zip --force --yes -e <你的环境ID>
 
 ---
 
+## 六（补充 B）、多模型推理环境变量（`geo-inference` / `submit-battle-round`）
+
+对战与云函数推理按 `ai_model_id` 路由（允许值与前端 [`features/battle/config.ts`](../features/battle/config.ts) 及云侧 [`cloudfunctions/_shared/modelRegistry.js`](../cloudfunctions/_shared/modelRegistry.js) 对齐）。部署或更新 `_shared` 后请在仓库根目录执行 **`npm run cloudfunctions:sync-shared`**，再部署 **`geo-inference`**、**`submit-battle-round`**。
+
+| 变量名 | 作用 | 说明 |
+|--------|------|------|
+| `OPENAI_API_KEY` | OpenAI 兼容接口 | 使用 ChatGPT（`openai-gpt-4o-mini` 等）时必填；**勿**写入 `NEXT_PUBLIC_*`。 |
+| `OPENAI_BASE_URL` | OpenAI API 根路径 | 可选，默认 `https://api.openai.com/v1`（可改为代理或兼容网关）。 |
+| `DEEPSEEK_API_KEY` | DeepSeek API | 使用 `deepseek-chat` / `deepseek-reasoner` 时必填。 |
+| `DEEPSEEK_BASE_URL` 或 `DEEPSEEK_API_BASE_URL` | DeepSeek 根路径 | 可选，默认 `https://api.deepseek.com/v1`。 |
+| `GEO_INFERENCE_SPACE_URL` / `GEO_INFERENCE_SPACE_ID` / `HF_TOKEN` 等 | HF Space | 与原有寻境 HF 链路一致；`research-baseline` 走 HF。 |
+| `MOONSHOT_API_KEY` 或 `KIMI_API_KEY` | Kimi（月之暗面） | 使用 `kimi-vision` 等时必填。 |
+| `MOONSHOT_BASE_URL` | Kimi API 根路径 | 可选，默认 `https://api.moonshot.cn/v1`。 |
+| `ZHIPU_API_KEY` | 智谱 GLM | 使用 `glm-4v` 等时必填。 |
+| `ZHIPU_BASE_URL` | 智谱 OpenAI 兼容根路径 | 可选，默认 `https://open.bigmodel.cn/api/paas/v4`。 |
+| `DASHSCOPE_API_KEY` 或 `QWEN_API_KEY` | 通义（DashScope 兼容模式） | 使用 `qwen-vl` 等时必填。 |
+| `QWEN_BASE_URL` 或 `DASHSCOPE_COMPAT_BASE_URL` | DashScope 兼容根路径 | 可选，默认 `https://dashscope.aliyuncs.com/compatible-mode/v1`。 |
+
+新增模型 id 时须**同时**更新前端 `INFERENCE_MODELS` 与 `_shared/modelRegistry.js`，否则未知 id 会回退为 `research-baseline`。
+
+---
+
 ## 七、自检清单
 
 - [ ] 已在腾讯云开通云开发并创建环境  

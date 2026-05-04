@@ -194,21 +194,28 @@ async function uploadBufferToSpace(buffer, hfToken) {
   return uploadedPath.trim();
 }
 
-async function startPrediction(uploadedPath, prompt, maxNewTokens, hfToken) {
+async function startPrediction(uploadedPath, prompt, maxNewTokens, hfToken, modelId) {
+  const body = {
+    image: {
+      path: uploadedPath,
+      meta: { _type: "gradio.FileData" },
+    },
+    prompt,
+    max_new_tokens: maxNewTokens,
+  };
+  const trimmedModel =
+    typeof modelId === "string" && modelId.trim() ? modelId.trim() : "";
+  if (trimmedModel) {
+    body.model_id = trimmedModel;
+  }
+
   const response = await fetch(buildSpaceUrl("/gradio_api/call/v2/predict"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...getAuthHeaders(hfToken),
     },
-    body: JSON.stringify({
-      image: {
-        path: uploadedPath,
-        meta: { _type: "gradio.FileData" },
-      },
-      prompt,
-      max_new_tokens: maxNewTokens,
-    }),
+    body: JSON.stringify(body),
   });
   await ensureSuccess(response, "GeoAgent predict");
 
@@ -632,12 +639,18 @@ async function predictGeoAgentFromBuffer(options) {
     throw new Error(`Unsupported GeoAgent endpoint: ${endpoint}`);
   }
 
+  const modelIdOpt =
+    typeof options?.modelId === "string" && options.modelId.trim()
+      ? options.modelId.trim()
+      : "";
+
   const uploadedPath = await uploadBufferToSpace(buffer, hfToken);
   const eventId = await startPrediction(
     uploadedPath,
     prompt,
     maxNewTokens,
-    hfToken
+    hfToken,
+    modelIdOpt
   );
   const response = await fetchPredictionPayload(eventId, hfToken);
 
@@ -649,11 +662,20 @@ async function predictGeoAgentFromBuffer(options) {
   return {
     ...mapped,
     source: "hf-space",
-    model_ref: getModelRef(spaceId),
+    model_ref:
+      modelIdOpt !== ""
+        ? `${getModelRef(spaceId)}|model=${modelIdOpt}`
+        : getModelRef(spaceId),
   };
 }
 
+function ensureInferenceRuntime() {
+  ensureWebStreamGlobals();
+  ensureFetchGlobals();
+}
+
 module.exports = {
+  ensureInferenceRuntime,
   getModelRef,
   getSpaceId,
   getSpaceUrl,

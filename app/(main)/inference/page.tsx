@@ -8,9 +8,10 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   getInferenceModelsForContext,
+  getInferenceModelConfig,
   type InferenceModelId,
 } from "@/features/battle/config";
-import type { GeoInferenceResult } from "@/lib/cloudbase";
+import { runGeoInference, type GeoInferenceResult } from "@/lib/cloudbase";
 import {
   runGeoInferenceFromSpace,
   type GeoInferencePhase,
@@ -58,6 +59,24 @@ const item = {
 function phaseStepIndex(phase: GeoInferencePhase | null): number {
   if (!phase) return 0;
   return Math.max(0, PHASES.findIndex((p) => p.id === phase));
+}
+
+function fileToBase64Data(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("读取图片失败。"));
+    reader.onload = () => {
+      const r = reader.result;
+      if (typeof r !== "string") {
+        reject(new Error("读取图片失败。"));
+        return;
+      }
+      const i = r.indexOf(",");
+      resolve(i >= 0 ? r.slice(i + 1) : r);
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 type InferenceLoadingPanelProps = {
@@ -186,6 +205,12 @@ export default function InferencePage() {
   const [tipIndex, setTipIndex] = useState(0);
   const [result, setResult] = useState<GeoInferenceResult | null>(null);
 
+  const selectedModelMeta = useMemo(
+    () => getInferenceModelConfig(inferenceModelId),
+    [inferenceModelId]
+  );
+  const useBrowserHf = selectedModelMeta?.inferenceChannel === "browser-hf";
+
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -252,13 +277,23 @@ export default function InferencePage() {
     setResult(null);
 
     try {
-      const nextResult = await runGeoInferenceFromSpace({
-        file,
-        modelId: inferenceModelId,
-        onPhase: (phase) => {
-          setInferencePhase(phase);
-        },
-      });
+      let nextResult: GeoInferenceResult;
+
+      if (useBrowserHf) {
+        nextResult = await runGeoInferenceFromSpace({
+          file,
+          modelId: inferenceModelId,
+          onPhase: (phase) => {
+            setInferencePhase(phase);
+          },
+        });
+      } else {
+        const image_base64 = await fileToBase64Data(file);
+        nextResult = await runGeoInference({
+          image_base64,
+          model_id: inferenceModelId,
+        });
+      }
       setResult(nextResult);
     } catch (reason) {
       setResult(null);
@@ -267,14 +302,26 @@ export default function InferencePage() {
       setLoading(false);
       setInferencePhase(null);
     }
-  }, [file, inferenceModelId]);
+  }, [file, inferenceModelId, useBrowserHf]);
 
   const resultDescription =
     result?.source === "stub"
       ? "当前为占位响应：请在云函数环境配置 GEO_INFERENCE_SERVICE_URL 后接入真实服务。"
-      : result?.source === "remote"
-        ? "由已配置的寻境推理服务返回。"
-        : "提交图片后在此查看地点推断、证据摘要与思维链。";
+      : result?.source === "hf-space"
+        ? "由 Hugging Face Space（寻境）返回。"
+        : result?.source === "openai"
+          ? "由 OpenAI 多模态接口（云函数代理）返回。"
+          : result?.source === "deepseek"
+            ? "由 DeepSeek 接口（云函数代理）返回。"
+            : result?.source === "kimi"
+              ? "由 Kimi（Moonshot）接口（云函数代理）返回。"
+              : result?.source === "glm"
+                ? "由智谱 GLM 接口（云函数代理）返回。"
+                : result?.source === "qwen"
+                  ? "由通义 Qwen（DashScope 兼容模式）返回。"
+                  : result?.source === "remote"
+                    ? "由已配置的寻境推理服务返回。"
+                    : "提交图片后在此查看地点推断、证据摘要与思维链。";
 
   const buttonLine =
     loading && inferencePhase
@@ -471,7 +518,9 @@ export default function InferencePage() {
             <h2 className="text-xl font-bold text-slate-800 mb-2">求证结果</h2>
             <p className="text-slate-500 text-sm leading-relaxed mb-6">
               {loading
-                ? "正在连接寻境服务并等待模型输出，请查看下方状态与等待时间。"
+                ? useBrowserHf
+                  ? "正在连接寻境服务并等待模型输出，请查看下方状态与等待时间。"
+                  : "正在通过云函数调用所选模型，请稍候。"
                 : resultDescription}
             </p>
 
@@ -481,13 +530,31 @@ export default function InferencePage() {
                   暂无结果
                 </p>
               ) : null}
-              {loading ? (
+              {loading && useBrowserHf ? (
                 <InferenceLoadingPanel
                   phase={inferencePhase}
                   elapsedSec={elapsedSec}
                   tipIndex={tipIndex}
                   reducedMotion={reducedMotion}
                 />
+              ) : null}
+              {loading && !useBrowserHf ? (
+                <div
+                  className="relative flex min-h-[min(320px,40vh)] flex-1 flex-col items-center justify-center gap-3 rounded-3xl border border-sky-100/80 bg-gradient-to-br from-sky-50/90 via-white to-violet-50/40 p-8 shadow-inner"
+                  aria-live="polite"
+                  aria-busy="true"
+                >
+                  <Loader2
+                    className="h-10 w-10 shrink-0 animate-spin text-sky-600"
+                    aria-hidden
+                  />
+                  <p className="text-center text-sm font-semibold text-slate-700">
+                    云函数推理中…
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    已等待 {elapsedSec} 秒
+                  </p>
+                </div>
               ) : null}
               {result ? (
                 <motion.div

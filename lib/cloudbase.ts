@@ -577,7 +577,7 @@ export async function recordEvent(params: {
 export type GeoInferenceResult = {
   address: string;
   chain_of_thought: string;
-  source?: "stub" | "remote";
+  source?: "stub" | "remote" | "hf-space" | "openai" | "deepseek" | "kimi" | "glm" | "qwen" | string;
   model_ref?: string;
   latitude?: number;
   longitude?: number;
@@ -588,6 +588,9 @@ export async function runGeoInference(params: {
   mime_type?: string;
   prompt?: string;
   max_new_tokens?: number;
+  /** 与对战 ai_model_id 一致，如云函数 modelRegistry */
+  model_id?: string;
+  ai_model_id?: string;
   cloudbase_uid?: string;
   email?: string;
 }): Promise<GeoInferenceResult> {

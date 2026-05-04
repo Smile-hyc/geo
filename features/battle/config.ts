@@ -25,7 +25,19 @@ export const BATTLE_MODES = [
   },
 ] as const;
 
-/** 对战与「空间求证」共用的推理模型选项（ai_model_id / 前端透传） */
+export type InferenceProvider =
+  | "mock"
+  | "hf-space"
+  | "openai"
+  | "deepseek"
+  | "kimi"
+  | "glm"
+  | "qwen";
+
+/** browser-hf：浏览器直连 HF Space；cloud：经云函数 geo-inference（含密钥路由） */
+export type InferenceChannel = "browser-hf" | "cloud";
+
+/** 对战与「空间求证」共用的推理模型（ai_model_id；服务端 allowlist 见 cloudfunctions/_shared/modelRegistry.js） */
 export const INFERENCE_MODELS = [
   {
     id: "mock-v1",
@@ -33,8 +45,11 @@ export const INFERENCE_MODELS = [
     description:
       "搭载基础「识图」大模型架构的轻量级链路；对战内为本地快速占位，不调用远程 GPU。",
     image: "/images/mock.png",
-    /** 空间求证页走浏览器推理，不包含本地 mock */
-    standaloneInference: false as const,
+    provider: "mock" as const,
+    apiModel: null,
+    inferenceChannel: "cloud" as const,
+    battleRemote: false,
+    standaloneInference: false,
   },
   {
     id: "research-baseline",
@@ -42,25 +57,87 @@ export const INFERENCE_MODELS = [
     description:
       "集成类 OpenClaw 工作流的「寻境」空间推理 Agent，多轮工具调用与证据链分析（默认对接 HF Space）。",
     image: "/images/baseline.png",
-    standaloneInference: true as const,
+    provider: "hf-space" as const,
+    apiModel: null,
+    inferenceChannel: "browser-hf" as const,
+    battleRemote: true,
+    standaloneInference: true,
   },
   {
     id: "deepseek-chat",
     label: "DeepSeek Chat",
     description:
-      "DeepSeek 对话模型 API；需在推理服务侧配置对应路由后，由接口识别 model_id。",
+      "DeepSeek 对话模型 API；经云函数调用，需配置 DEEPSEEK_API_KEY。",
     image: "/images/baseline.png",
-    standaloneInference: true as const,
+    provider: "deepseek" as const,
+    apiModel: "deepseek-chat",
+    inferenceChannel: "cloud" as const,
+    battleRemote: true,
+    standaloneInference: true,
   },
   {
     id: "deepseek-reasoner",
     label: "DeepSeek 推理（Reasoner）",
     description:
-      "DeepSeek 深度推理模型；适合复杂空间链路与长思维链（依赖服务端与密钥配置）。",
+      "DeepSeek 深度推理模型；经云函数调用，需配置 DEEPSEEK_API_KEY。",
     image: "/images/baseline.png",
-    standaloneInference: true as const,
+    provider: "deepseek" as const,
+    apiModel: "deepseek-reasoner",
+    inferenceChannel: "cloud" as const,
+    battleRemote: true,
+    standaloneInference: true,
+  },
+  {
+    id: "openai-gpt-4o-mini",
+    label: "ChatGPT（GPT-4o mini）",
+    description:
+      "OpenAI 多模态模型；经云函数调用，需配置 OPENAI_API_KEY。",
+    image: "/images/baseline.png",
+    provider: "openai" as const,
+    apiModel: "gpt-4o-mini",
+    inferenceChannel: "cloud" as const,
+    battleRemote: true,
+    standaloneInference: true,
+  },
+  {
+    id: "kimi-vision",
+    label: "Kimi（Moonshot 视觉）",
+    description:
+      "月之暗面 Kimi 视觉模型；OpenAI 兼容接口，需配置 MOONSHOT_API_KEY。",
+    image: "/images/baseline.png",
+    provider: "kimi" as const,
+    apiModel: "moonshot-v1-8k-vision-preview",
+    inferenceChannel: "cloud" as const,
+    battleRemote: true,
+    standaloneInference: true,
+  },
+  {
+    id: "glm-4v",
+    label: "智谱 GLM-4V",
+    description:
+      "智谱多模态；兼容 OpenAI 格式，需配置 ZHIPU_API_KEY。",
+    image: "/images/baseline.png",
+    provider: "glm" as const,
+    apiModel: "glm-4v-plus",
+    inferenceChannel: "cloud" as const,
+    battleRemote: true,
+    standaloneInference: true,
+  },
+  {
+    id: "qwen-vl",
+    label: "通义 Qwen-VL",
+    description:
+      "阿里云 DashScope OpenAI 兼容模式，需配置 DASHSCOPE_API_KEY（或 QWEN_API_KEY）。",
+    image: "/images/baseline.png",
+    provider: "qwen" as const,
+    apiModel: "qwen-vl-plus",
+    inferenceChannel: "cloud" as const,
+    battleRemote: true,
+    standaloneInference: true,
   },
 ] as const;
+
+export type InferenceModelConfig = (typeof INFERENCE_MODELS)[number];
 
 /** @deprecated 使用 INFERENCE_MODELS；保留别名以免旧代码断裂 */
 export const AI_OPPONENTS = INFERENCE_MODELS;
@@ -82,11 +159,17 @@ export function getAiOpponentLabel(id: string): string {
 
 export type InferenceModelId = (typeof INFERENCE_MODELS)[number]["id"];
 
+export function getInferenceModelConfig(
+  id: string
+): InferenceModelConfig | undefined {
+  return INFERENCE_MODELS.find((m) => m.id === id);
+}
+
 export function getInferenceModelsForContext(
   ctx: "battle" | "standalone"
-): (typeof INFERENCE_MODELS)[number][] {
+): InferenceModelConfig[] {
   if (ctx === "standalone") {
-    return INFERENCE_MODELS.filter((m) => m.standaloneInference);
+    return INFERENCE_MODELS.filter((m) => m.standaloneInference) as InferenceModelConfig[];
   }
-  return [...INFERENCE_MODELS];
+  return [...INFERENCE_MODELS] as InferenceModelConfig[];
 }

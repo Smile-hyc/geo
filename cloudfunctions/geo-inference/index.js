@@ -1,10 +1,9 @@
 "use strict";
 
-/** 与 ./_shared/hfSpace 同源的可提交副本；腾讯云只打本子目录时需此文件。（同步：npm run cloudfunctions:sync-shared） */
-const {
-  isValidCoordinatePair,
-  predictGeoAgentFromBuffer,
-} = require("./hfSpace");
+/** 部署时同步：npm run cloudfunctions:sync-shared（需包含 ./_shared） */
+const { isValidCoordinatePair } = require("./hfSpace");
+const { predictFromBuffer } = require("./_shared/geoPredictRouter");
+const { normalizeId } = require("./_shared/modelRegistry");
 
 const DEFAULT_PROMPT =
   '请基于图片判断具体地点，并用简体中文输出推理过程。如果返回 JSON，请保留英文键名（如 "FinalAnswer"、"ChainOfThought"），但所有值都使用简体中文。';
@@ -46,12 +45,19 @@ exports.main = async (event) => {
     const maxNewTokens = normalizeMaxNewTokens(data.max_new_tokens);
     const imageBuffer = Buffer.from(imageBase64, "base64");
 
+    const modelKey =
+      data.model_id ?? data.ai_model_id ?? data.modelId ?? null;
+    const aiModelId = normalizeId(
+      typeof modelKey === "string" ? modelKey : undefined
+    );
+
     let predicted;
     try {
-      predicted = await predictGeoAgentFromBuffer({
+      predicted = await predictFromBuffer({
         buffer: imageBuffer,
         prompt,
         maxNewTokens,
+        aiModelId,
       });
     } catch (error) {
       return {
@@ -65,7 +71,7 @@ exports.main = async (event) => {
     const result = {
       address: predicted.address,
       chain_of_thought: predicted.chain_of_thought,
-      source: "remote",
+      source: predicted.source || "remote",
       model_ref: predicted.model_ref,
     };
 
