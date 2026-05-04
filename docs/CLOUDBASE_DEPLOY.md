@@ -207,6 +207,8 @@ tcb fn deploy create-question --deployMode zip --force --yes -e <你的环境ID>
 
 对战与云函数推理按 `ai_model_id` 路由（允许值与前端 [`features/battle/config.ts`](../features/battle/config.ts) 及云侧 [`cloudfunctions/_shared/modelRegistry.js`](../cloudfunctions/_shared/modelRegistry.js) 对齐）。部署或更新 `_shared` 后请在仓库根目录执行 **`npm run cloudfunctions:sync-shared`**，再部署 **`geo-inference`**、**`submit-battle-round`**。
 
+`submit-battle-round` 需拉图并调用第三方多模态 API，**执行超时建议 ≥ 90 秒**（与根目录 [`cloudbaserc.json`](../cloudbaserc.json) 中配置一致）。若控制台仍为 15 秒，提交时会 `invoking task timed out`，请在 **函数配置 → 执行超时** 中改大并保存。
+
 | 变量名 | 作用 | 说明 |
 |--------|------|------|
 | `OPENAI_API_KEY` | OpenAI 兼容接口 | 使用 ChatGPT（`openai-gpt-4o-mini` 等）时必填；**勿**写入 `NEXT_PUBLIC_*`。 |
@@ -222,6 +224,24 @@ tcb fn deploy create-question --deployMode zip --force --yes -e <你的环境ID>
 | `QWEN_BASE_URL` 或 `DASHSCOPE_COMPAT_BASE_URL` | DashScope 兼容根路径 | 可选，默认 `https://dashscope.aliyuncs.com/compatible-mode/v1`。 |
 
 新增模型 id 时须**同时**更新前端 `INFERENCE_MODELS` 与 `_shared/modelRegistry.js`，否则未知 id 会回退为 `research-baseline`。
+
+### 在腾讯云控制台填写密钥（你手上有 Key 时按此做）
+
+1. 打开 [云开发控制台](https://console.cloud.tencent.com/tcb)，选中你的环境。
+2. 左侧进入 **云函数**，依次打开 **`geo-inference`** 与 **`submit-battle-round`**（两个函数都要配，对战回合与单题推理都会调路由）。
+3. 进入函数 **函数配置** → **环境变量**（或「高级配置」里的环境变量），**新增**下表中的变量，值为各平台控制台复制的密钥（**不要**加引号；不要提交到 Git 或写进 `NEXT_PUBLIC_*`）。
+4. 保存后对该函数执行一次 **部署/上传**（或「保存并安装依赖」），确保最新代码与变量一并生效。本地修改过 `_shared` 时先在仓库根目录执行 **`npm run cloudfunctions:sync-shared`**，再 **`tcb fn deploy geo-inference submit-battle-round`**（或控制台上传对应目录 ZIP）。
+
+| 你文档里的用途 | 在云函数里填的变量名 | 说明 |
+|----------------|----------------------|------|
+| DeepSeek 识图 | `DEEPSEEK_API_KEY` | 可选：`DEEPSEEK_BASE_URL`（默认官方 v1） |
+| 智谱 识图 | `ZHIPU_API_KEY` | 可选：`ZHIPU_BASE_URL` |
+| Kimi 识图 | `MOONSHOT_API_KEY` 或 `KIMI_API_KEY` | 可选：`MOONSHOT_BASE_URL` |
+| 通义 Qwen 识图 | `DASHSCOPE_API_KEY` 或 `QWEN_API_KEY` | 可选：`QWEN_BASE_URL` |
+
+5. 前端仅需能连 CloudBase（`.env.local` / Vercel 里的 `NEXT_PUBLIC_CLOUDBASE_ENV_ID`）；**无需**把上述 Key 配进 Next.js。
+
+若密钥曾出现在截图、聊天或文档中，请到 **DeepSeek / 智谱 / 月之暗面 / 阿里云** 控制台 **作废并重新生成**，只把新 Key 配进云函数。
 
 ---
 

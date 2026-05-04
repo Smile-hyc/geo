@@ -281,6 +281,7 @@ async function loadBattleImage(storageUrl, context) {
   return downloadImageBuffer(resolvedUrl, 0);
 }
 
+function clampLatitude(value) {
   return Math.max(-89.9, Math.min(89.9, value));
 }
 

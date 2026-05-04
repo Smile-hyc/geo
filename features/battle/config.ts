@@ -25,32 +25,13 @@ export const BATTLE_MODES = [
   },
 ] as const;
 
-export type InferenceProvider =
-  | "mock"
-  | "hf-space"
-  | "openai"
-  | "deepseek"
-  | "kimi"
-  | "glm"
-  | "qwen";
+export type InferenceProvider = "hf-space" | "kimi" | "glm" | "qwen";
 
 /** browser-hf：浏览器直连 HF Space；cloud：经云函数 geo-inference（含密钥路由） */
 export type InferenceChannel = "browser-hf" | "cloud";
 
 /** 对战与「空间求证」共用的推理模型（ai_model_id；服务端 allowlist 见 cloudfunctions/_shared/modelRegistry.js） */
 export const INFERENCE_MODELS = [
-  {
-    id: "mock-v1",
-    label: "模拟对手（本地）",
-    description:
-      "搭载基础「识图」大模型架构的轻量级链路；对战内为本地快速占位，不调用远程 GPU。",
-    image: "/images/mock.png",
-    provider: "mock" as const,
-    apiModel: null,
-    inferenceChannel: "cloud" as const,
-    battleRemote: false,
-    standaloneInference: false,
-  },
   {
     id: "research-baseline",
     label: "寻境 · 研究基线（HF）",
@@ -60,42 +41,6 @@ export const INFERENCE_MODELS = [
     provider: "hf-space" as const,
     apiModel: null,
     inferenceChannel: "browser-hf" as const,
-    battleRemote: true,
-    standaloneInference: true,
-  },
-  {
-    id: "deepseek-chat",
-    label: "DeepSeek Chat",
-    description:
-      "DeepSeek 对话模型 API；经云函数调用，需配置 DEEPSEEK_API_KEY。",
-    image: "/images/baseline.png",
-    provider: "deepseek" as const,
-    apiModel: "deepseek-chat",
-    inferenceChannel: "cloud" as const,
-    battleRemote: true,
-    standaloneInference: true,
-  },
-  {
-    id: "deepseek-reasoner",
-    label: "DeepSeek 推理（Reasoner）",
-    description:
-      "DeepSeek 深度推理模型；经云函数调用，需配置 DEEPSEEK_API_KEY。",
-    image: "/images/baseline.png",
-    provider: "deepseek" as const,
-    apiModel: "deepseek-reasoner",
-    inferenceChannel: "cloud" as const,
-    battleRemote: true,
-    standaloneInference: true,
-  },
-  {
-    id: "openai-gpt-4o-mini",
-    label: "ChatGPT（GPT-4o mini）",
-    description:
-      "OpenAI 多模态模型；经云函数调用，需配置 OPENAI_API_KEY。",
-    image: "/images/baseline.png",
-    provider: "openai" as const,
-    apiModel: "gpt-4o-mini",
-    inferenceChannel: "cloud" as const,
     battleRemote: true,
     standaloneInference: true,
   },
