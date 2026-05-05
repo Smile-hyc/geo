@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, LogIn, Globe, Shield, Zap } from "lucide-react";
+import { ArrowRight, BookOpen, LogIn, Globe, Shield, Zap,User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
+import { useAuthStore } from "@/lib/auth";
 export default function LandingPage() {
+  const user = useAuthStore((state) => state.user); 
+  
+  const isLoggedIn = !!user;
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden bg-slate-50">
       <div className="absolute inset-0 -z-10">
@@ -23,6 +26,23 @@ export default function LandingPage() {
         </Link>
 
         <div className="flex items-center gap-3">
+          {isLoggedIn ? (
+            <Link
+                href="/app/profile"
+                className="flex items-center gap-2 p-1 pl-2 rounded-full hover:bg-slate-100 transition-colors"
+              >
+                <div className="text-right">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase leading-none">Profile</p>
+                  <p className="text-sm font-semibold text-slate-700 leading-tight">
+                    {user?.username || "用户"}
+                  </p>
+                </div>
+                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white text-sm font-bold border-2 border-white shadow-sm">
+                  {user?.username ? user.username.charAt(0).toUpperCase() : <User size={18} />}
+                </div>
+              </Link>
+          ) : (
+            <>
           <Link href="/auth/login">
             <Button variant="ghost" className="rounded-full">
               <LogIn className="mr-2 h-4 w-4" />
@@ -34,6 +54,8 @@ export default function LandingPage() {
               立即加入
             </Button>
           </Link>
+          </>
+          )}
         </div>
       </header>
 
