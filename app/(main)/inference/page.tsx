@@ -1,16 +1,45 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Brain, ImagePlus, Loader2, Sparkles, Zap } from "lucide-react";
-import { motion } from "framer-motion";
+import { Brain, Check, Cpu, ImagePlus, Loader2, Sparkles, Zap } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
-import type { GeoInferenceResult } from "@/lib/cloudbase";
-import { runGeoInferenceFromSpace } from "@/lib/hf-space-browser";
+import {
+  getInferenceModelsForContext,
+  getInferenceModelConfig,
+  type InferenceModelId,
+} from "@/features/battle/config";
+import { runGeoInference, type GeoInferenceResult } from "@/lib/cloudbase";
+import {
+  runGeoInferenceFromSpace,
+  type GeoInferencePhase,
+} from "@/lib/hf-space-browser";
 import { cn } from "@/lib/utils";
 
 const MAX_BYTES = 6 * 1024 * 1024;
+
+const PHASES: { id: GeoInferencePhase; title: string; description: string }[] = [
+  { id: "upload", title: "上传", description: "将图像安全送达推理服务" },
+  { id: "predict", title: "提交", description: "创建推理任务并排队" },
+  { id: "poll", title: "推理", description: "模型分析图像并生成结果" },
+];
+
+const BUTTON_LABEL: Record<GeoInferencePhase, string> = {
+  upload: "上传并接入中…",
+  predict: "正在提交任务…",
+  poll: "模型推理中…",
+};
+
+const WAITING_TIPS: readonly string[] = [
+  "可留意建筑样式、路牌语言与植被，它们往往是地理定位的关键线索。",
+  "冷启动或排队时耗时会略长，属正常现象。",
+  "系统会同时给出地点判断与可复核的思维链，便于你核对。",
+  "若网络不稳定，可稍后重试；超长等待可能触发超时保护。",
+];
+
+const TIP_MS = 5000;
 
 const container = {
   hidden: { opacity: 0 },
@@ -27,19 +56,189 @@ const item = {
   show: { y: 0, opacity: 1 },
 };
 
+function phaseStepIndex(phase: GeoInferencePhase | null): number {
+  if (!phase) return 0;
+  return Math.max(0, PHASES.findIndex((p) => p.id === phase));
+}
+
+function fileToBase64Data(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("读取图片失败。"));
+    reader.onload = () => {
+      const r = reader.result;
+      if (typeof r !== "string") {
+        reject(new Error("读取图片失败。"));
+        return;
+      }
+      const i = r.indexOf(",");
+      resolve(i >= 0 ? r.slice(i + 1) : r);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+type InferenceLoadingPanelProps = {
+  phase: GeoInferencePhase | null;
+  elapsedSec: number;
+  tipIndex: number;
+  reducedMotion: boolean;
+};
+
+function InferenceLoadingPanel({
+  phase,
+  elapsedSec,
+  tipIndex,
+  reducedMotion,
+}: InferenceLoadingPanelProps) {
+  const activeIndex = phaseStepIndex(phase);
+  const currentPhaseMeta = phase
+    ? PHASES.find((p) => p.id === phase) ?? PHASES[2]
+    : PHASES[0];
+  const tip = WAITING_TIPS[tipIndex % WAITING_TIPS.length] ?? WAITING_TIPS[0];
+
+  return (
+    <div
+      className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-sky-100/80 bg-gradient-to-br from-sky-50/90 via-white to-violet-50/40 p-5 shadow-inner"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="pointer-events-none absolute -right-12 top-0 h-40 w-40 rounded-full bg-sky-200/25 blur-3xl" />
+      <div className="pointer-events-none absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-violet-200/20 blur-2xl" />
+
+      <p className="relative z-10 text-xs font-bold uppercase tracking-wider text-sky-600/80">
+        {currentPhaseMeta.description}
+      </p>
+      <h3 className="relative z-10 mt-1 text-lg font-bold text-slate-800">
+        {currentPhaseMeta.title}进行中
+      </h3>
+
+      <div className="relative z-10 mt-4 w-full" aria-hidden>
+        <div
+          className={cn(
+            "h-1.5 w-full overflow-hidden rounded-full bg-slate-200/80"
+          )}
+        >
+          {!reducedMotion ? (
+            <motion.div
+              className="h-full w-2/5 rounded-full bg-gradient-to-r from-sky-400 to-blue-600"
+              initial={{ x: "-120%" }}
+              animate={{ x: "260%" }}
+              transition={{
+                duration: 1.35,
+                repeat: Infinity,
+                ease: "linear",
+                repeatType: "loop",
+              }}
+            />
+          ) : (
+            <div className="h-full w-2/5 rounded-full bg-sky-500/40" />
+          )}
+        </div>
+      </div>
+
+      <ol className="relative z-10 mt-5 space-y-3">
+        {PHASES.map((step, index) => {
+          const done = index < activeIndex;
+          const current = index === activeIndex;
+          return (
+            <li
+              key={step.id}
+              className={cn(
+                "flex items-center gap-3 text-sm",
+                current ? "font-semibold text-slate-800" : "text-slate-500"
+              )}
+            >
+              <span
+                className={cn(
+                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs",
+                  done && "bg-emerald-100 text-emerald-700",
+                  current &&
+                    !done &&
+                    "bg-sky-100 text-sky-700 ring-2 ring-sky-200/80",
+                  !current && !done && "bg-slate-100 text-slate-400"
+                )}
+              >
+                {done ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> : current ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : index + 1}
+              </span>
+              <span>{step.title}</span>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="relative z-10 mt-6 min-h-[3.5rem] border-t border-slate-200/60 pt-4">
+        <p
+          className="text-sm leading-relaxed text-slate-600 motion-safe:transition-opacity motion-safe:duration-300"
+          key={tipIndex}
+        >
+          小贴士：{tip}
+        </p>
+        <p className="mt-2 text-xs text-slate-400">
+          已等待 {elapsedSec} 秒{elapsedSec >= 30 ? " · 请耐心等待或检查网络" : null}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function InferencePage() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const reducedMotion = prefersReducedMotion === true;
+  const standaloneModels = useMemo(
+    () => getInferenceModelsForContext("standalone"),
+    []
+  );
+  const [inferenceModelId, setInferenceModelId] = useState<InferenceModelId>(() =>
+    getInferenceModelsForContext("standalone")[0].id
+  );
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [inferencePhase, setInferencePhase] = useState<GeoInferencePhase | null>(
+    null
+  );
+  const [elapsedSec, setElapsedSec] = useState(0);
+  const [tipIndex, setTipIndex] = useState(0);
   const [result, setResult] = useState<GeoInferenceResult | null>(null);
+
+  const selectedModelMeta = useMemo(
+    () => getInferenceModelConfig(inferenceModelId),
+    [inferenceModelId]
+  );
+  const useBrowserHf = selectedModelMeta?.inferenceChannel === "browser-hf";
 
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  useEffect(() => {
+    if (!loading) {
+      setElapsedSec(0);
+      return;
+    }
+    setElapsedSec(0);
+    const id = setInterval(() => {
+      setElapsedSec((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      return;
+    }
+    setTipIndex(0);
+    const id = setInterval(() => {
+      setTipIndex((i) => (i + 1) % WAITING_TIPS.length);
+    }, TIP_MS);
+    return () => clearInterval(id);
+  }, [loading]);
 
   const onPick = useCallback(() => inputRef.current?.click(), []);
 
@@ -74,24 +273,62 @@ export default function InferencePage() {
 
     setLoading(true);
     setError(null);
+    setInferencePhase(null);
+    setResult(null);
 
     try {
-      const nextResult = await runGeoInferenceFromSpace({ file });
+      let nextResult: GeoInferenceResult;
+
+      if (useBrowserHf) {
+        nextResult = await runGeoInferenceFromSpace({
+          file,
+          modelId: inferenceModelId,
+          onPhase: (phase) => {
+            setInferencePhase(phase);
+          },
+        });
+      } else {
+        const image_base64 = await fileToBase64Data(file);
+        nextResult = await runGeoInference({
+          image_base64,
+          model_id: inferenceModelId,
+        });
+      }
       setResult(nextResult);
     } catch (reason) {
       setResult(null);
       setError(reason instanceof Error ? reason.message : "推理请求失败。");
     } finally {
       setLoading(false);
+      setInferencePhase(null);
     }
-  }, [file]);
+  }, [file, inferenceModelId, useBrowserHf]);
 
   const resultDescription =
     result?.source === "stub"
       ? "当前为占位响应：请在云函数环境配置 GEO_INFERENCE_SERVICE_URL 后接入真实服务。"
-      : result?.source === "remote"
-        ? "由已配置的寻境推理服务返回。"
-        : "提交图片后在此查看地点推断、证据摘要与思维链。";
+      : result?.source === "hf-space"
+        ? "由 Hugging Face Space（寻境）返回。"
+        : result?.source === "openai"
+          ? "由 OpenAI 多模态接口（云函数代理）返回。"
+          : result?.source === "deepseek"
+            ? "由 DeepSeek 接口（云函数代理）返回。"
+            : result?.source === "kimi"
+              ? "由 Kimi（Moonshot）接口（云函数代理）返回。"
+              : result?.source === "glm"
+                ? "由智谱 GLM 接口（云函数代理）返回。"
+                : result?.source === "qwen"
+                  ? "由通义 Qwen（DashScope 兼容模式）返回。"
+                  : result?.source === "remote"
+                    ? "由已配置的寻境推理服务返回。"
+                    : "提交图片后在此查看地点推断、证据摘要与思维链。";
+
+  const buttonLine =
+    loading && inferencePhase
+      ? BUTTON_LABEL[inferencePhase]
+      : loading
+        ? "处理中…"
+        : "开始求证";
 
   return (
     <div className="relative pb-20 pt-2">
@@ -124,6 +361,54 @@ export default function InferencePage() {
       </section>
 
       <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.08 }}
+        className="mx-auto mb-6 max-w-7xl"
+      >
+        <div className="flex flex-col gap-4 rounded-[2.5rem] border border-slate-100 bg-white p-6 shadow-sm transition-shadow duration-500 hover:shadow-xl hover:shadow-sky-100 md:flex-row md:items-center md:justify-between md:gap-8">
+          <div className="flex shrink-0 items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
+              <Cpu size={26} strokeWidth={2} />
+            </div>
+            <h2 className="text-lg font-bold text-slate-800">模型选择</h2>
+          </div>
+          <div className="relative w-full md:max-w-md md:shrink-0">
+            <label htmlFor="inference-model-select" className="sr-only">
+              选择模型
+            </label>
+            <select
+              id="inference-model-select"
+              value={inferenceModelId}
+              onChange={(e) =>
+                setInferenceModelId(e.target.value as InferenceModelId)
+              }
+              disabled={loading}
+              className="h-[52px] w-full cursor-pointer appearance-none rounded-2xl border-2 border-slate-100 bg-slate-50/80 px-4 pr-10 text-[15px] font-semibold text-slate-800 outline-none transition-colors focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-200/60 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {standaloneModels.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
         variants={container}
         initial="hidden"
         animate="show"
@@ -154,23 +439,40 @@ export default function InferencePage() {
                 accept="image/*"
                 className="hidden"
                 onChange={onFileChange}
+                disabled={loading}
               />
               <button
                 type="button"
                 onClick={onPick}
+                disabled={loading}
                 className={cn(
-                  "relative flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-200 text-slate-500",
-                  "transition-colors hover:border-purple-200 hover:bg-purple-50/20"
+                  "relative flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl border-2 border-dashed border-slate-200 text-slate-500",
+                  "transition-colors hover:border-purple-200 hover:bg-purple-50/20",
+                  loading && "pointer-events-none opacity-90"
                 )}
               >
                 {previewUrl ? (
-                  <Image
-                    src={previewUrl}
-                    alt="预览"
-                    fill
-                    className="object-contain p-2"
-                    unoptimized
-                  />
+                  <motion.div
+                    className="relative h-full w-full"
+                    animate={
+                      loading && !reducedMotion
+                        ? { scale: [1, 1.04, 1] }
+                        : { scale: 1 }
+                    }
+                    transition={
+                      loading && !reducedMotion
+                        ? { duration: 6, repeat: Infinity, ease: "easeInOut" }
+                        : { duration: 0.2 }
+                    }
+                  >
+                    <Image
+                      src={previewUrl}
+                      alt="预览"
+                      fill
+                      className="object-contain p-2"
+                      unoptimized
+                    />
+                  </motion.div>
                 ) : (
                   <>
                     <ImagePlus size={32} className="opacity-50" />
@@ -185,8 +487,8 @@ export default function InferencePage() {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    推理中…
+                    <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" />
+                    {buttonLine}
                   </>
                 ) : (
                   <>
@@ -214,7 +516,13 @@ export default function InferencePage() {
             </div>
 
             <h2 className="text-xl font-bold text-slate-800 mb-2">求证结果</h2>
-            <p className="text-slate-500 text-sm leading-relaxed mb-6">{resultDescription}</p>
+            <p className="text-slate-500 text-sm leading-relaxed mb-6">
+              {loading
+                ? useBrowserHf
+                  ? "正在连接寻境服务并等待模型输出，请查看下方状态与等待时间。"
+                  : "正在通过云函数调用所选模型，请稍候。"
+                : resultDescription}
+            </p>
 
             <div className="flex min-h-0 flex-1 flex-col space-y-4">
               {!result && !loading ? (
@@ -222,10 +530,30 @@ export default function InferencePage() {
                   暂无结果
                 </p>
               ) : null}
-              {loading ? (
-                <div className="flex flex-1 items-center justify-center gap-2 rounded-3xl border border-slate-100 bg-slate-50/30 py-12 text-sm text-slate-500">
-                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
-                  正在请求 GeoAgent Space…
+              {loading && useBrowserHf ? (
+                <InferenceLoadingPanel
+                  phase={inferencePhase}
+                  elapsedSec={elapsedSec}
+                  tipIndex={tipIndex}
+                  reducedMotion={reducedMotion}
+                />
+              ) : null}
+              {loading && !useBrowserHf ? (
+                <div
+                  className="relative flex min-h-[min(320px,40vh)] flex-1 flex-col items-center justify-center gap-3 rounded-3xl border border-sky-100/80 bg-gradient-to-br from-sky-50/90 via-white to-violet-50/40 p-8 shadow-inner"
+                  aria-live="polite"
+                  aria-busy="true"
+                >
+                  <Loader2
+                    className="h-10 w-10 shrink-0 animate-spin text-sky-600"
+                    aria-hidden
+                  />
+                  <p className="text-center text-sm font-semibold text-slate-700">
+                    云函数推理中…
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    已等待 {elapsedSec} 秒
+                  </p>
                 </div>
               ) : null}
               {result ? (

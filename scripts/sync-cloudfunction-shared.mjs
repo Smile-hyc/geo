@@ -32,4 +32,17 @@ for (const ent of fs.readdirSync(cfRoot, { withFileTypes: true })) {
   copyDir(srcShared, path.join(fnDir, "_shared"));
   n++;
 }
-console.log(`sync-cloudfunction-shared: copied _shared into ${n} function director(y/ies).`);
+/** Tencent 只打包单函数目录时不会带上上一级 _shared：提交与包里需含本文件 */
+const HF_PEER_FUNCTIONS = ["submit-battle-round", "geo-inference"];
+const hfSrc = path.join(srcShared, "hfSpace.js");
+let hfPeers = 0;
+for (const name of HF_PEER_FUNCTIONS) {
+  const dest = path.join(cfRoot, name, "hfSpace.js");
+  if (!fs.existsSync(hfSrc) || !fs.existsSync(path.join(cfRoot, name, "index.js")))
+    continue;
+  fs.copyFileSync(hfSrc, dest);
+  hfPeers++;
+}
+console.log(
+  `sync-cloudfunction-shared: copied _shared into ${n} function director(y/ies); peer hfSpace.js → ${hfPeers} function(s).`
+);

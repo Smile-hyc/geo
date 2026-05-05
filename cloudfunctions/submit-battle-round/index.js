@@ -5,10 +5,10 @@ const https = require("https");
 const { Pool } = require("pg");
 const tcb = require("@cloudbase/node-sdk");
 const { URL } = require("url");
-const {
-  isValidCoordinatePair,
-  predictGeoAgentFromBuffer,
-} = require("./_shared/hfSpace");
+/** 部署时同步：npm run cloudfunctions:sync-shared（需包含 ./_shared） */
+const { shouldUseRemoteInference } = require("./_shared/modelRegistry");
+const { predictFromBuffer } = require("./_shared/geoPredictRouter");
+const { isValidCoordinatePair } = require("./hfSpace");
 
 const pool = new Pool(
   process.env.DATABASE_URL
@@ -281,14 +281,6 @@ async function loadBattleImage(storageUrl, context) {
   return downloadImageBuffer(resolvedUrl, 0);
 }
 
-function shouldUseRemoteInference(aiModelId) {
-  const id =
-    typeof aiModelId === "string" && aiModelId.trim()
-      ? aiModelId.trim().toLowerCase()
-      : "";
-  return id !== "" && id !== "mock-v1";
-}
-
 function clampLatitude(value) {
   return Math.max(-89.9, Math.min(89.9, value));
 }
@@ -333,10 +325,11 @@ async function inferAiGuess(client, storageUrl, context, options) {
     process.env.GEO_BATTLE_MAX_NEW_TOKENS
   );
 
-  const predicted = await predictGeoAgentFromBuffer({
+  const predicted = await predictFromBuffer({
     buffer: imageBuffer,
     prompt,
     maxNewTokens,
+    aiModelId: options.aiModelId,
   });
 
   let latitude = predicted.latitude;
@@ -482,6 +475,7 @@ exports.main = async (event, context) => {
       try {
         const inferred = await inferAiGuess(client, round.storage_url, context, {
           modeType: round.mode_type,
+          aiModelId: round.ai_model_id,
         });
         if (
           inferred &&
@@ -556,22 +550,37 @@ exports.main = async (event, context) => {
             : "draw";
     }
 
-    await client.query(
-      `UPDATE battle_sessions
-       SET user_total_score = $1,
-           ai_total_score = $2,
-           winner = $3,
-           status = $4,
-           updated_at = NOW()
-       WHERE id = $5`,
-      [
-        newUserTotal,
-        newAiTotal,
-        winner,
-        sessionEnded ? "finished" : "active",
-        session_id,
-      ]
-    );
+    if (sessionEnded) {
+      await client.query(
+        `UPDATE battle_sessions
+         SET user_total_score = $1,
+             ai_total_score = $2,
+             winner = $3,
+             winner_type = $3,
+             status = 'finished',
+             finished_at = NOW(),
+             updated_at = NOW()
+         WHERE id = $4`,
+        [newUserTotal, newAiTotal, winner, session_id]
+      );
+    } else {
+      await client.query(
+        `UPDATE battle_sessions
+         SET user_total_score = $1,
+             ai_total_score = $2,
+             winner = $3,
+             status = $4,
+             updated_at = NOW()
+         WHERE id = $5`,
+        [
+          newUserTotal,
+          newAiTotal,
+          winner,
+          "active",
+          session_id,
+        ]
+      );
+    }
 
     await client.query("COMMIT");
 

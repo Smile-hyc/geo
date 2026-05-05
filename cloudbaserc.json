@@ -53,8 +53,8 @@
     },
     {
       "name": "submit-battle-round",
-      "timeout": 15,
-      "runtime": "Nodejs18.15",
+      "timeout": 90,
+      "runtime": "Nodejs16.13",
       "installDependency": true,
       "handler": "index.main"
     },
@@ -270,8 +270,8 @@
     },
     {
       "name": "geo-inference",
-      "timeout": 90,
-      "runtime": "Nodejs18.15",
+      "timeout": 180,
+      "runtime": "Nodejs16.13",
       "installDependency": true,
       "handler": "index.main"
     }
