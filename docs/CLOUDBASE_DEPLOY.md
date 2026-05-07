@@ -112,7 +112,7 @@ tcb login
 #### 4. 配置并部署
 
 1. 在项目**根目录**确认 `cloudbaserc.json` 中 **`envId`** 正确。
-2. **（必选）** 各云函数仅打包自己的子目录，公共代码在 `cloudfunctions/_shared`。部署前在根目录执行一次 `npm run cloudfunctions:sync-shared`，将 `_shared` 复制进每个引用它的函数目录（含 `require("./_shared/...")` 的 `index.js`），否则会报 `Cannot find module '../_shared/db'`（或 `./_shared/db` 未同步）。可再执行 `npm run cloudfunctions:verify-shared` 做本地自检（通过后再 `tcb fn deploy`）。
+2. **（必选）** 各云函数仅打包自己的子目录，公共代码在 `cloudfunctions/_shared`。部署前在根目录执行一次 `npm run cloudfunctions:sync-shared`，将 `_shared` 复制进每个引用 `./_shared/...` 的函数目录。`submit-battle-round`、`geo-inference` 还会在**函数根目录**保留与 `_shared/hfSpace.js` 同步的 **`hfSpace.js`（纳入 Git）**，避免仅打包子目录时出现 `Cannot find module './hfSpace'` 或 `./_shared/hfSpace`。仍可执行 **`npm run cloudfunctions:verify-shared`** 做本地自检（通过后再 `tcb fn deploy`）。
 3. 在项目**根目录**打开终端，执行：
 
 ```bash
@@ -200,6 +200,48 @@ tcb fn deploy create-question --deployMode zip --force --yes -e <你的环境ID>
 - **图片路径**：`image_path` 由 `JSONL_EXPORT_IMAGE_PATH_PREFIX`（云函数环境变量，默认云函数内为 `/data/geoannotate`）与相对路径拼接，或由 `image_meta_json.dataset_image_path` 覆盖（绝对路径则直接使用）。请在云上为导出函数配置与数据集一致的前缀。
 - **必填校验**：缺 `lat`/`lng` 或 `image_meta_json.width`/`height` 时整批导出失败（需通过 `create-question` 上传或管理端编辑补全宽高）。
 - **Role 4 其他函数**：需部署 `get-analytics-summary`、`get-analytics-timeseries`、`get-analytics-by-mode`（管理员看板）、`record-event`（埋点，需登录）。
+
+---
+
+## 六（补充 B）、多模型推理环境变量（`geo-inference` / `submit-battle-round`）
+
+对战与云函数推理按 `ai_model_id` 路由（允许值与前端 [`features/battle/config.ts`](../features/battle/config.ts) 及云侧 [`cloudfunctions/_shared/modelRegistry.js`](../cloudfunctions/_shared/modelRegistry.js) 对齐）。部署或更新 `_shared` 后请在仓库根目录执行 **`npm run cloudfunctions:sync-shared`**，再部署 **`geo-inference`**、**`submit-battle-round`**。
+
+`submit-battle-round` 需拉图并调用第三方多模态 API，**执行超时建议 ≥ 90 秒**（与根目录 [`cloudbaserc.json`](../cloudbaserc.json) 中配置一致）。**`geo-inference`**（空间求证）在配置中为 **180 秒**；若日志仍出现 `timed out after 90 seconds`，说明线上未同步，请 **`tcb fn deploy geo-inference`** 或在控制台把执行超时改为 **≥180 秒** 并保存。前端 `lib/cloudbase.ts` 中客户端请求超时需略大于云函数超时（当前约 210s）。若控制台 `submit-battle-round` 仍为 15 秒，提交时会 `invoking task timed out`，请在 **函数配置 → 执行超时** 中改大并保存。
+
+| 变量名 | 作用 | 说明 |
+|--------|------|------|
+| `OPENAI_API_KEY` | OpenAI 兼容接口 | 使用 ChatGPT（`openai-gpt-4o-mini` 等）时必填；**勿**写入 `NEXT_PUBLIC_*`。 |
+| `OPENAI_BASE_URL` | OpenAI API 根路径 | 可选，默认 `https://api.openai.com/v1`（可改为代理或兼容网关）。 |
+| `DEEPSEEK_API_KEY` | DeepSeek API | 使用 `deepseek-chat` / `deepseek-reasoner` 时必填。 |
+| `DEEPSEEK_BASE_URL` 或 `DEEPSEEK_API_BASE_URL` | DeepSeek 根路径 | 可选，默认 `https://api.deepseek.com/v1`。 |
+| `GEO_INFERENCE_SPACE_URL` / `GEO_INFERENCE_SPACE_ID` / `HF_TOKEN` 等 | HF Space | 与原有寻境 HF 链路一致；`research-baseline` 走 HF。 |
+| `MOONSHOT_API_KEY` 或 `KIMI_API_KEY` | Kimi（月之暗面） | 使用 `kimi-vision` 等时必填。 |
+| `MOONSHOT_BASE_URL` | Kimi API 根路径 | 可选，默认 `https://api.moonshot.cn/v1`。 |
+| `ZHIPU_API_KEY` | 智谱 GLM | 使用 `glm-4v` 等时必填。 |
+| `ZHIPU_BASE_URL` | 智谱 OpenAI 兼容根路径 | 可选，默认 `https://open.bigmodel.cn/api/paas/v4`。 |
+| `DASHSCOPE_API_KEY` 或 `QWEN_API_KEY` | 通义（DashScope 兼容模式） | 使用 `qwen-vl` 等时必填。 |
+| `QWEN_BASE_URL` 或 `DASHSCOPE_COMPAT_BASE_URL` | DashScope 兼容根路径 | 可选，默认 `https://dashscope.aliyuncs.com/compatible-mode/v1`。 |
+
+新增模型 id 时须**同时**更新前端 `INFERENCE_MODELS` 与 `_shared/modelRegistry.js`，否则未知 id 会回退为 `research-baseline`。
+
+### 在腾讯云控制台填写密钥（你手上有 Key 时按此做）
+
+1. 打开 [云开发控制台](https://console.cloud.tencent.com/tcb)，选中你的环境。
+2. 左侧进入 **云函数**，依次打开 **`geo-inference`** 与 **`submit-battle-round`**（两个函数都要配，对战回合与单题推理都会调路由）。
+3. 进入函数 **函数配置** → **环境变量**（或「高级配置」里的环境变量），**新增**下表中的变量，值为各平台控制台复制的密钥（**不要**加引号；不要提交到 Git 或写进 `NEXT_PUBLIC_*`）。
+4. 保存后对该函数执行一次 **部署/上传**（或「保存并安装依赖」），确保最新代码与变量一并生效。本地修改过 `_shared` 时先在仓库根目录执行 **`npm run cloudfunctions:sync-shared`**，再 **`tcb fn deploy geo-inference submit-battle-round`**（或控制台上传对应目录 ZIP）。
+
+| 你文档里的用途 | 在云函数里填的变量名 | 说明 |
+|----------------|----------------------|------|
+| DeepSeek 识图 | `DEEPSEEK_API_KEY` | 可选：`DEEPSEEK_BASE_URL`（默认官方 v1） |
+| 智谱 识图 | `ZHIPU_API_KEY` | 可选：`ZHIPU_BASE_URL` |
+| Kimi 识图 | `MOONSHOT_API_KEY` 或 `KIMI_API_KEY` | 可选：`MOONSHOT_BASE_URL` |
+| 通义 Qwen 识图 | `DASHSCOPE_API_KEY` 或 `QWEN_API_KEY` | 可选：`QWEN_BASE_URL` |
+
+5. 前端仅需能连 CloudBase（`.env.local` / Vercel 里的 `NEXT_PUBLIC_CLOUDBASE_ENV_ID`）；**无需**把上述 Key 配进 Next.js。
+
+若密钥曾出现在截图、聊天或文档中，请到 **DeepSeek / 智谱 / 月之暗面 / 阿里云** 控制台 **作废并重新生成**，只把新 Key 配进云函数。
 
 ---
 

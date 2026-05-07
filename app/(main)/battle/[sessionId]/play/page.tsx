@@ -206,7 +206,7 @@ export default function BattlePlayPage() {
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-[#F2F3F5]">
         <p className="text-[#F53F3F] font-medium mb-4">{error}</p>
-        <Button variant="outline" onClick={() => router.push("/app/battle/config")}>返回对战配置</Button>
+        <Button variant="outline" onClick={() => router.push("/app/battle")}>返回对战配置</Button>
       </div>
     );
   }

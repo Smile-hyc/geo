@@ -6,12 +6,22 @@ import { useAuthStore } from "@/lib/auth";
 
 const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID || "";
 
+/**
+ * CloudBase JS SDK 默认请求超时约 15s，长耗时云函数（如 geo-inference 多模态）未完成即被客户端中止，
+ * 会表现为 `network request error`。需大于云函数执行超时并留余量（SDK 单请求上限 10 分钟）。
+ * Kimi/Qwen 等多模态 + 大图 base64 可能接近或超过 90s，须与 `cloudbaserc.json` 中 geo-inference 超时对齐。
+ */
+const CLOUDBASE_CLIENT_TIMEOUT_MS = 210_000;
+
 let app: cloudbase.app.App | null = null;
 
 export function getApp(): cloudbase.app.App {
   if (!app) {
     if (!envId) throw new Error("NEXT_PUBLIC_CLOUDBASE_ENV_ID 未配置");
-    app = cloudbase.init({ env: envId });
+    app = cloudbase.init({
+      env: envId,
+      timeout: CLOUDBASE_CLIENT_TIMEOUT_MS,
+    });
   }
   return app;
 }
@@ -258,15 +268,29 @@ export async function getBattleResult(params: {
   session_id: number;
 }): Promise<{
   session: {
-    id: number; ai_model_id: string; mode_type: string; time_limit_sec: number;
-    user_total_score: number; ai_total_score: number; winner: string; round_count: number;
+    id: number;
+    ai_model_id: string;
+    mode_type: string;
+    time_limit_sec: number;
+    user_total_score: number;
+    ai_total_score: number;
+    winner: string | null;
+    round_count: number;
+    status?: string;
   };
   rounds: Array<{
-    round_index: number; image_storage_url: string;
-    user_guess_lat: number | null; user_guess_lng: number | null;
-    ai_guess_lat: number | null; ai_guess_lng: number | null;
-    user_score: number; ai_score: number;
-    true_lat: number; true_lng: number;
+    round_index: number;
+    image_storage_url: string;
+    user_guess_lat: number | null;
+    user_guess_lng: number | null;
+    ai_guess_lat: number | null;
+    ai_guess_lng: number | null;
+    user_score: number;
+    ai_score: number;
+    true_lat: number;
+    true_lng: number;
+    round_winner_type?: string | null;
+    elapsed_ms?: number | null;
   }>;
 }> {
   return callFunction("get-battle-result", params);
@@ -563,7 +587,7 @@ export async function recordEvent(params: {
 export type GeoInferenceResult = {
   address: string;
   chain_of_thought: string;
-  source?: "stub" | "remote";
+  source?: "stub" | "remote" | "hf-space" | "openai" | "deepseek" | "kimi" | "glm" | "qwen" | string;
   model_ref?: string;
   latitude?: number;
   longitude?: number;
@@ -574,6 +598,9 @@ export async function runGeoInference(params: {
   mime_type?: string;
   prompt?: string;
   max_new_tokens?: number;
+  /** 与对战 ai_model_id 一致，如云函数 modelRegistry */
+  model_id?: string;
+  ai_model_id?: string;
   cloudbase_uid?: string;
   email?: string;
 }): Promise<GeoInferenceResult> {

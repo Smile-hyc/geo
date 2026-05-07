@@ -25,20 +25,67 @@ export const BATTLE_MODES = [
   },
 ] as const;
 
-export const AI_OPPONENTS = [
-  {
-    id: "mock-v1",
-    label: "模拟对手",
-    description: "搭载基础「识图」大模型架构，具备极速初判能力的轻量级空间认知智能体。",
-    image: "/images/mock.png",
-  },
+export type InferenceProvider = "hf-space" | "kimi" | "glm" | "qwen";
+
+/** browser-hf：浏览器直连 HF Space；cloud：经云函数 geo-inference（含密钥路由） */
+export type InferenceChannel = "browser-hf" | "cloud";
+
+/** 对战与「空间求证」共用的推理模型（ai_model_id；服务端 allowlist 见 cloudfunctions/_shared/modelRegistry.js） */
+export const INFERENCE_MODELS = [
   {
     id: "research-baseline",
-    label: "研究基线",
-    description: "集成类 OpenClaw 工作流的「寻境」空间推理 Agent，具备多轮工具调用与强证据链分析能力。",
+    label: "寻境 · 研究基线（HF）",
+    description:
+      "集成类 OpenClaw 工作流的「寻境」空间推理 Agent，多轮工具调用与证据链分析（默认对接 HF Space）。",
     image: "/images/baseline.png",
+    provider: "hf-space" as const,
+    apiModel: null,
+    inferenceChannel: "browser-hf" as const,
+    battleRemote: true,
+    standaloneInference: true,
+  },
+  {
+    id: "kimi-vision",
+    label: "Kimi（Moonshot 视觉）",
+    description:
+      "月之暗面 Kimi 视觉模型；OpenAI 兼容接口，需配置 MOONSHOT_API_KEY。",
+    image: "/images/baseline.png",
+    provider: "kimi" as const,
+    apiModel: "moonshot-v1-8k-vision-preview",
+    inferenceChannel: "cloud" as const,
+    battleRemote: true,
+    standaloneInference: true,
+  },
+  {
+    id: "glm-4v",
+    label: "智谱 GLM-4V",
+    description:
+      "智谱多模态；兼容 OpenAI 格式，需配置 ZHIPU_API_KEY。",
+    image: "/images/baseline.png",
+    provider: "glm" as const,
+    apiModel: "glm-4v-plus",
+    inferenceChannel: "cloud" as const,
+    battleRemote: true,
+    standaloneInference: true,
+  },
+  {
+    id: "qwen-vl",
+    label: "通义 Qwen-VL",
+    description:
+      "阿里云 DashScope OpenAI 兼容模式，需配置 DASHSCOPE_API_KEY（或 QWEN_API_KEY）。",
+    image: "/images/baseline.png",
+    provider: "qwen" as const,
+    apiModel: "qwen-vl-plus",
+    inferenceChannel: "cloud" as const,
+    battleRemote: true,
+    standaloneInference: true,
   },
 ] as const;
+
+export type InferenceModelConfig = (typeof INFERENCE_MODELS)[number];
+
+/** @deprecated 使用 INFERENCE_MODELS；保留别名以免旧代码断裂 */
+export const AI_OPPONENTS = INFERENCE_MODELS;
 
 export const TIME_OPTIONS = [10, 30, 60, 120] as const;
 export const ROUND_OPTIONS = [1, 3, 5, 10] as const;
@@ -47,6 +94,27 @@ export function getBattleModeLabel(id: string): string {
   return BATTLE_MODES.find((mode) => mode.id === id)?.label ?? id;
 }
 
+export function getInferenceModelLabel(id: string): string {
+  return INFERENCE_MODELS.find((m) => m.id === id)?.label ?? id;
+}
+
 export function getAiOpponentLabel(id: string): string {
-  return AI_OPPONENTS.find((opponent) => opponent.id === id)?.label ?? id;
+  return getInferenceModelLabel(id);
+}
+
+export type InferenceModelId = (typeof INFERENCE_MODELS)[number]["id"];
+
+export function getInferenceModelConfig(
+  id: string
+): InferenceModelConfig | undefined {
+  return INFERENCE_MODELS.find((m) => m.id === id);
+}
+
+export function getInferenceModelsForContext(
+  ctx: "battle" | "standalone"
+): InferenceModelConfig[] {
+  if (ctx === "standalone") {
+    return INFERENCE_MODELS.filter((m) => m.standaloneInference) as InferenceModelConfig[];
+  }
+  return [...INFERENCE_MODELS] as InferenceModelConfig[];
 }
