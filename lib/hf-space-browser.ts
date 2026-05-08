@@ -410,19 +410,26 @@ async function startPrediction(
   uploadedPath: string,
   prompt: string,
   maxNewTokens: number,
+  modelId: string | undefined,
   signal?: AbortSignal
 ): Promise<string> {
+  const body: Record<string, unknown> = {
+    image: {
+      path: uploadedPath,
+      meta: { _type: "gradio.FileData" },
+    },
+    prompt,
+    max_new_tokens: maxNewTokens,
+  };
+  const trimmedModel = typeof modelId === "string" ? modelId.trim() : "";
+  if (trimmedModel) {
+    body.model_id = trimmedModel;
+  }
+
   const response = await fetch(buildSpaceUrl("/gradio_api/call/v2/predict"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      image: {
-        path: uploadedPath,
-        meta: { _type: "gradio.FileData" },
-      },
-      prompt,
-      max_new_tokens: maxNewTokens,
-    }),
+    body: JSON.stringify(body),
     signal,
   });
   await ensureSuccess(response, "GeoAgent predict");
@@ -479,6 +486,8 @@ export async function runGeoInferenceFromSpace(params: {
   file: File;
   prompt?: string;
   maxNewTokens?: number;
+  /** 推理提供方模型 id（如 research-baseline、deepseek-chat）；随 predict 请求体传给 Space */
+  modelId?: string;
   /** 当前阶段：上传 → 发起任务 → 等待推理结果 */
   onPhase?: (phase: GeoInferencePhase) => void;
   /** 全流程超时（毫秒），默认 120000 */
@@ -501,6 +510,7 @@ export async function runGeoInferenceFromSpace(params: {
       uploadedPath,
       prompt,
       maxNewTokens,
+      params.modelId,
       controller.signal
     );
     params.onPhase?.("poll");
@@ -509,6 +519,17 @@ export async function runGeoInferenceFromSpace(params: {
 
     if (!mapped) {
       throw new Error("GeoAgent Space returned an unsupported payload");
+    }
+
+    const modelRefSuffix =
+      typeof params.modelId === "string" && params.modelId.trim()
+        ? params.modelId.trim()
+        : "";
+    if (modelRefSuffix) {
+      return {
+        ...mapped,
+        model_ref: `${mapped.model_ref ?? `hf-space:${DEFAULT_SPACE_ID}`}|model=${modelRefSuffix}`,
+      };
     }
 
     return mapped;
