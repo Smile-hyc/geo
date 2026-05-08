@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Brain, Check, Cpu, ImagePlus, Loader2, Sparkles, Zap } from "lucide-react";
+import { Brain, Cpu, ImagePlus, Loader2, Sparkles, Zap } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
+import { InferenceProgress } from "@/components/inference/InferenceProgress";
 import {
   getInferenceModelsForContext,
   getInferenceModelConfig,
@@ -20,26 +21,11 @@ import { cn } from "@/lib/utils";
 
 const MAX_BYTES = 6 * 1024 * 1024;
 
-const PHASES: { id: GeoInferencePhase; title: string; description: string }[] = [
-  { id: "upload", title: "上传", description: "将图像安全送达推理服务" },
-  { id: "predict", title: "提交", description: "创建推理任务并排队" },
-  { id: "poll", title: "推理", description: "模型分析图像并生成结果" },
-];
-
 const BUTTON_LABEL: Record<GeoInferencePhase, string> = {
   upload: "上传并接入中…",
   predict: "正在提交任务…",
   poll: "模型推理中…",
 };
-
-const WAITING_TIPS: readonly string[] = [
-  "可留意建筑样式、路牌语言与植被，它们往往是地理定位的关键线索。",
-  "冷启动或排队时耗时会略长，属正常现象。",
-  "系统会同时给出地点判断与可复核的思维链，便于你核对。",
-  "若网络不稳定，可稍后重试；超长等待可能触发超时保护。",
-];
-
-const TIP_MS = 5000;
 
 const container = {
   hidden: { opacity: 0 },
@@ -55,11 +41,6 @@ const item = {
   hidden: { y: 20, opacity: 0 },
   show: { y: 0, opacity: 1 },
 };
-
-function phaseStepIndex(phase: GeoInferencePhase | null): number {
-  if (!phase) return 0;
-  return Math.max(0, PHASES.findIndex((p) => p.id === phase));
-}
 
 function fileToBase64Data(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -77,110 +58,6 @@ function fileToBase64Data(file: File): Promise<string> {
     };
     reader.readAsDataURL(file);
   });
-}
-
-type InferenceLoadingPanelProps = {
-  phase: GeoInferencePhase | null;
-  elapsedSec: number;
-  tipIndex: number;
-  reducedMotion: boolean;
-};
-
-function InferenceLoadingPanel({
-  phase,
-  elapsedSec,
-  tipIndex,
-  reducedMotion,
-}: InferenceLoadingPanelProps) {
-  const activeIndex = phaseStepIndex(phase);
-  const currentPhaseMeta = phase
-    ? PHASES.find((p) => p.id === phase) ?? PHASES[2]
-    : PHASES[0];
-  const tip = WAITING_TIPS[tipIndex % WAITING_TIPS.length] ?? WAITING_TIPS[0];
-
-  return (
-    <div
-      className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-sky-100/80 bg-gradient-to-br from-sky-50/90 via-white to-violet-50/40 p-5 shadow-inner"
-      aria-live="polite"
-      aria-busy="true"
-    >
-      <div className="pointer-events-none absolute -right-12 top-0 h-40 w-40 rounded-full bg-sky-200/25 blur-3xl" />
-      <div className="pointer-events-none absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-violet-200/20 blur-2xl" />
-
-      <p className="relative z-10 text-xs font-bold uppercase tracking-wider text-sky-600/80">
-        {currentPhaseMeta.description}
-      </p>
-      <h3 className="relative z-10 mt-1 text-lg font-bold text-slate-800">
-        {currentPhaseMeta.title}进行中
-      </h3>
-
-      <div className="relative z-10 mt-4 w-full" aria-hidden>
-        <div
-          className={cn(
-            "h-1.5 w-full overflow-hidden rounded-full bg-slate-200/80"
-          )}
-        >
-          {!reducedMotion ? (
-            <motion.div
-              className="h-full w-2/5 rounded-full bg-gradient-to-r from-sky-400 to-blue-600"
-              initial={{ x: "-120%" }}
-              animate={{ x: "260%" }}
-              transition={{
-                duration: 1.35,
-                repeat: Infinity,
-                ease: "linear",
-                repeatType: "loop",
-              }}
-            />
-          ) : (
-            <div className="h-full w-2/5 rounded-full bg-sky-500/40" />
-          )}
-        </div>
-      </div>
-
-      <ol className="relative z-10 mt-5 space-y-3">
-        {PHASES.map((step, index) => {
-          const done = index < activeIndex;
-          const current = index === activeIndex;
-          return (
-            <li
-              key={step.id}
-              className={cn(
-                "flex items-center gap-3 text-sm",
-                current ? "font-semibold text-slate-800" : "text-slate-500"
-              )}
-            >
-              <span
-                className={cn(
-                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs",
-                  done && "bg-emerald-100 text-emerald-700",
-                  current &&
-                    !done &&
-                    "bg-sky-100 text-sky-700 ring-2 ring-sky-200/80",
-                  !current && !done && "bg-slate-100 text-slate-400"
-                )}
-              >
-                {done ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> : current ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : index + 1}
-              </span>
-              <span>{step.title}</span>
-            </li>
-          );
-        })}
-      </ol>
-
-      <div className="relative z-10 mt-6 min-h-[3.5rem] border-t border-slate-200/60 pt-4">
-        <p
-          className="text-sm leading-relaxed text-slate-600 motion-safe:transition-opacity motion-safe:duration-300"
-          key={tipIndex}
-        >
-          小贴士：{tip}
-        </p>
-        <p className="mt-2 text-xs text-slate-400">
-          已等待 {elapsedSec} 秒{elapsedSec >= 30 ? " · 请耐心等待或检查网络" : null}
-        </p>
-      </div>
-    </div>
-  );
 }
 
 export default function InferencePage() {
@@ -202,7 +79,6 @@ export default function InferencePage() {
     null
   );
   const [elapsedSec, setElapsedSec] = useState(0);
-  const [tipIndex, setTipIndex] = useState(0);
   const [result, setResult] = useState<GeoInferenceResult | null>(null);
 
   const selectedModelMeta = useMemo(
@@ -226,17 +102,6 @@ export default function InferencePage() {
     const id = setInterval(() => {
       setElapsedSec((s) => s + 1);
     }, 1000);
-    return () => clearInterval(id);
-  }, [loading]);
-
-  useEffect(() => {
-    if (!loading) {
-      return;
-    }
-    setTipIndex(0);
-    const id = setInterval(() => {
-      setTipIndex((i) => (i + 1) % WAITING_TIPS.length);
-    }, TIP_MS);
     return () => clearInterval(id);
   }, [loading]);
 
@@ -531,12 +396,17 @@ export default function InferencePage() {
                 </p>
               ) : null}
               {loading && useBrowserHf ? (
-                <InferenceLoadingPanel
-                  phase={inferencePhase}
-                  elapsedSec={elapsedSec}
-                  tipIndex={tipIndex}
-                  reducedMotion={reducedMotion}
-                />
+                <div
+                  className="flex min-h-0 flex-1 flex-col gap-3"
+                  aria-live="polite"
+                  aria-busy="true"
+                >
+                  <InferenceProgress />
+                  <p className="text-center text-xs text-slate-400">
+                    已等待 {elapsedSec} 秒
+                    {elapsedSec >= 30 ? " · 请耐心等待或检查网络" : null}
+                  </p>
+                </div>
               ) : null}
               {loading && !useBrowserHf ? (
                 <div
