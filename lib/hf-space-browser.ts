@@ -410,7 +410,6 @@ async function startPrediction(
   uploadedPath: string,
   prompt: string,
   maxNewTokens: number,
-  modelId: string | undefined,
   signal?: AbortSignal
 ): Promise<string> {
   const body: Record<string, unknown> = {
@@ -421,10 +420,6 @@ async function startPrediction(
     prompt,
     max_new_tokens: maxNewTokens,
   };
-  const trimmedModel = typeof modelId === "string" ? modelId.trim() : "";
-  if (trimmedModel) {
-    body.model_id = trimmedModel;
-  }
 
   const response = await fetch(buildSpaceUrl("/gradio_api/call/v2/predict"), {
     method: "POST",
@@ -486,7 +481,7 @@ export async function runGeoInferenceFromSpace(params: {
   file: File;
   prompt?: string;
   maxNewTokens?: number;
-  /** 推理提供方模型 id（如 research-baseline、deepseek-chat）；随 predict 请求体传给 Space */
+  /** 可选；仅用于返回结果中的 model_ref 后缀，不会传给当前 HF Gradio predict */
   modelId?: string;
   /** 当前阶段：上传 → 发起任务 → 等待推理结果 */
   onPhase?: (phase: GeoInferencePhase) => void;
@@ -510,7 +505,6 @@ export async function runGeoInferenceFromSpace(params: {
       uploadedPath,
       prompt,
       maxNewTokens,
-      params.modelId,
       controller.signal
     );
     params.onPhase?.("poll");

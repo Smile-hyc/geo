@@ -194,7 +194,7 @@ async function uploadBufferToSpace(buffer, hfToken) {
   return uploadedPath.trim();
 }
 
-async function startPrediction(uploadedPath, prompt, maxNewTokens, hfToken, modelId) {
+async function startPrediction(uploadedPath, prompt, maxNewTokens, hfToken) {
   const body = {
     image: {
       path: uploadedPath,
@@ -203,11 +203,7 @@ async function startPrediction(uploadedPath, prompt, maxNewTokens, hfToken, mode
     prompt,
     max_new_tokens: maxNewTokens,
   };
-  const trimmedModel =
-    typeof modelId === "string" && modelId.trim() ? modelId.trim() : "";
-  if (trimmedModel) {
-    body.model_id = trimmedModel;
-  }
+  // EugeneZhao/geoagent-api 等 Space 的 predict(image, prompt, max_new_tokens) 不接受 model_id。
 
   const response = await fetch(buildSpaceUrl("/gradio_api/call/v2/predict"), {
     method: "POST",
@@ -639,6 +635,7 @@ async function predictGeoAgentFromBuffer(options) {
     throw new Error(`Unsupported GeoAgent endpoint: ${endpoint}`);
   }
 
+  // modelIdOpt 仅写入返回的 model_ref；Gradio Space predict 若不含同名参数则不可放入请求体。
   const modelIdOpt =
     typeof options?.modelId === "string" && options.modelId.trim()
       ? options.modelId.trim()
@@ -649,8 +646,7 @@ async function predictGeoAgentFromBuffer(options) {
     uploadedPath,
     prompt,
     maxNewTokens,
-    hfToken,
-    modelIdOpt
+    hfToken
   );
   const response = await fetchPredictionPayload(eventId, hfToken);
 
