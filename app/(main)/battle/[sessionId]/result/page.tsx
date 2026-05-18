@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Loader2, RotateCcw, PlaySquare, Home, CheckCircle2, XCircle, MapPin, MinusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getBattleResult, getTempFileURL } from "@/lib/cloudbase";
+import { ARCGIS_TILE_MAX_ZOOM, ARCGIS_WORLD_STREET_TILE_URL } from "@/lib/map/arcgisBasemap";
 
 // 计算两点经纬度之间的距离 (公里)
 function calculateDistance(
@@ -168,14 +169,6 @@ export default function BattleResultPage() {
         return;
       }
 
-      if (!document.getElementById("leaflet-css-summary")) {
-        const link = document.createElement("link");
-        link.id = "leaflet-css-summary";
-        link.rel = "stylesheet";
-        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-        document.head.appendChild(link);
-      }
-
       const map = L.map(mapContainerRef.current, {
         zoomControl: false, //  1. 先关闭默认的左上角缩放控件
         attributionControl: false,
@@ -184,8 +177,8 @@ export default function BattleResultPage() {
       // 2. 手动将缩放控件添加到右上角
       L.control.zoom({ position: 'topright' }).addTo(map);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18,
+      L.tileLayer(ARCGIS_WORLD_STREET_TILE_URL, {
+        maxZoom: ARCGIS_TILE_MAX_ZOOM,
       }).addTo(map);
 
       mapRef.current = map;
