@@ -7,3 +7,6 @@ out/
 .env
 .env.local
 tsconfig.tsbuildinfo
+
+# Agent skills（本地定制，勿提交）
+.agents/skills/
