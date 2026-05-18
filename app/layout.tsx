@@ -4,6 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "识图寻境",
   description: "识图寻境：识图、寻境、地衡三位一体空间智能平台",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
