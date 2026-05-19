@@ -64,6 +64,12 @@ exports.main = async (event, context) => {
     await client.query(
       `ALTER TABLE battle_sessions ADD COLUMN IF NOT EXISTS winner_type TEXT`
     );
+    await client.query(
+      `ALTER TABLE battle_rounds ADD COLUMN IF NOT EXISTS truth_lat DOUBLE PRECISION`
+    );
+    await client.query(
+      `ALTER TABLE battle_rounds ADD COLUMN IF NOT EXISTS truth_lng DOUBLE PRECISION`
+    );
 
     let userResult;
 

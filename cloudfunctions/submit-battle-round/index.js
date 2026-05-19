@@ -5,9 +5,9 @@ const https = require("https");
 const { Pool } = require("pg");
 const tcb = require("@cloudbase/node-sdk");
 const { URL } = require("url");
-/** 部署时同步：npm run cloudfunctions:sync-shared（需包含 ./_shared） */
-const { shouldUseRemoteInference } = require("./_shared/modelRegistry");
-const { predictFromBuffer } = require("./_shared/geoPredictRouter");
+/** 部署时同步：npm run cloudfunctions:sync-shared（根目录 peer：hfSpace / geoPredictRouter / modelRegistry） */
+const { shouldUseRemoteInference } = require("./modelRegistry");
+const { predictFromBuffer } = require("./geoPredictRouter");
 const { isValidCoordinatePair } = require("./hfSpace");
 
 const pool = new Pool(
