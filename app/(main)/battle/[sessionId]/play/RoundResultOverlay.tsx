@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 // 引入获取真实图片地址的云函数
 import { getTempFileURL } from "@/lib/cloudbase";
+import { ARCGIS_TILE_MAX_ZOOM, ARCGIS_WORLD_STREET_TILE_URL } from "@/lib/map/arcgisBasemap";
 
 export interface RoundResultExtended {
   user_score: number;
@@ -83,21 +84,13 @@ export default function RoundResultOverlay({
         return;
       }
 
-      if (!document.getElementById("leaflet-css-result")) {
-        const link = document.createElement("link");
-        link.id = "leaflet-css-result";
-        link.rel = "stylesheet";
-        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-        document.head.appendChild(link);
-      }
-
       const map = L.map(mapContainerRef.current, {
         zoomControl: false,
         attributionControl: false,
       }).setView([result.true_lat, result.true_lng], 3);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18,
+      L.tileLayer(ARCGIS_WORLD_STREET_TILE_URL, {
+        maxZoom: ARCGIS_TILE_MAX_ZOOM,
       }).addTo(map);
 
       mapRef.current = map;

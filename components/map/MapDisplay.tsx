@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import {
+  ARCGIS_TILE_ATTRIBUTION,
+  ARCGIS_TILE_MAX_ZOOM,
+  ARCGIS_WORLD_STREET_TILE_URL,
+} from "@/lib/map/arcgisBasemap";
 
 export interface MapMarker {
   lat: number;
@@ -33,18 +38,10 @@ export default function MapDisplay({ markers, height = "300px", drawLines = fals
         return;
       }
 
-      if (!document.getElementById("leaflet-css")) {
-        const link = document.createElement("link");
-        link.id = "leaflet-css";
-        link.rel = "stylesheet";
-        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-        document.head.appendChild(link);
-      }
-
       const map = L.map(containerRef.current!).setView([30, 105], 3);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors",
-        maxZoom: 18,
+      L.tileLayer(ARCGIS_WORLD_STREET_TILE_URL, {
+        attribution: ARCGIS_TILE_ATTRIBUTION,
+        maxZoom: ARCGIS_TILE_MAX_ZOOM,
       }).addTo(map);
 
       mapRef.current = map;
