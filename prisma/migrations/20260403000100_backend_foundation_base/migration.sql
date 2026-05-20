@@ -101,6 +101,8 @@ ALTER TABLE "battle_sessions" ADD COLUMN IF NOT EXISTS "winner_type" TEXT;
 -- AlterTable
 ALTER TABLE "battle_rounds" ADD COLUMN IF NOT EXISTS "ground_truth_lat" DOUBLE PRECISION;
 ALTER TABLE "battle_rounds" ADD COLUMN IF NOT EXISTS "ground_truth_lng" DOUBLE PRECISION;
+ALTER TABLE "battle_rounds" ADD COLUMN IF NOT EXISTS "truth_lat" DOUBLE PRECISION;
+ALTER TABLE "battle_rounds" ADD COLUMN IF NOT EXISTS "truth_lng" DOUBLE PRECISION;
 ALTER TABLE "battle_rounds" ADD COLUMN IF NOT EXISTS "user_distance_km" DOUBLE PRECISION;
 ALTER TABLE "battle_rounds" ADD COLUMN IF NOT EXISTS "ai_distance_km" DOUBLE PRECISION;
 ALTER TABLE "battle_rounds" ADD COLUMN IF NOT EXISTS "round_winner_type" TEXT;
