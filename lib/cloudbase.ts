@@ -107,12 +107,56 @@ export async function resetPasswordWithCode(
   });
 }
 
+const SESSION_EXPIRED_MSG = "登录已过期，请重新登录。";
+
+function isUnauthenticatedPayload(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const o = value as Record<string, unknown>;
+  const err = typeof o.error === "string" ? o.error.toLowerCase() : "";
+  const desc =
+    typeof o.error_description === "string"
+      ? o.error_description.toLowerCase()
+      : "";
+  return (
+    err === "unauthenticated" ||
+    desc.includes("credentials not found") ||
+    desc.includes("credential")
+  );
+}
+
 function normalizeCloudFunctionError(reason: unknown): Error {
-  if (reason instanceof Error) return reason;
+  if (reason instanceof Error) {
+    const text = reason.message.toLowerCase();
+    if (
+      text.includes("unauthenticated") ||
+      text.includes("credentials not found")
+    ) {
+      return new Error(SESSION_EXPIRED_MSG);
+    }
+    return reason;
+  }
   if (typeof reason === "string" && reason.trim()) {
-    return new Error(reason.trim());
+    const trimmed = reason.trim();
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+      if (isUnauthenticatedPayload(parsed)) {
+        return new Error(SESSION_EXPIRED_MSG);
+      }
+    } catch {
+      // not JSON
+    }
+    if (
+      trimmed.toLowerCase().includes("unauthenticated") ||
+      trimmed.toLowerCase().includes("credentials not found")
+    ) {
+      return new Error(SESSION_EXPIRED_MSG);
+    }
+    return new Error(trimmed);
   }
   if (reason && typeof reason === "object") {
+    if (isUnauthenticatedPayload(reason)) {
+      return new Error(SESSION_EXPIRED_MSG);
+    }
     const o = reason as Record<string, unknown>;
     const msg =
       (typeof o.message === "string" && o.message) ||
@@ -129,6 +173,15 @@ function normalizeCloudFunctionError(reason: unknown): Error {
   return new Error("云函数调用失败");
 }
 
+/** 云函数调用前校验 CloudBase 登录态（Zustand 持久化 user 不能代替 SDK 凭证） */
+export async function ensureCloudBaseSession(): Promise<void> {
+  const loginState = await getLoginState();
+  if (!loginState) {
+    useAuthStore.getState().logout();
+    throw new Error(SESSION_EXPIRED_MSG);
+  }
+}
+
 function parseCloudFunctionResult<T>(raw: unknown): T & { errMsg?: string } {
   if (raw === undefined || raw === null) {
     return {} as T & { errMsg?: string };
@@ -137,10 +190,17 @@ function parseCloudFunctionResult<T>(raw: unknown): T & { errMsg?: string } {
     const trimmed = raw.trim();
     if (!trimmed) return {} as T & { errMsg?: string };
     try {
-      return JSON.parse(trimmed) as T & { errMsg?: string };
+      const parsed = JSON.parse(trimmed) as T & { errMsg?: string };
+      if (isUnauthenticatedPayload(parsed)) {
+        return { errMsg: SESSION_EXPIRED_MSG } as T & { errMsg?: string };
+      }
+      return parsed;
     } catch {
       return { errMsg: trimmed } as T & { errMsg?: string };
     }
+  }
+  if (isUnauthenticatedPayload(raw)) {
+    return { errMsg: SESSION_EXPIRED_MSG } as T & { errMsg?: string };
   }
   return raw as T & { errMsg?: string };
 }
@@ -162,15 +222,26 @@ export async function callFunction<T = unknown>(
     }
   }
 
+  await ensureCloudBaseSession();
+
   let res: { result?: unknown; errMsg?: string };
   try {
     res = await getApp().callFunction({ name, data: payload });
   } catch (reason) {
-    throw normalizeCloudFunctionError(reason);
+    const err = normalizeCloudFunctionError(reason);
+    if (err.message === SESSION_EXPIRED_MSG) {
+      useAuthStore.getState().logout();
+    }
+    throw err;
   }
 
   const result = parseCloudFunctionResult<T>(res.result);
-  if (result?.errMsg) throw new Error(result.errMsg);
+  if (result?.errMsg) {
+    if (result.errMsg === SESSION_EXPIRED_MSG) {
+      useAuthStore.getState().logout();
+    }
+    throw new Error(result.errMsg);
+  }
   if (res.result !== undefined && res.result !== null) return result as T;
   throw new Error(res.errMsg || "云函数调用失败");
 }
