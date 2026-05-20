@@ -2,23 +2,28 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/auth";
+import { useAuthStore, useAuthStoreHydrated } from "@/lib/auth";
 import { getLoginState, syncUserToDb, getUserProfile } from "@/lib/cloudbase";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user, loading, setUser, setLoading } = useAuthStore();
+  const hydrated = useAuthStoreHydrated();
+  const { user, loading, setUser, setLoading, logout } = useAuthStore();
 
   useEffect(() => {
+    if (!hydrated) return;
+
     const checkAuth = async () => {
-      if (user) {
-        setLoading(false);
-        return;
-      }
       try {
         const loginState = await getLoginState();
         if (!loginState) {
+          if (user) logout();
           router.replace("/auth/login");
+          return;
+        }
+
+        if (user) {
+          setLoading(false);
           return;
         }
         const uid = loginState.user.uid ?? "unknown";
@@ -62,13 +67,14 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
           }
         }
       } catch {
+        if (user) logout();
         router.replace("/auth/login");
       } finally {
         setLoading(false);
       }
     };
     checkAuth();
-  }, [user, setUser, setLoading, router]);
+  }, [hydrated, user, setUser, setLoading, logout, router]);
 
   if (loading) {
     return (
