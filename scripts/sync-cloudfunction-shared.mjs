@@ -32,17 +32,21 @@ for (const ent of fs.readdirSync(cfRoot, { withFileTypes: true })) {
   copyDir(srcShared, path.join(fnDir, "_shared"));
   n++;
 }
-/** Tencent 只打包单函数目录时不会带上上一级 _shared：提交与包里需含本文件 */
-const HF_PEER_FUNCTIONS = ["submit-battle-round", "geo-inference"];
-const hfSrc = path.join(srcShared, "hfSpace.js");
-let hfPeers = 0;
-for (const name of HF_PEER_FUNCTIONS) {
-  const dest = path.join(cfRoot, name, "hfSpace.js");
-  if (!fs.existsSync(hfSrc) || !fs.existsSync(path.join(cfRoot, name, "index.js")))
-    continue;
-  fs.copyFileSync(hfSrc, dest);
-  hfPeers++;
+/** Tencent 只打包单函数目录时不会带上上一级 _shared：以下 peer 文件纳入 Git，供 geo-inference / submit-battle-round 直接 require */
+const PEER_FUNCTIONS = ["submit-battle-round", "geo-inference"];
+const PEER_MODULES = ["hfSpace.js", "geoPredictRouter.js", "modelRegistry.js"];
+let peerCopies = 0;
+for (const fnName of PEER_FUNCTIONS) {
+  const fnDir = path.join(cfRoot, fnName);
+  if (!fs.existsSync(path.join(fnDir, "index.js"))) continue;
+  for (const mod of PEER_MODULES) {
+    const src = path.join(srcShared, mod);
+    const dest = path.join(fnDir, mod);
+    if (!fs.existsSync(src)) continue;
+    fs.copyFileSync(src, dest);
+    peerCopies++;
+  }
 }
 console.log(
-  `sync-cloudfunction-shared: copied _shared into ${n} function director(y/ies); peer hfSpace.js → ${hfPeers} function(s).`
+  `sync-cloudfunction-shared: copied _shared into ${n} function director(y/ies); peer modules → ${peerCopies} file(s) in ${PEER_FUNCTIONS.length} function(s).`
 );

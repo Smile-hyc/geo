@@ -29,14 +29,20 @@ for (const ent of fs.readdirSync(cfRoot, { withFileTypes: true })) {
       failed = true;
     }
   }
-  if (
-    /\brequire\s*\(\s*["']\.\/hfSpace["']\s*\)/.test(body) &&
-    !fs.existsSync(path.join(fnDir, "hfSpace.js"))
-  ) {
-    console.error(
-      `[verify-cloudfunction-shared] ${ent.name} 使用同级 ./hfSpace，但缺少 hfSpace.js（请执行 npm run cloudfunctions:sync-shared 从 _shared 同步）`
-    );
-    failed = true;
+  const peerRequires = [
+    ["./hfSpace", "hfSpace.js"],
+    ["./geoPredictRouter", "geoPredictRouter.js"],
+    ["./modelRegistry", "modelRegistry.js"],
+  ];
+  for (const [reqPath, fileName] of peerRequires) {
+    if (body.includes(`"${reqPath}"`) || body.includes(`'${reqPath}'`)) {
+      if (!fs.existsSync(path.join(fnDir, fileName))) {
+        console.error(
+          `[verify-cloudfunction-shared] ${ent.name} 引用 ${reqPath}，但缺少 ${fileName}（请执行 npm run cloudfunctions:sync-shared）`
+        );
+        failed = true;
+      }
+    }
   }
 }
 

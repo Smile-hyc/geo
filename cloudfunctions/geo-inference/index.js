@@ -1,9 +1,9 @@
 "use strict";
 
-/** 部署时同步：npm run cloudfunctions:sync-shared（需包含 ./_shared） */
+/** 部署时同步：npm run cloudfunctions:sync-shared（根目录 peer：hfSpace / geoPredictRouter / modelRegistry） */
 const { isValidCoordinatePair } = require("./hfSpace");
-const { predictFromBuffer } = require("./_shared/geoPredictRouter");
-const { normalizeId } = require("./_shared/modelRegistry");
+const { predictFromBuffer } = require("./geoPredictRouter");
+const { normalizeId } = require("./modelRegistry");
 
 const DEFAULT_PROMPT =
   '请基于图片判断具体地点，并用简体中文输出推理过程。如果返回 JSON，请保留英文键名（如 "FinalAnswer"、"ChainOfThought"），但所有值都使用简体中文。';

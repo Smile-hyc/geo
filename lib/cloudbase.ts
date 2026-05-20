@@ -107,6 +107,44 @@ export async function resetPasswordWithCode(
   });
 }
 
+function normalizeCloudFunctionError(reason: unknown): Error {
+  if (reason instanceof Error) return reason;
+  if (typeof reason === "string" && reason.trim()) {
+    return new Error(reason.trim());
+  }
+  if (reason && typeof reason === "object") {
+    const o = reason as Record<string, unknown>;
+    const msg =
+      (typeof o.message === "string" && o.message) ||
+      (typeof o.msg === "string" && o.msg) ||
+      (typeof o.errMsg === "string" && o.errMsg) ||
+      "";
+    if (msg) return new Error(msg);
+    try {
+      return new Error(JSON.stringify(reason));
+    } catch {
+      return new Error("云函数调用失败");
+    }
+  }
+  return new Error("云函数调用失败");
+}
+
+function parseCloudFunctionResult<T>(raw: unknown): T & { errMsg?: string } {
+  if (raw === undefined || raw === null) {
+    return {} as T & { errMsg?: string };
+  }
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (!trimmed) return {} as T & { errMsg?: string };
+    try {
+      return JSON.parse(trimmed) as T & { errMsg?: string };
+    } catch {
+      return { errMsg: trimmed } as T & { errMsg?: string };
+    }
+  }
+  return raw as T & { errMsg?: string };
+}
+
 /** 调用云函数 */
 export async function callFunction<T = unknown>(
   name: string,
@@ -124,11 +162,17 @@ export async function callFunction<T = unknown>(
     }
   }
 
-  const res = await getApp().callFunction({ name, data: payload });
-  const result = res.result as T & { errMsg?: string } | undefined;
+  let res: { result?: unknown; errMsg?: string };
+  try {
+    res = await getApp().callFunction({ name, data: payload });
+  } catch (reason) {
+    throw normalizeCloudFunctionError(reason);
+  }
+
+  const result = parseCloudFunctionResult<T>(res.result);
   if (result?.errMsg) throw new Error(result.errMsg);
-  if (result !== undefined && result !== null) return result as T;
-  throw new Error((res as { errMsg?: string }).errMsg || "云函数调用失败");
+  if (res.result !== undefined && res.result !== null) return result as T;
+  throw new Error(res.errMsg || "云函数调用失败");
 }
 
 /** 同步用户信息到 PostgreSQL */
