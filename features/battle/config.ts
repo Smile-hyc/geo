@@ -38,6 +38,10 @@ export const INFERENCE_MODELS = [
     description:
       "集成类 OpenClaw 工作流的「寻境」空间推理 Agent，多轮工具调用与证据链分析（默认对接 HF Space）。",
     image: "/images/baseline.png",
+    /** UI 展示用标签 */
+    tags: ["Baseline", "VLM", "Multimodal"] as const,
+    /** 近 30 天 mock 胜率（占位，待接入统计 API） */
+    mockWinRate: 55.2,
     provider: "hf-space" as const,
     apiModel: null,
     inferenceChannel: "browser-hf" as const,
@@ -50,6 +54,8 @@ export const INFERENCE_MODELS = [
     description:
       "月之暗面 Kimi 视觉模型；OpenAI 兼容接口，需配置 MOONSHOT_API_KEY。",
     image: "/images/baseline.png",
+    tags: ["VLM", "Multimodal"] as const,
+    mockWinRate: 48.6,
     provider: "kimi" as const,
     apiModel: "moonshot-v1-8k-vision-preview",
     inferenceChannel: "cloud" as const,
@@ -62,6 +68,8 @@ export const INFERENCE_MODELS = [
     description:
       "智谱多模态；兼容 OpenAI 格式，需配置 ZHIPU_API_KEY。",
     image: "/images/baseline.png",
+    tags: ["VLM", "Multimodal"] as const,
+    mockWinRate: 51.3,
     provider: "glm" as const,
     apiModel: "glm-4v-plus",
     inferenceChannel: "cloud" as const,
@@ -74,6 +82,8 @@ export const INFERENCE_MODELS = [
     description:
       "阿里云 DashScope OpenAI 兼容模式，需配置 DASHSCOPE_API_KEY（或 QWEN_API_KEY）。",
     image: "/images/baseline.png",
+    tags: ["VLM", "Multimodal"] as const,
+    mockWinRate: 49.8,
     provider: "qwen" as const,
     apiModel: "qwen-vl-plus",
     inferenceChannel: "cloud" as const,
@@ -108,6 +118,18 @@ export function getInferenceModelConfig(
   id: string
 ): InferenceModelConfig | undefined {
   return INFERENCE_MODELS.find((m) => m.id === id);
+}
+
+/** 对战 UI：模型类型标签 */
+export function getModelTags(modelId: string): readonly string[] {
+  const cfg = getInferenceModelConfig(modelId);
+  return cfg?.tags ?? [];
+}
+
+/** 对战 UI：近 30 天 mock 胜率（0–100） */
+export function getMockWinRate(modelId: string): number {
+  const cfg = getInferenceModelConfig(modelId);
+  return cfg?.mockWinRate ?? 0;
 }
 
 export function getInferenceModelsForContext(
