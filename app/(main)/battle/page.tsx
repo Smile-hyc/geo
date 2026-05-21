@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import BattleConfigSidebar from "@/components/battle/BattleConfigSidebar";
 import BattleOpponentPanel from "@/components/battle/BattleOpponentPanel";
 import BattleStatsSidebar from "@/components/battle/BattleStatsSidebar";
-import { createBattle } from "@/lib/cloudbase";
+import { createBattle, getBattleModeHighScores, getBattleModeLeaderboard, getBattleModeStats } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
+import type { ModeHighScore, ModeLeaderboardRow } from "@/features/battle/highScores";
+import type { ModeBattleStats } from "@/features/battle/modeStats";
 import {
   INFERENCE_MODELS,
   BATTLE_MODES,
@@ -18,12 +20,98 @@ import {
 
 export default function BattleConfigPage() {
   const router = useRouter();
+  const authUser = useAuthStore((state) => state.user);
   const [mode, setMode] = useState<(typeof BATTLE_MODES)[number]["id"]>(BATTLE_MODES[0].id);
   const [timeLimit, setTimeLimit] = useState<(typeof TIME_OPTIONS)[number]>(TIME_OPTIONS[1]);
   const [rounds, setRounds] = useState<(typeof ROUND_OPTIONS)[number]>(ROUND_OPTIONS[1]);
   const [aiModelId, setAiModelId] = useState<InferenceModelId>(INFERENCE_MODELS[0].id);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modeHighScores, setModeHighScores] = useState<ModeHighScore[] | null>(null);
+  const [highScoresLoading, setHighScoresLoading] = useState(true);
+  const [modeLeaderboard, setModeLeaderboard] = useState<ModeLeaderboardRow[] | null>(null);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+  const [modeStats, setModeStats] = useState<ModeBattleStats | null>(null);
+  const [modeStatsLoading, setModeStatsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadModePanelData = async () => {
+      setLeaderboardLoading(true);
+      setModeStatsLoading(true);
+      try {
+        const [lbRes, statsRes] = await Promise.all([
+          getBattleModeLeaderboard({ mode_type: mode, limit: 5 }),
+          getBattleModeStats({ mode_type: mode }),
+        ]);
+        if (!cancelled) {
+          setModeLeaderboard(lbRes.leaderboard ?? []);
+          setModeStats(statsRes);
+        }
+      } catch {
+        if (!cancelled) {
+          setModeLeaderboard([]);
+          setModeStats(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLeaderboardLoading(false);
+          setModeStatsLoading(false);
+        }
+      }
+    };
+
+    void loadModePanelData();
+
+    const onFocus = () => {
+      void loadModePanelData();
+    };
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [mode]);
+
+  useEffect(() => {
+    const uid = authUser?.uid ?? "";
+    const email = authUser?.email ?? "";
+    if (!uid && !email) {
+      setModeHighScores(null);
+      setHighScoresLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadHighScores = async () => {
+      setHighScoresLoading(true);
+      try {
+        const res = await getBattleModeHighScores({ cloudbase_uid: uid, email });
+        if (!cancelled) {
+          setModeHighScores(res.high_scores ?? []);
+        }
+      } catch {
+        if (!cancelled) setModeHighScores([]);
+      } finally {
+        if (!cancelled) setHighScoresLoading(false);
+      }
+    };
+
+    void loadHighScores();
+
+    const onFocus = () => {
+      void loadHighScores();
+    };
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [authUser?.uid, authUser?.email]);
 
   const handleStart = useCallback(async () => {
     const currentUser = useAuthStore.getState().user;
@@ -111,7 +199,15 @@ export default function BattleConfigPage() {
           onStart={handleStart}
         />
 
-        <BattleStatsSidebar mode={mode} timeLimitSec={timeLimit} />
+        <BattleStatsSidebar
+          mode={mode}
+          modeHighScores={modeHighScores}
+          highScoresLoading={highScoresLoading}
+          modeLeaderboard={modeLeaderboard}
+          leaderboardLoading={leaderboardLoading}
+          modeStats={modeStats}
+          modeStatsLoading={modeStatsLoading}
+        />
       </div>
     </div>
   );

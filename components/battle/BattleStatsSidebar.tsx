@@ -1,17 +1,25 @@
 "use client";
 
-import { Flame, Medal, Trophy, Activity } from "lucide-react";
-import {
-  getMockModeHeat,
-  getMockUserHighScore,
-  getMockTotalBattles,
-  getMockTop5Leaderboard,
-} from "@/features/battle/mockStats";
+import { Loader2, Flame, Medal, Trophy, Activity } from "lucide-react";
 import { getBattleModeLabel } from "@/features/battle/config";
+import {
+  findModeHighScore,
+  formatHighScoreDate,
+  type ModeHighScore,
+  type ModeLeaderboardRow,
+} from "@/features/battle/highScores";
+import { formatStatsAsOf, type ModeBattleStats } from "@/features/battle/modeStats";
+import { useAuthStore } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 interface BattleStatsSidebarProps {
   mode: string;
-  timeLimitSec: number;
+  modeHighScores: ModeHighScore[] | null;
+  highScoresLoading: boolean;
+  modeLeaderboard: ModeLeaderboardRow[] | null;
+  leaderboardLoading: boolean;
+  modeStats: ModeBattleStats | null;
+  modeStatsLoading: boolean;
 }
 
 function Sparkline({ points }: { points: number[] }) {
@@ -51,13 +59,18 @@ function Sparkline({ points }: { points: number[] }) {
 
 export default function BattleStatsSidebar({
   mode,
-  timeLimitSec,
+  modeHighScores,
+  highScoresLoading,
+  modeLeaderboard,
+  leaderboardLoading,
+  modeStats,
+  modeStatsLoading,
 }: BattleStatsSidebarProps) {
-  const heat = getMockModeHeat(mode);
-  const highScore = getMockUserHighScore(mode);
-  const totals = getMockTotalBattles(mode);
-  const top5 = getMockTop5Leaderboard(mode, timeLimitSec);
+  const currentUser = useAuthStore((state) => state.user);
   const modeLabel = getBattleModeLabel(mode);
+  const currentHigh = findModeHighScore(modeHighScores, mode);
+  const top5 = modeLeaderboard ?? [];
+  const sparklinePoints = modeStats?.daily_counts ?? [];
 
   return (
     <section className="flex w-full flex-none flex-col gap-4 lg:w-[272px] lg:shrink-0">
@@ -66,13 +79,20 @@ export default function BattleStatsSidebar({
           <Flame className="h-3.5 w-3.5 text-orange-500" />
           当前模式竞技热度
         </div>
-        <div className="flex items-end justify-between gap-2">
-          <p className="text-2xl font-black tabular-nums text-slate-900">
-            {heat.count7d.toLocaleString()}
-          </p>
-          <Sparkline points={heat.sparklinePoints} />
-        </div>
-        <p className="mt-1 text-[10px] text-slate-400">近 7 日对战场次（演示）</p>
+        {modeStatsLoading ? (
+          <div className="flex items-center gap-2 py-1 text-slate-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-xs font-medium">加载中...</span>
+          </div>
+        ) : (
+          <div className="flex items-end justify-between gap-2">
+            <p className="text-2xl font-black tabular-nums text-slate-900">
+              {(modeStats?.count_7d ?? 0).toLocaleString()}
+            </p>
+            {sparklinePoints.length >= 2 && <Sparkline points={sparklinePoints} />}
+          </div>
+        )}
+        <p className="mt-1 text-[10px] text-slate-400">近 7 日对战场次 · {modeLabel}</p>
       </div>
 
       <div className="rounded-[22px] border border-slate-100 bg-white/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.04)]">
@@ -80,13 +100,29 @@ export default function BattleStatsSidebar({
           <Trophy className="h-3.5 w-3.5 text-amber-500" />
           你的历史最高积分
         </div>
-        <p className="text-xl font-black tabular-nums text-slate-900">
-          {highScore.points.toLocaleString()}{" "}
-          <span className="text-sm font-bold text-slate-500">pts</span>
-        </p>
-        <p className="mt-1 text-[10px] text-slate-500">
-          {highScore.modeLabel} · {highScore.achievedAt}
-        </p>
+        {highScoresLoading ? (
+          <div className="flex items-center gap-2 py-1 text-slate-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-xs font-medium">加载中...</span>
+          </div>
+        ) : currentHigh ? (
+          <>
+            <p className="text-xl font-black tabular-nums text-slate-900">
+              {currentHigh.best_score.toLocaleString()}{" "}
+              <span className="text-sm font-bold text-slate-500">分</span>
+            </p>
+            <p className="mt-1 text-[10px] text-slate-500">
+              {modeLabel} · {formatHighScoreDate(currentHigh.achieved_at)}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-xl font-black tabular-nums text-slate-400">—</p>
+            <p className="mt-1 text-[10px] text-slate-500">
+              {modeLabel} · 暂无对战记录
+            </p>
+          </>
+        )}
       </div>
 
       <div className="rounded-[22px] border border-slate-100 bg-white/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.04)]">
@@ -94,10 +130,19 @@ export default function BattleStatsSidebar({
           <Activity className="h-3.5 w-3.5 text-primary" />
           当前模式全服对战总局数
         </div>
-        <p className="text-xl font-black tabular-nums leading-tight text-slate-900">
-          {totals.total.toLocaleString()}
+        {modeStatsLoading ? (
+          <div className="flex items-center gap-2 py-1 text-slate-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-xs font-medium">加载中...</span>
+          </div>
+        ) : (
+          <p className="text-xl font-black tabular-nums leading-tight text-slate-900">
+            {(modeStats?.total_battles ?? 0).toLocaleString()}
+          </p>
+        )}
+        <p className="mt-1 text-[10px] text-slate-400">
+          {modeLabel} · 数据截至 {formatStatsAsOf(modeStats?.as_of)}
         </p>
-        <p className="mt-1 text-[10px] text-slate-400">数据截至 {totals.asOfDate}（演示）</p>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col rounded-[22px] border border-slate-100 bg-white/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.04)]">
@@ -108,24 +153,48 @@ export default function BattleStatsSidebar({
           </div>
         </div>
         <p className="mb-3 text-[10px] font-semibold text-slate-500">
-          {modeLabel} · {timeLimitSec}s
+          {modeLabel} · 历史最高分
         </p>
-        <ul className="space-y-2.5">
-          {top5.map((row) => (
-            <li
-              key={row.rank}
-              className="flex items-center justify-between gap-2 rounded-xl border border-slate-50 bg-slate-50/50 px-3 py-2"
-            >
-              <span className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                <span className="w-5 tabular-nums">#{row.rank}</span>
-                <span className="truncate text-slate-800">{row.username}</span>
-              </span>
-              <span className="shrink-0 text-xs font-black tabular-nums text-slate-900">
-                {row.points.toLocaleString()}
-              </span>
-            </li>
-          ))}
-        </ul>
+        {leaderboardLoading ? (
+          <div className="flex items-center justify-center gap-2 py-6 text-slate-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-xs font-medium">加载中...</span>
+          </div>
+        ) : top5.length === 0 ? (
+          <p className="py-6 text-center text-xs text-slate-400">该模式暂无排行数据</p>
+        ) : (
+          <ul className="space-y-2.5">
+            {top5.map((row) => {
+              const isMe = row.username === currentUser?.username;
+              return (
+                <li
+                  key={`${row.rank}-${row.username}`}
+                  className={cn(
+                    "flex items-center justify-between gap-2 rounded-xl border px-3 py-2",
+                    isMe
+                      ? "border-primary/20 bg-primary/5"
+                      : "border-slate-50 bg-slate-50/50"
+                  )}
+                >
+                  <span className="flex min-w-0 items-center gap-2 text-xs font-bold text-slate-500">
+                    <span className="w-5 shrink-0 tabular-nums">#{row.rank}</span>
+                    <span
+                      className={cn(
+                        "truncate",
+                        isMe ? "text-primary" : "text-slate-800"
+                      )}
+                    >
+                      {row.username}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-xs font-black tabular-nums text-slate-900">
+                    {row.best_score.toLocaleString()}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
         <p className="mt-4 text-center text-[10px] font-medium text-slate-400">
           查看完整排行榜
         </p>
