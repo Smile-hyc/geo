@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 import {
   INFERENCE_MODELS,
   getModelTags,
+  getMockWinRate,
   type InferenceModelId,
 } from "@/features/battle/config";
-import { getDisplayMockWinRate } from "@/features/battle/mockStats";
 import BattleConfigOverview from "@/components/battle/BattleConfigOverview";
 
 interface BattleOpponentPanelProps {
@@ -22,7 +22,6 @@ interface BattleOpponentPanelProps {
   loading: boolean;
   error: string | null;
   onStart: () => void;
-  refreshKey: number;
 }
 
 export default function BattleOpponentPanel({
@@ -34,7 +33,6 @@ export default function BattleOpponentPanel({
   loading,
   error,
   onStart,
-  refreshKey,
 }: BattleOpponentPanelProps) {
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col rounded-[28px] border border-slate-100 bg-white/95 p-5 shadow-[0_8px_40px_rgba(0,0,0,0.04)]">
@@ -78,7 +76,7 @@ export default function BattleOpponentPanel({
             <tbody>
               {INFERENCE_MODELS.map((m) => {
                 const selected = aiModelId === m.id;
-                const rate = getDisplayMockWinRate(m.id, refreshKey);
+                const rate = getMockWinRate(m.id);
                 const tags = getModelTags(m.id);
                 return (
                   <tr
@@ -160,7 +158,7 @@ export default function BattleOpponentPanel({
       <div className="flex flex-col gap-3 md:hidden">
         {INFERENCE_MODELS.map((m) => {
           const selected = aiModelId === m.id;
-          const rate = getDisplayMockWinRate(m.id, refreshKey);
+          const rate = getMockWinRate(m.id);
           const tags = getModelTags(m.id);
           return (
             <div
@@ -249,14 +247,12 @@ export default function BattleOpponentPanel({
           )}
         </Button>
 
-        <p className="text-center text-[9px] text-slate-400 sm:hidden">Enter 开始 · D 随机 · R 刷新</p>
+        <p className="text-center text-[9px] text-slate-400 sm:hidden">Enter 开始 · D 随机对手</p>
         <p className="hidden text-center text-[10px] text-slate-400 sm:block">
           <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[10px]">Enter</kbd>
           {" 开始 · "}
           <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[10px]">D</kbd>
-          {" 随机对手 · "}
-          <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[10px]">R</kbd>
-          {" 刷新数据"}
+          {" 随机对手"}
         </p>
       </div>
     </section>

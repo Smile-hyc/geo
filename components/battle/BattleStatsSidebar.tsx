@@ -12,7 +12,6 @@ import { getBattleModeLabel } from "@/features/battle/config";
 interface BattleStatsSidebarProps {
   mode: string;
   timeLimitSec: number;
-  refreshKey: number;
 }
 
 function Sparkline({ points }: { points: number[] }) {
@@ -53,12 +52,11 @@ function Sparkline({ points }: { points: number[] }) {
 export default function BattleStatsSidebar({
   mode,
   timeLimitSec,
-  refreshKey,
 }: BattleStatsSidebarProps) {
-  const heat = getMockModeHeat(mode, refreshKey);
-  const highScore = getMockUserHighScore(mode, refreshKey);
-  const totals = getMockTotalBattles(mode, refreshKey);
-  const top5 = getMockTop5Leaderboard(mode, timeLimitSec, refreshKey);
+  const heat = getMockModeHeat(mode);
+  const highScore = getMockUserHighScore(mode);
+  const totals = getMockTotalBattles(mode);
+  const top5 = getMockTop5Leaderboard(mode, timeLimitSec);
   const modeLabel = getBattleModeLabel(mode);
 
   return (

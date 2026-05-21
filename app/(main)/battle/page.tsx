@@ -24,7 +24,6 @@ export default function BattleConfigPage() {
   const [aiModelId, setAiModelId] = useState<InferenceModelId>(INFERENCE_MODELS[0].id);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleStart = useCallback(async () => {
     const currentUser = useAuthStore.getState().user;
@@ -77,20 +76,16 @@ export default function BattleConfigPage() {
       if (e.key === "d" || e.key === "D") {
         e.preventDefault();
         if (loading) return;
-        const idx = Math.floor(Math.random() * INFERENCE_MODELS.length);
-        setAiModelId(INFERENCE_MODELS[idx].id);
-        return;
-      }
-
-      if (e.key === "r" || e.key === "R") {
-        e.preventDefault();
-        setRefreshKey((k) => k + 1);
+        const others = INFERENCE_MODELS.filter((m) => m.id !== aiModelId);
+        if (others.length === 0) return;
+        const idx = Math.floor(Math.random() * others.length);
+        setAiModelId(others[idx].id);
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleStart, loading]);
+  }, [aiModelId, handleStart, loading]);
 
   return (
     <div className="flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 p-4 font-sans">
@@ -114,10 +109,9 @@ export default function BattleConfigPage() {
           loading={loading}
           error={error}
           onStart={handleStart}
-          refreshKey={refreshKey}
         />
 
-        <BattleStatsSidebar mode={mode} timeLimitSec={timeLimit} refreshKey={refreshKey} />
+        <BattleStatsSidebar mode={mode} timeLimitSec={timeLimit} />
       </div>
     </div>
   );
