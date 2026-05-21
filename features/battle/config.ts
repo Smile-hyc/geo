@@ -37,7 +37,9 @@ export const INFERENCE_MODELS = [
     label: "寻境 · 研究基线（HF）",
     description:
       "集成类 OpenClaw 工作流的「寻境」空间推理 Agent，多轮工具调用与证据链分析（默认对接 HF Space）。",
-    image: "/images/baseline.png",
+    image: "/images/research-baseline.png",
+    /** UI 展示用标签 */
+    tags: ["Baseline", "VLM", "Multimodal"] as const,
     provider: "hf-space" as const,
     apiModel: null,
     inferenceChannel: "browser-hf" as const,
@@ -49,7 +51,8 @@ export const INFERENCE_MODELS = [
     label: "Kimi（Moonshot 视觉）",
     description:
       "月之暗面 Kimi 视觉模型；OpenAI 兼容接口，需配置 MOONSHOT_API_KEY。",
-    image: "/images/baseline.png",
+    image: "/images/kimi-vision.png",
+    tags: ["VLM", "Multimodal"] as const,
     provider: "kimi" as const,
     apiModel: "moonshot-v1-8k-vision-preview",
     inferenceChannel: "cloud" as const,
@@ -61,7 +64,8 @@ export const INFERENCE_MODELS = [
     label: "智谱 GLM-4V",
     description:
       "智谱多模态；兼容 OpenAI 格式，需配置 ZHIPU_API_KEY。",
-    image: "/images/baseline.png",
+    image: "/images/glm-4v.png",
+    tags: ["VLM", "Multimodal"] as const,
     provider: "glm" as const,
     apiModel: "glm-4v-plus",
     inferenceChannel: "cloud" as const,
@@ -73,7 +77,8 @@ export const INFERENCE_MODELS = [
     label: "通义 Qwen-VL",
     description:
       "阿里云 DashScope OpenAI 兼容模式，需配置 DASHSCOPE_API_KEY（或 QWEN_API_KEY）。",
-    image: "/images/baseline.png",
+    image: "/images/qwen-vl.png",
+    tags: ["VLM", "Multimodal"] as const,
     provider: "qwen" as const,
     apiModel: "qwen-vl-plus",
     inferenceChannel: "cloud" as const,
@@ -108,6 +113,12 @@ export function getInferenceModelConfig(
   id: string
 ): InferenceModelConfig | undefined {
   return INFERENCE_MODELS.find((m) => m.id === id);
+}
+
+/** 对战 UI：模型类型标签 */
+export function getModelTags(modelId: string): readonly string[] {
+  const cfg = getInferenceModelConfig(modelId);
+  return cfg?.tags ?? [];
 }
 
 export function getInferenceModelsForContext(

@@ -343,6 +343,63 @@ export async function getLeaderboard(params?: {
   return callFunction("get-leaderboard", params || {});
 }
 
+/** 各模式历史最高对战得分 */
+export async function getBattleModeHighScores(params?: {
+  cloudbase_uid?: string;
+  email?: string;
+}): Promise<{
+  high_scores: Array<{
+    mode_type: string;
+    best_score: number;
+    achieved_at: string | null;
+  }>;
+}> {
+  return callFunction("get-battle-mode-high-scores", params || {});
+}
+
+/** 指定模式下按历史最高对战得分排名 */
+export async function getBattleModeLeaderboard(params: {
+  mode_type: string;
+  limit?: number;
+}): Promise<{
+  mode_type: string;
+  leaderboard: Array<{
+    rank: number;
+    username: string;
+    best_score: number;
+  }>;
+}> {
+  return callFunction("get-battle-mode-leaderboard", params);
+}
+
+/** 指定模式全服对战统计（总局数 + 近 7 日局数） */
+export async function getBattleModeStats(params: {
+  mode_type: string;
+}): Promise<{
+  mode_type: string;
+  total_battles: number;
+  count_7d: number;
+  daily_counts: number[];
+  as_of: string;
+}> {
+  return callFunction("get-battle-mode-stats", params);
+}
+
+/** 各模型在指定模式下近 30 日战胜玩家胜率 */
+export async function getBattleModelWinRates(params: {
+  mode_type: string;
+}): Promise<{
+  mode_type: string;
+  win_rates: Array<{
+    ai_model_id: string;
+    win_rate: number | null;
+    total_battles: number;
+    ai_wins: number;
+  }>;
+}> {
+  return callFunction("get-battle-model-win-rates", params);
+}
+
 /** 创建对战 Session */
 export async function createBattle(params: {
   mode_type: string;
