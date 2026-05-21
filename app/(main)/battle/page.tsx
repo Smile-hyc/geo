@@ -94,7 +94,7 @@ export default function BattleConfigPage() {
 
   return (
     <div className="flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 p-4 font-sans">
-      <div className="mx-auto flex min-h-0 w-full max-w-[1400px] flex-1 flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-5">
+      <div className="mx-auto flex min-h-0 w-full max-w-[min(100%,1800px)] flex-1 flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-4">
         <BattleConfigSidebar
           mode={mode}
           onModeChange={setMode}

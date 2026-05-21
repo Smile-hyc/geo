@@ -57,7 +57,7 @@ export default function BattleConfigOverview({
               <Icon className="h-3.5 w-3.5 text-primary" aria-hidden />
               <span className="text-[10px] font-semibold sm:text-[11px]">{label}</span>
             </div>
-            <p className="truncate text-[11px] font-bold text-slate-900 sm:text-xs" title={value}>
+            <p className="min-w-0 break-words text-[11px] font-bold leading-snug text-slate-900 sm:text-xs" title={value}>
               {value}
             </p>
           </div>

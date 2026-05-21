@@ -8,9 +8,12 @@ import { cn } from "@/lib/utils";
 export default function AppShell({
   children,
   fullBleed = false,
+  /** 对战配置等需要更宽主内容区的页面（避免三栏内表格横向滚动） */
+  wideContent = false,
 }: {
   children: React.ReactNode;
   fullBleed?: boolean;
+  wideContent?: boolean;
 }) {
   return (
     <AuthGuard>
@@ -28,7 +31,7 @@ export default function AppShell({
             transition={{ duration: 0.4, ease: "easeOut" }}
             className={cn(
               "mx-auto w-full",
-              fullBleed ? "" : "max-w-7xl"
+              fullBleed ? "" : wideContent ? "max-w-[min(100%,1820px)]" : "max-w-7xl"
             )}
           >
             {children}

@@ -14,5 +14,8 @@ export default function MainRouteShell({
     return <>{children}</>;
   }
 
-  return <AppShell>{children}</AppShell>;
+  const wideContent =
+    pathname === "/app/battle" || pathname === "/battle";
+
+  return <AppShell wideContent={wideContent}>{children}</AppShell>;
 }

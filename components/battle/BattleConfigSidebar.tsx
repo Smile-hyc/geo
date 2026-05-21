@@ -27,7 +27,7 @@ export default function BattleConfigSidebar({
   disabled,
 }: BattleConfigSidebarProps) {
   return (
-    <section className="flex w-full flex-none flex-col rounded-[28px] border border-slate-100 bg-white/95 p-5 shadow-[0_8px_40px_rgba(0,0,0,0.04)] lg:w-[300px] lg:shrink-0">
+    <section className="flex w-full flex-none flex-col rounded-[28px] border border-slate-100 bg-white/95 p-5 shadow-[0_8px_40px_rgba(0,0,0,0.04)] lg:w-[272px] lg:shrink-0">
       <header className="mb-4 flex items-center gap-3 px-0.5">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Target className="h-4 w-4" />

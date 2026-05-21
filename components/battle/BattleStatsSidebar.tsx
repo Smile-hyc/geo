@@ -62,7 +62,7 @@ export default function BattleStatsSidebar({
   const modeLabel = getBattleModeLabel(mode);
 
   return (
-    <section className="flex w-full flex-none flex-col gap-4 lg:w-[300px] lg:shrink-0">
+    <section className="flex w-full flex-none flex-col gap-4 lg:w-[272px] lg:shrink-0">
       <div className="rounded-[22px] border border-slate-100 bg-white/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.04)]">
         <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
           <Flame className="h-3.5 w-3.5 text-orange-500" />

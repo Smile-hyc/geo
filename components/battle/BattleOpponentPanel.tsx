@@ -57,16 +57,22 @@ export default function BattleOpponentPanel({
         </div>
       )}
 
-      {/* Desktop / tablet table */}
+      {/* Desktop / tablet: 固定列宽 + table-fixed，避免在常规视口下出现横向滚动条 */}
       <div className="hidden min-h-0 md:block">
-        <div className="overflow-x-auto rounded-[16px] border border-slate-100">
-          <table className="w-full min-w-[600px] text-left text-sm">
+        <div className="overflow-hidden rounded-[16px] border border-slate-100">
+          <table className="w-full table-fixed border-collapse text-left text-sm">
+            <colgroup>
+              <col className="w-[34%]" />
+              <col className="w-[20%]" />
+              <col className="w-[32%]" />
+              <col className="w-[14%]" />
+            </colgroup>
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/80 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                <th className="px-4 py-3">模型</th>
-                <th className="px-4 py-3">类型</th>
-                <th className="px-4 py-3">胜率（近 30 天）</th>
-                <th className="px-4 py-3 text-right">操作</th>
+                <th className="px-3 py-3">模型</th>
+                <th className="px-3 py-3">类型</th>
+                <th className="whitespace-nowrap px-3 py-3">胜率（近 30 天）</th>
+                <th className="whitespace-nowrap px-2 py-3 text-right">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -82,8 +88,8 @@ export default function BattleOpponentPanel({
                       selected ? "bg-primary/[0.04]" : "hover:bg-slate-50/50"
                     )}
                   >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
+                    <td className="min-w-0 px-3 py-3 align-middle">
+                      <div className="flex min-w-0 items-start gap-2.5 sm:gap-3">
                         <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-100">
                           <Image
                             src={m.image}
@@ -93,10 +99,12 @@ export default function BattleOpponentPanel({
                             className="object-cover"
                           />
                         </div>
-                        <span className="font-bold text-slate-900">{m.label}</span>
+                        <span className="min-w-0 break-words font-bold leading-snug text-slate-900">
+                          {m.label}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="min-w-0 px-3 py-3 align-middle">
                       <div className="flex flex-wrap gap-1">
                         {tags.map((tag) => (
                           <span
@@ -108,20 +116,20 @@ export default function BattleOpponentPanel({
                         ))}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex min-w-[140px] items-center gap-3">
+                    <td className="min-w-0 px-3 py-3 align-middle">
+                      <div className="flex max-w-full items-center gap-2 sm:gap-3">
                         <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100">
                           <div
                             className="h-full rounded-full bg-primary/80 transition-[width]"
                             style={{ width: `${rate}%` }}
                           />
                         </div>
-                        <span className="w-12 shrink-0 tabular-nums text-xs font-bold text-slate-800">
+                        <span className="w-11 shrink-0 tabular-nums text-xs font-bold text-slate-800 sm:w-12">
                           {rate.toFixed(1)}%
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-2 py-3 text-right align-middle">
                       {selected ? (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-primary">
                           <CheckCircle2 className="h-4 w-4" />
