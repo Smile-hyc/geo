@@ -8,7 +8,7 @@ import {
   type ModeHighScore,
   type ModeLeaderboardRow,
 } from "@/features/battle/highScores";
-import { formatStatsAsOf, type ModeBattleStats } from "@/features/battle/modeStats";
+import { type ModeBattleStats } from "@/features/battle/modeStats";
 import { useAuthStore } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
@@ -92,7 +92,6 @@ export default function BattleStatsSidebar({
             {sparklinePoints.length >= 2 && <Sparkline points={sparklinePoints} />}
           </div>
         )}
-        <p className="mt-1 text-[10px] text-slate-400">近 7 日对战场次 · {modeLabel}</p>
       </div>
 
       <div className="rounded-[22px] border border-slate-100 bg-white/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.04)]">
@@ -140,9 +139,6 @@ export default function BattleStatsSidebar({
             {(modeStats?.total_battles ?? 0).toLocaleString()}
           </p>
         )}
-        <p className="mt-1 text-[10px] text-slate-400">
-          {modeLabel} · 数据截至 {formatStatsAsOf(modeStats?.as_of)}
-        </p>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col rounded-[22px] border border-slate-100 bg-white/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.04)]">
@@ -195,9 +191,6 @@ export default function BattleStatsSidebar({
             })}
           </ul>
         )}
-        <p className="mt-4 text-center text-[10px] font-medium text-slate-400">
-          查看完整排行榜
-        </p>
       </div>
     </section>
   );

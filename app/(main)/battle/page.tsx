@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation";
 import BattleConfigSidebar from "@/components/battle/BattleConfigSidebar";
 import BattleOpponentPanel from "@/components/battle/BattleOpponentPanel";
 import BattleStatsSidebar from "@/components/battle/BattleStatsSidebar";
-import { createBattle, getBattleModeHighScores, getBattleModeLeaderboard, getBattleModeStats } from "@/lib/cloudbase";
+import { createBattle, getBattleModeHighScores, getBattleModeLeaderboard, getBattleModeStats, getBattleModelWinRates } from "@/lib/cloudbase";
 import { useAuthStore } from "@/lib/auth";
 import type { ModeHighScore, ModeLeaderboardRow } from "@/features/battle/highScores";
 import type { ModeBattleStats } from "@/features/battle/modeStats";
+import type { ModelWinRateRow } from "@/features/battle/modelWinRates";
 import {
   INFERENCE_MODELS,
   BATTLE_MODES,
@@ -33,6 +34,8 @@ export default function BattleConfigPage() {
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   const [modeStats, setModeStats] = useState<ModeBattleStats | null>(null);
   const [modeStatsLoading, setModeStatsLoading] = useState(true);
+  const [modelWinRates, setModelWinRates] = useState<ModelWinRateRow[] | null>(null);
+  const [winRatesLoading, setWinRatesLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,24 +43,29 @@ export default function BattleConfigPage() {
     const loadModePanelData = async () => {
       setLeaderboardLoading(true);
       setModeStatsLoading(true);
+      setWinRatesLoading(true);
       try {
-        const [lbRes, statsRes] = await Promise.all([
+        const [lbRes, statsRes, winRes] = await Promise.all([
           getBattleModeLeaderboard({ mode_type: mode, limit: 5 }),
           getBattleModeStats({ mode_type: mode }),
+          getBattleModelWinRates({ mode_type: mode }),
         ]);
         if (!cancelled) {
           setModeLeaderboard(lbRes.leaderboard ?? []);
           setModeStats(statsRes);
+          setModelWinRates(winRes.win_rates ?? []);
         }
       } catch {
         if (!cancelled) {
           setModeLeaderboard([]);
           setModeStats(null);
+          setModelWinRates([]);
         }
       } finally {
         if (!cancelled) {
           setLeaderboardLoading(false);
           setModeStatsLoading(false);
+          setWinRatesLoading(false);
         }
       }
     };
@@ -197,6 +205,8 @@ export default function BattleConfigPage() {
           loading={loading}
           error={error}
           onStart={handleStart}
+          modelWinRates={modelWinRates}
+          winRatesLoading={winRatesLoading}
         />
 
         <BattleStatsSidebar

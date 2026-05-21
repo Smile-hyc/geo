@@ -87,6 +87,13 @@
       "handler": "index.main"
     },
     {
+      "name": "get-battle-model-win-rates",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "installDependency": true,
+      "handler": "index.main"
+    },
+    {
       "name": "export-annotations",
       "timeout": 30,
       "runtime": "Nodejs16.13",

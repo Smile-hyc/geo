@@ -385,6 +385,21 @@ export async function getBattleModeStats(params: {
   return callFunction("get-battle-mode-stats", params);
 }
 
+/** 各模型在指定模式下近 30 日战胜玩家胜率 */
+export async function getBattleModelWinRates(params: {
+  mode_type: string;
+}): Promise<{
+  mode_type: string;
+  win_rates: Array<{
+    ai_model_id: string;
+    win_rate: number | null;
+    total_battles: number;
+    ai_wins: number;
+  }>;
+}> {
+  return callFunction("get-battle-model-win-rates", params);
+}
+
 /** 创建对战 Session */
 export async function createBattle(params: {
   mode_type: string;
