@@ -15,7 +15,10 @@ export default function MainRouteShell({
   }
 
   const wideContent =
-    pathname === "/app/battle" || pathname === "/battle";
+    pathname === "/app/battle" ||
+    pathname === "/battle" ||
+    pathname === "/app/annotate/mode" ||
+    pathname === "/annotate/mode";
 
   return <AppShell wideContent={wideContent}>{children}</AppShell>;
 }

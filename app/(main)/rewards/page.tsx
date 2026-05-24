@@ -26,10 +26,10 @@ const REWARDS = [
 ];
 
 const POINTS_SOURCES = [
-  { label: "有效标注", points: "+5 pts", icon: PenTool, color: "text-blue-500" },
-  { label: "对战胜利", points: "+10 pts", icon: Swords, color: "text-emerald-500" },
-  { label: "高质量样本", points: "+15 pts", icon: UploadCloud, color: "text-purple-500" },
-  { label: "Top 10% 榜单", points: "+50 pts", icon: Trophy, color: "text-amber-500" },
+  { label: "有效标注", points: "+5 pts", icon: PenTool, color: "text-blue-500", bg: "bg-blue-100/50" },
+  { label: "对战胜利", points: "+10 pts", icon: Swords, color: "text-emerald-500", bg: "bg-emerald-100/50" },
+  { label: "高质量样本", points: "+15 pts", icon: UploadCloud, color: "text-purple-500", bg: "bg-purple-100/50" },
+  { label: "Top 10% 榜单", points: "+50 pts", icon: Trophy, color: "text-amber-500", bg: "bg-amber-100/50" },
 ];
 
 const TABS = ["全部", "模型额度", "徽章", "数据权限", "对战权益"];

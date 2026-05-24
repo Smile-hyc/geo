@@ -2,7 +2,7 @@ export const ANNOTATION_MODES = [
   {
     id: "street_view",
     name: "街景",
-    description: "适合包含道路、店铺、路牌与城市线索的图像。",
+    description: "城市道路、店铺、路牌与建筑线索",
     defaultReward: 50,
     showTruthLocation: true,
     enabled: true,
@@ -10,7 +10,7 @@ export const ANNOTATION_MODES = [
   {
     id: "remote_sensing",
     name: "遥感",
-    description: "适合卫星图像、地表覆盖与大尺度空间线索。",
+    description: "卫星影像、地表覆盖与大尺度空间线索",
     defaultReward: 60,
     showTruthLocation: true,
     enabled: true,
@@ -18,7 +18,7 @@ export const ANNOTATION_MODES = [
   {
     id: "map_mode",
     name: "地图",
-    description: "适合地图截图、制图符号与道路拓扑判断。",
+    description: "地图截图、制图符号与道路拓扑判断",
     defaultReward: 45,
     showTruthLocation: true,
     enabled: true,
@@ -26,7 +26,7 @@ export const ANNOTATION_MODES = [
   {
     id: "terrain",
     name: "地形",
-    description: "适合地形图、等高线与海拔变化模式。",
+    description: "地貌、等高线与海拔变化模式",
     defaultReward: 55,
     showTruthLocation: true,
     enabled: true,
@@ -34,7 +34,7 @@ export const ANNOTATION_MODES = [
   {
     id: "mixed",
     name: "混合",
-    description: "用于更广泛采集实验的混合题池。",
+    description: "覆盖多模态地理线索，适合综合能力训练",
     defaultReward: 65,
     showTruthLocation: true,
     enabled: true,
@@ -45,17 +45,20 @@ export const ANNOTATION_TYPES = [
   {
     id: "reasoning",
     name: "思维链标注",
-    description: "记录推理过程、最终答案与置信度。",
+    description: "记录定位推理、最终答案与置信度",
+    estimatedTime: "45-60s",
   },
   {
     id: "bbox",
     name: "地理元素框选",
-    description: "绘制目标框、标记类别并补充线索说明。",
+    description: "框选路牌、建筑、地貌、地图符号等关键线索",
+    estimatedTime: "30-45s",
   },
   {
     id: "hybrid",
     name: "混合标注",
-    description: "同时采集思维链与地理元素框选信息。",
+    description: "同时完成视觉线索选择、地理元素标注与简短推理说明",
+    estimatedTime: "60-90s",
   },
 ] as const;
 
