@@ -164,7 +164,7 @@ export default function AnnotateModeSelectPage() {
           </div>
         </header>
 
-        <div className="grid min-w-0 gap-5 xl:grid-cols-[340px_minmax(0,1fr)_300px] 2xl:grid-cols-[360px_minmax(0,1fr)_320px]">
+        <div className="grid min-w-0 items-stretch gap-5 xl:grid-cols-[340px_minmax(0,1fr)_300px] 2xl:grid-cols-[360px_minmax(0,1fr)_320px]">
           <TaskConfigPanel
             annotationType={annotationType}
             selectedMode={selectedMode}
@@ -173,7 +173,7 @@ export default function AnnotateModeSelectPage() {
           />
 
           <main className="min-w-0">
-            <section className="overflow-hidden rounded-[2rem] border border-slate-100 bg-white/90 shadow-sm backdrop-blur">
+            <section className="flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-100 bg-white/90 shadow-sm backdrop-blur">
               <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
                 <div>
                   <h2 className="text-xl font-extrabold tracking-tight text-slate-900">推荐任务池</h2>
@@ -189,8 +189,8 @@ export default function AnnotateModeSelectPage() {
 
               <TaskPoolList selectedMode={selectedMode} onSelect={setSelectedMode} />
 
-              <div className="px-5 pb-5 pt-3">
-                <section className="rounded-[1.5rem] border border-slate-100 bg-slate-50/60 px-6 py-5">
+              <div className="flex flex-1 px-5 pb-5 pt-3">
+                <section className="flex w-full flex-col justify-center rounded-[1.5rem] border border-slate-100 bg-slate-50/60 px-6 py-5">
                   <h3 className="text-base font-extrabold text-slate-900">当前任务说明</h3>
                   <dl className="mt-4 grid gap-3 text-sm leading-6 text-slate-600">
                     <InfoLine label="当前配置">
@@ -241,7 +241,7 @@ function TaskConfigPanel({
   onModeChange: (mode: AnnotationModeId) => void;
 }) {
   return (
-    <aside className="min-w-0 rounded-[2rem] border border-slate-100 bg-white/90 p-5 shadow-sm backdrop-blur">
+    <aside className="h-full min-w-0 rounded-[2rem] border border-slate-100 bg-white/90 p-5 shadow-sm backdrop-blur">
       <h2 className="text-xl font-extrabold tracking-tight text-slate-900">任务配置</h2>
       <div className="mt-5 border-t border-slate-100 pt-5">
         <SectionLabel>任务类型</SectionLabel>
@@ -410,7 +410,7 @@ function AsidePanel({
   modeName: string;
 }) {
   return (
-    <aside className="min-w-0 space-y-5">
+    <aside className="flex h-full min-w-0 flex-col gap-5">
       <InfoCard title="我的贡献">
         <div className="space-y-4 text-sm font-bold">
           <Metric icon={CheckCircle2} label="今日完成" value="0" />
@@ -433,7 +433,7 @@ function AsidePanel({
         </ul>
       </InfoCard>
 
-      <InfoCard title="任务热度">
+      <InfoCard title="任务热度" className="flex-1">
         <p className="text-sm font-semibold text-slate-500">当前{modeName}任务池剩余样本</p>
         <p className="mt-2 text-3xl font-extrabold leading-none text-sky-600">{sampleCount}</p>
         <div className="mt-5 h-[112px] w-full">
@@ -572,9 +572,17 @@ function DifficultyBadge({ difficulty }: { difficulty: TaskPoolRow["difficulty"]
   );
 }
 
-function InfoCard({ title, children }: { title: string; children: ReactNode }) {
+function InfoCard({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <section className="rounded-[2rem] border border-slate-100 bg-white/90 p-5 shadow-sm backdrop-blur">
+    <section className={cn("rounded-[2rem] border border-slate-100 bg-white/90 p-5 shadow-sm backdrop-blur", className)}>
       <h2 className="mb-5 text-xl font-extrabold tracking-tight text-slate-900">{title}</h2>
       {children}
     </section>
